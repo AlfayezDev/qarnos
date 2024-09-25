@@ -23,6 +23,7 @@ next-env.d.ts
 expo-env.d.ts
 products/**/*-app/ios
 products/**/*-app/android
+*.gen.ts
 
 # production
 build

@@ -25,6 +25,6 @@
 	"author": "",
 	"license": "ISC",
 	"devDependencies": {
-		"@biomejs/biome": "1.9.2"
+		"@biomejs/biome": "catalog:"
 	}
 }

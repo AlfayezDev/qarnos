@@ -1,13 +1,21 @@
-{
-  "private": true,
-  "workspaces": [
-    "products/**/*",
-    "infrastructure/**/*",
-    "shared/**/*"
-  ],
-"packages":[
-    "products/**/*",
-    "infrastructure/**/*",
-    "shared/**/*"
-  ]
-}
+packages:
+  - products/**/*
+catalog:
+  "@tanstack/react-query": ^5.51.23
+  "@trpc/client": ^11.0.0-rc.477
+  "@trpc/react-query": ^11.0.0-rc.477
+  "@trpc/server": ^11.0.0-rc.477
+  tailwindcss: ^3.4.10
+  typescript: ^5.5.4
+  zod: ^3.23.8
+  "@biomejs/biome": 1.9.2
+
+catalogs:
+  react18:
+    react: 18.3.1
+    react-dom: 18.3.1
+    "@types/react": ^18.3.3
+    "@types/react-dom": ^18.3.0
+  vite:
+    vite: ^5.4.1
+    "@vitejs/plugin-react": ^4.3.1
