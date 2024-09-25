@@ -5,5 +5,9 @@
     "infrastructure/**/*",
     "shared/**/*"
   ],
-"packages":[]
+"packages":[
+    "products/**/*",
+    "infrastructure/**/*",
+    "shared/**/*"
+  ]
 }
