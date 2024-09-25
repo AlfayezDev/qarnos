@@ -1,0 +1,16 @@
+{
+	"name": "qarn",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"format-and-lint": "biome check .",
+		"format-and-lint:fix": "biome check . --write"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"devDependencies": {
+		"@biomejs/biome": "1.9.2"
+	}
+}
