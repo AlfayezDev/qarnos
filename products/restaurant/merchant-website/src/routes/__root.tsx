@@ -1,6 +1,7 @@
+import { Outlet, createRootRoute } from "@tanstack/react-router";
 import * as React from "react";
-import { Link, Outlet, createRootRoute } from "@tanstack/react-router";
 import { Suspense } from "react";
+import { ThemeProvider } from "../components/theme-provider";
 const TanStackRouterDevtools =
   process.env.NODE_ENV === "production"
     ? () => null // Render nothing in production
@@ -18,23 +19,11 @@ export const Route = createRootRoute({
 
 function RootComponent() {
   return (
-    <>
-      <div className="p-2 flex gap-2 text-lg">
-        <Link
-          to="/"
-          activeProps={{
-            className: "font-bold",
-          }}
-          activeOptions={{ exact: true }}
-        >
-          Home
-        </Link>{" "}
-      </div>
-      <hr />
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <Outlet />
       <Suspense>
         <TanStackRouterDevtools position="bottom-right" />
       </Suspense>
-    </>
+    </ThemeProvider>
   );
 }
