@@ -2,12 +2,12 @@ import { useHeaderHeight } from "@react-navigation/elements";
 import { FlashList } from "@shopify/flash-list";
 import { cssInterop } from "nativewind";
 import type * as React from "react";
-import { Alert, Linking, View, useWindowDimensions } from "react-native";
+import { Linking, View, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Icon } from "@roninoss/icons";
 
-import { Text } from "~/components/nativewindui/Text";
+import { Text } from "~/components/Text";
 
 import { useColorScheme } from "~/lib/useColorScheme";
 import { useHeaderSearchBar } from "~/lib/useHeaderSearchBar";

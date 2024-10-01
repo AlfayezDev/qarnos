@@ -53,6 +53,7 @@ dist/
 
 
 # Output
+.cache
 .output
 .vercel
 /.svelte-kit

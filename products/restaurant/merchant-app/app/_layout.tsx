@@ -11,6 +11,7 @@ import { ThemeToggle } from "~/components/ThemeToggle";
 import { cn } from "~/lib/cn";
 import { useColorScheme, useInitialAndroidBarSync } from "~/lib/useColorScheme";
 import { NAV_THEME } from "~/theme";
+import React from "react";
 
 export {
 	// Catch any errors thrown by the Layout component.

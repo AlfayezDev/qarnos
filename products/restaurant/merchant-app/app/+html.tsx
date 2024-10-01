@@ -1,4 +1,3 @@
-import { sanitize } from "dompurify";
 import { ScrollViewStyleReset } from "expo-router/html";
 
 // This file is web-only and used to configure the root HTML for every
@@ -30,7 +29,7 @@ export default function Root({ children }: { children: React.ReactNode }) {
 				{/* Using raw CSS styles as an escape-hatch to ensure the background color never flickers in dark-mode. */}
 				<style
 					// biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
-					dangerouslySetInnerHTML={{ __html: sanitize(responsiveBackground) }}
+					dangerouslySetInnerHTML={{ __html: responsiveBackground }}
 				/>
 				{/* Add any additional <head> elements that you want globally available on web... */}
 			</head>
