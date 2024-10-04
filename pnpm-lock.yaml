@@ -29,12 +29,18 @@ importers:
       expo:
         specifier: ~51.0.36
         version: 51.0.36(@babel/core@7.25.2)(@babel/preset-env@7.25.4(@babel/core@7.25.2))
+      expo-blur:
+        specifier: ~13.0.2
+        version: 13.0.2(expo@51.0.36(@babel/core@7.25.2)(@babel/preset-env@7.25.4(@babel/core@7.25.2)))
       expo-font:
         specifier: ~12.0.10
         version: 12.0.10(expo@51.0.36(@babel/core@7.25.2)(@babel/preset-env@7.25.4(@babel/core@7.25.2)))
       expo-linking:
         specifier: ~6.3.1
         version: 6.3.1(expo@51.0.36(@babel/core@7.25.2)(@babel/preset-env@7.25.4(@babel/core@7.25.2)))
+      expo-navigation-bar:
+        specifier: ~3.0.7
+        version: 3.0.7(expo@51.0.36(@babel/core@7.25.2)(@babel/preset-env@7.25.4(@babel/core@7.25.2)))
       expo-router:
         specifier: ^3.5.23
         version: 3.5.23(yvfluwjf2vpgg7hujdxiywrrsu)
@@ -62,6 +68,9 @@ importers:
       react-native-gesture-handler:
         specifier: ~2.16.2
         version: 2.16.2(react-native@0.74.5(@babel/core@7.25.2)(@babel/preset-env@7.25.4(@babel/core@7.25.2))(@types/react@18.2.79)(react@18.2.0))(react@18.2.0)
+      react-native-reanimated:
+        specifier: ~3.10.1
+        version: 3.10.1(@babel/core@7.25.2)(react-native@0.74.5(@babel/core@7.25.2)(@babel/preset-env@7.25.4(@babel/core@7.25.2))(@types/react@18.2.79)(react@18.2.0))(react@18.2.0)
       react-native-safe-area-context:
         specifier: 4.10.5
         version: 4.10.5(react-native@0.74.5(@babel/core@7.25.2)(@babel/preset-env@7.25.4(@babel/core@7.25.2))(@types/react@18.2.79)(react@18.2.0))(react@18.2.0)
@@ -2054,6 +2063,11 @@ packages:
     peerDependencies:
       expo: '*'
 
+  expo-blur@13.0.2:
+    resolution: {integrity: sha512-t2p7BChO3Reykued++QJRMZ/og6J3aXtSQ+bU31YcBeXhZLkHwjWEhiPKPnJka7J2/yTs4+jOCNDY0kCZmcE3w==}
+    peerDependencies:
+      expo: '*'
+
   expo-constants@16.0.2:
     resolution: {integrity: sha512-9tNY3OVO0jfiMzl7ngb6IOyR5VFzNoN5OOazUWoeGfmMqVB5kltTemRvKraK9JRbBKIw+SOYLEmF0sEqgFZ6OQ==}
     peerDependencies:
@@ -2083,6 +2097,11 @@ packages:
 
   expo-modules-core@1.12.25:
     resolution: {integrity: sha512-HB2LS2LEM41Xq1bG+Jtzqm6XgPaa+mM9BAvCdX1lDGMQ9Ay9vMTL/GVEs2gpsINPofICopjBRwD+wftyCbVrzg==}
+
+  expo-navigation-bar@3.0.7:
+    resolution: {integrity: sha512-KCNHyZ58zoN4xdy7D1lUdJvveCYNVQHGSX4M6xO/SZypvI6GZbLzKSN6Lx4GDGEFxG6Kb+EAckZl48tSiNeGYQ==}
+    peerDependencies:
+      expo: '*'
 
   expo-router@3.5.23:
     resolution: {integrity: sha512-Re2kYcxov67hWrcjuu0+3ovsLxYn79PuX6hgtYN20MgigY5ttX79KOIBEVGTO3F3y9dxSrGHyy5Z14BcO+usGQ==}
@@ -7002,6 +7021,10 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  expo-blur@13.0.2(expo@51.0.36(@babel/core@7.25.2)(@babel/preset-env@7.25.4(@babel/core@7.25.2))):
+    dependencies:
+      expo: 51.0.36(@babel/core@7.25.2)(@babel/preset-env@7.25.4(@babel/core@7.25.2))
+
   expo-constants@16.0.2(expo@51.0.36(@babel/core@7.25.2)(@babel/preset-env@7.25.4(@babel/core@7.25.2))):
     dependencies:
       '@expo/config': 9.0.4
@@ -7044,6 +7067,14 @@ snapshots:
   expo-modules-core@1.12.25:
     dependencies:
       invariant: 2.2.4
+
+  expo-navigation-bar@3.0.7(expo@51.0.36(@babel/core@7.25.2)(@babel/preset-env@7.25.4(@babel/core@7.25.2))):
+    dependencies:
+      '@react-native/normalize-colors': 0.74.85
+      debug: 4.3.7
+      expo: 51.0.36(@babel/core@7.25.2)(@babel/preset-env@7.25.4(@babel/core@7.25.2))
+    transitivePeerDependencies:
+      - supports-color
 
   expo-router@3.5.23(yvfluwjf2vpgg7hujdxiywrrsu):
     dependencies:
@@ -8520,7 +8551,6 @@ snapshots:
       react-native: 0.74.5(@babel/core@7.25.2)(@babel/preset-env@7.25.4(@babel/core@7.25.2))(@types/react@18.2.79)(react@18.2.0)
     transitivePeerDependencies:
       - supports-color
-    optional: true
 
   react-native-safe-area-context@4.10.5(react-native@0.74.5(@babel/core@7.25.2)(@babel/preset-env@7.25.4(@babel/core@7.25.2))(@types/react@18.2.79)(react@18.2.0))(react@18.2.0):
     dependencies:

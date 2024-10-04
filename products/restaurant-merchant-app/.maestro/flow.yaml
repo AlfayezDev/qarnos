@@ -1,0 +1,10 @@
+appId: com.malfayez.qrnrestaurantadmin
+---
+- launchApp
+- runFlow:
+    when:
+      visible:
+        text: "Get started"
+    commands:
+      - tapOn:
+          id: "get-started"
