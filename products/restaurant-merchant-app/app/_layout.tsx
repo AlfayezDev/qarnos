@@ -2,8 +2,12 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useFonts } from "expo-font";
 import { SplashScreen, Stack } from "expo-router";
 import { useEffect } from "react";
-import { useStyles } from "react-native-unistyles";
 import "../unistyles";
+import {
+	SafeAreaProvider,
+	initialWindowMetrics,
+} from "react-native-safe-area-context";
+import React from "react";
 
 export {
 	// Catch any errors thrown by the Layout component.
@@ -44,8 +48,10 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
 	return (
-		<Stack>
-			<Stack.Screen name="index" options={{ headerShown: false }} />
-		</Stack>
+		<SafeAreaProvider initialMetrics={initialWindowMetrics}>
+			<Stack>
+				<Stack.Screen name="index" options={{ headerShown: false }} />
+			</Stack>
+		</SafeAreaProvider>
 	);
 }

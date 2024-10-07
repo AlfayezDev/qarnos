@@ -3,8 +3,8 @@ import { MoonIcon, SunIcon } from "lucide-react-native";
 import { Text } from "@/components/Text";
 import { UnistylesRuntime, createStyleSheet } from "react-native-unistyles";
 import { StatusBar } from "expo-status-bar";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import React, { useCallback } from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useCallback } from "react";
 import { View } from "react-native";
 import { useStyles } from "react-native-unistyles";
 
@@ -37,57 +37,55 @@ export default function Index() {
 		);
 	}, []);
 	return (
-		<SafeAreaProvider>
-			<SafeAreaView
+		<SafeAreaView
+			style={[
+				{
+					flex: 1,
+					backgroundColor: theme.colors.background,
+					position: "relative",
+					paddingTop: theme.space.md,
+				},
+			]}
+		>
+			<StatusBar />
+			<View
 				style={[
 					{
 						flex: 1,
-						backgroundColor: theme.colors.background,
-						position: "relative",
-						paddingTop: theme.space.md,
+						justifyContent: "space-between",
+						paddingHorizontal: theme.space.md,
+						marginBottom: theme.space.lg,
 					},
+					styles.container,
 				]}
 			>
-				<StatusBar />
 				<View
-					style={[
-						{
-							flex: 1,
-							justifyContent: "space-between",
-							paddingHorizontal: theme.space.md,
-							marginBottom: theme.space.lg,
-						},
-						styles.container,
-					]}
+					style={{
+						flexDirection: "row",
+						justifyContent: "space-between",
+						alignItems: "center",
+					}}
 				>
-					<View
-						style={{
-							flexDirection: "row",
-							justifyContent: "space-between",
-							alignItems: "center",
-						}}
-					>
-						<ThemeToggle />
-						<Text>Qarn</Text>
-						<LocaleToggle />
-					</View>
-					<View style={{ gap: theme.space.xl, justifyContent: "center" }}>
-						<Text variant="title">Try Qarn for free</Text>
-						<Text variant="subtitle">The health restaurant platform</Text>
-					</View>
-					<View
-						style={{
-							gap: theme.space.sm,
-						}}
-					>
-						<Button testID="register">Get started</Button>
-						<Button testID="login" variant="outline">
-							Log in
-						</Button>
-					</View>
+					<ThemeToggle />
+					<Text>Qarn</Text>
+					<LocaleToggle />
 				</View>
-			</SafeAreaView>
-		</SafeAreaProvider>
+				<View style={{ gap: theme.space.xl, justifyContent: "center" }}>
+					<Text variant="title">Try Qarn for free</Text>
+					<Text variant="subtitle">The health restaurant platform</Text>
+				</View>
+				<View
+					style={{
+						gap: theme.space.sm,
+					}}
+				>
+					<Button testID="register">Get started</Button>
+					<Button testID="login" variant="outline">
+						Log in
+					</Button>
+				</View>
+			</View>
+		</SafeAreaView>
 	);
 }
 const stylesheet = createStyleSheet((theme) => ({

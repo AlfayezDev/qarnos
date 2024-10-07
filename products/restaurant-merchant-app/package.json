@@ -7,15 +7,22 @@
 		"typecheck": "tsc --noEmit --emitDeclarationOnly false",
 		"format": "biome format . --vcs-root ../../../..",
 		"lint": "biome lint . --vcs-root ../../../..",
-		"clean": "rm -rf .turbo node_modules"
+		"clean": "rm -rf .turbo node_modules",
+		"intl:extract": "lingui extract",
+		"intl:compile": "lingui compile"
 	},
 	"dependencies": {
 		"@expo/vector-icons": "^14.0.3",
+		"@formatjs/intl-locale": "^4.0.0",
+		"@formatjs/intl-pluralrules": "^5.2.14",
+		"@lingui/core": "^4.11.4",
+		"@lingui/react": "^4.11.4",
 		"@react-navigation/native": "^6.0.2",
 		"expo": "~51.0.36",
 		"expo-blur": "~13.0.2",
 		"expo-font": "~12.0.10",
 		"expo-linking": "~6.3.1",
+		"expo-localization": "~15.0.3",
 		"expo-navigation-bar": "~3.0.7",
 		"expo-router": "^3.5.23",
 		"expo-splash-screen": "~0.27.6",
@@ -36,6 +43,8 @@
 	},
 	"devDependencies": {
 		"@babel/core": "^7.20.0",
+		"@lingui/cli": "^4.11.4",
+		"@lingui/macro": "^4.11.4",
 		"@types/react": "~18.2.14",
 		"typescript": "^5.1.3"
 	},

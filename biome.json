@@ -16,6 +16,9 @@
 			},
 			"suspicious": {
 				"noExplicitAny": "off"
+			},
+			"style": {
+				"useImportType": "off"
 			}
 		}
 	},
