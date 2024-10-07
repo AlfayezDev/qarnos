@@ -61,6 +61,15 @@ const tokens = {
 		75: 0.75,
 		100: 1,
 	} as const,
+	breakpoints: {
+		xs: 0,
+		sm: 576,
+		md: 768,
+		lg: 992,
+		xl: 1200,
+		superLarge: 2000,
+		tvLike: 4000,
+	} as const,
 };
 
 // Light theme
@@ -125,4 +134,5 @@ export const {
 	tracking,
 	shadows,
 	opacity,
+	breakpoints,
 } = tokens;

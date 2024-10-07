@@ -1,20 +1,31 @@
-import React from "react";
 import { forwardRef, useMemo } from "react";
 import {
 	Pressable,
 	type PressableProps,
-	Text as RNText,
 	type View,
+	type ViewStyle,
+	type TextStyle,
 } from "react-native";
-import { createStyleSheet, useStyles } from "react-native-unistyles";
+import {
+	createStyleSheet,
+	useStyles,
+	UnistylesRuntime,
+} from "react-native-unistyles";
+import { Text } from "./Text";
 
 type ButtonProps = React.PropsWithChildren<PressableProps> & {
 	variant?: "outline" | "primary";
+	buttonStyle?: ViewStyle;
+	textStyle?: TextStyle;
+	style?: never;
 };
 
 export const Button = forwardRef<View, ButtonProps>(
-	({ variant = "primary", children, ...props }, ref) => {
-		const { styles } = useStyles(buttonStyleSheet);
+	(
+		{ variant = "primary", children, buttonStyle, textStyle, ...props },
+		ref,
+	) => {
+		const { styles, theme } = useStyles(buttonStyleSheet);
 
 		const variantStyle = useMemo(() => {
 			switch (variant) {
@@ -24,9 +35,12 @@ export const Button = forwardRef<View, ButtonProps>(
 						text: styles.primaryButtonText,
 					};
 				case "outline":
-					return { button: styles.outlinedButton, text: styles.text };
+					return {
+						button: styles.outlinedButton,
+						text: { color: theme.colors.foreground },
+					};
 			}
-		}, [variant]);
+		}, [variant, UnistylesRuntime.themeName]);
 
 		const contentIsString = useMemo(
 			() => typeof children === "string",
@@ -36,11 +50,11 @@ export const Button = forwardRef<View, ButtonProps>(
 		return (
 			<Pressable
 				ref={ref}
-				style={[styles.button, variantStyle.button]}
+				style={[styles.button, variantStyle.button, buttonStyle]}
 				{...props}
 			>
 				{contentIsString ? (
-					<RNText style={[styles.text, variantStyle.text]}>{children}</RNText>
+					<Text style={[variantStyle.text, textStyle]}>{children}</Text>
 				) : (
 					children
 				)}
@@ -49,12 +63,7 @@ export const Button = forwardRef<View, ButtonProps>(
 	},
 );
 
-Button.displayName = "Button";
 const buttonStyleSheet = createStyleSheet((theme) => ({
-	text: {
-		textAlign: "center",
-		color: theme.colors.foreground,
-	},
 	button: {
 		borderRadius: theme.radius.lg,
 		alignItems: "center",
@@ -73,3 +82,4 @@ const buttonStyleSheet = createStyleSheet((theme) => ({
 		borderColor: theme.colors.border,
 	},
 }));
+Button.displayName = "Button";

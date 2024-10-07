@@ -4,7 +4,7 @@ import {
 	type TextStyle,
 	type TextProps as RNTextProps,
 } from "react-native";
-import { useStyles } from "react-native-unistyles";
+import { useStyles, UnistylesRuntime } from "react-native-unistyles";
 
 const textVariants = ["default", "title", "subtitle"] as const;
 type TextVariant = (typeof textVariants)[number];
@@ -48,7 +48,7 @@ export const Text = forwardRef<RNText, TextProps>(
 			}
 
 			return resultStyle;
-		}, [variant, theme]);
+		}, [variant, theme, UnistylesRuntime.themeName]);
 
 		return <RNText ref={ref} style={[variantStyle, style]} {...props} />;
 	},
