@@ -41,14 +41,17 @@ export default function Index() {
 			style={[
 				{
 					flex: 1,
-					backgroundColor: theme.colors.background,
+					// backgroundColor: theme.colors.background,
 					position: "relative",
 					paddingTop: theme.space.md,
+					backgroundColor: "transparent",
 				},
 			]}
 		>
 			<StatusBar />
 			<View
+				id="testest"
+				nativeID="testestset"
 				style={[
 					{
 						flex: 1,

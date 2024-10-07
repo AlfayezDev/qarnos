@@ -7,17 +7,11 @@ import {
 	SafeAreaProvider,
 	initialWindowMetrics,
 } from "react-native-safe-area-context";
-import React from "react";
 
 export {
 	// Catch any errors thrown by the Layout component.
 	ErrorBoundary,
 } from "expo-router";
-
-export const unstable_settings = {
-	// Ensure that reloading on `/modal` keeps a back button present.
-	initialRouteName: "(tabs)",
-};
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -48,8 +42,13 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
 	return (
-		<SafeAreaProvider initialMetrics={initialWindowMetrics}>
-			<Stack>
+		<SafeAreaProvider
+			initialMetrics={initialWindowMetrics}
+			style={{ backgroundColor: "transparent" }}
+		>
+			<Stack
+				screenOptions={{ contentStyle: { backgroundColor: "transparent" } }}
+			>
 				<Stack.Screen name="index" options={{ headerShown: false }} />
 			</Stack>
 		</SafeAreaProvider>
