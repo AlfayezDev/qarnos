@@ -5,7 +5,7 @@ import { PortalHost } from "@rn-primitives/portal";
 import { ThemeProvider as NavThemeProvider } from "@react-navigation/native";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { useFonts } from "expo-font";
-import { SplashScreen, Stack } from "expo-router";
+import { Slot, SplashScreen } from "expo-router";
 import { useEffect } from "react";
 import { useColorScheme, useInitialAndroidBarSync } from "@/lib/useColorScheme";
 import { StatusBar } from "expo-status-bar";
@@ -55,22 +55,7 @@ function RootLayoutNav() {
 			/>
 			<KeyboardProvider statusBarTranslucent navigationBarTranslucent>
 				<NavThemeProvider value={NAV_THEME[colorScheme]}>
-					<Stack>
-						<Stack.Screen
-							name="index"
-							options={{ headerShown: false }}
-							redirect
-						/>
-						<Stack.Screen
-							name="(auth)/auth"
-							options={{ headerShown: false }}
-							redirect
-						/>
-						<Stack.Screen
-							name="(settings)/settings"
-							options={{ headerShown: false }}
-						/>
-					</Stack>
+					<Slot />
 					<PortalHost />
 				</NavThemeProvider>
 			</KeyboardProvider>

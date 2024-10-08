@@ -12,6 +12,7 @@ import { Button } from "@/components/Button";
 import { Form, FormItem, FormSection } from "@/components/Form";
 import { Text } from "@/components/Text";
 import { TextField } from "@/components/TextField";
+import { auth$ } from "@/state/auth";
 
 const LOGO_SOURCE = {
 	uri: "https://nativewindui.com/_next/image?url=/_next/static/media/logo.28276aeb.png&w=2048&q=75",
@@ -136,7 +137,7 @@ export default function LoginScreen() {
 						<Button
 							size="lg"
 							onPress={() => {
-								router.replace("/");
+								auth$.login("meme", "this");
 							}}
 						>
 							<Text>Continue</Text>

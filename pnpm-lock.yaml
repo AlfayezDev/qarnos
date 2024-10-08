@@ -29,6 +29,9 @@ importers:
       '@formatjs/intl-pluralrules':
         specifier: ^5.2.14
         version: 5.2.14
+      '@legendapp/state':
+        specifier: 3.0.0-beta.8
+        version: 3.0.0-beta.8(react@18.2.0)
       '@lingui/core':
         specifier: ^4.11.4
         version: 4.11.4
@@ -125,6 +128,9 @@ importers:
       react-native-keyboard-controller:
         specifier: ^1.14.0
         version: 1.14.0(react-native-reanimated@3.10.1(@babel/core@7.25.2)(react-native@0.74.5(@babel/core@7.25.2)(@babel/preset-env@7.25.4(@babel/core@7.25.2))(@types/react@18.2.79)(react@18.2.0))(react@18.2.0))(react-native@0.74.5(@babel/core@7.25.2)(@babel/preset-env@7.25.4(@babel/core@7.25.2))(@types/react@18.2.79)(react@18.2.0))(react@18.2.0)
+      react-native-mmkv:
+        specifier: ^3.0.2
+        version: 3.0.2(react-native@0.74.5(@babel/core@7.25.2)(@babel/preset-env@7.25.4(@babel/core@7.25.2))(@types/react@18.2.79)(react@18.2.0))(react@18.2.0)
       react-native-reanimated:
         specifier: ~3.10.1
         version: 3.10.1(@babel/core@7.25.2)(react-native@0.74.5(@babel/core@7.25.2)(@babel/preset-env@7.25.4(@babel/core@7.25.2))(@types/react@18.2.79)(react@18.2.0))(react@18.2.0)
@@ -1287,6 +1293,9 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.25':
     resolution: {integrity: sha512-vNk6aEwybGtawWmy/PzwnGDOjCkLWSD2wqvjGGAgOAwCGWySYXfYoxt00IJkTF+8Lb57DwOb3Aa0o9CApepiYQ==}
+
+  '@legendapp/state@3.0.0-beta.8':
+    resolution: {integrity: sha512-3QsfNjmD/wl/AIHRO0JHsDQyKuBSXTkO9+Mfq7waM0//xIyvkrvIaxmhiRwtqDMxwwJhpoem35a1woyVlRzBWQ==}
 
   '@lingui/babel-plugin-extract-messages@4.11.4':
     resolution: {integrity: sha512-7gUOsYJ4wIjv/0tGxAGiGpgWKCybFPP0tCQMz6baa9xcsk8Vp7Xmuf9og1AD6EMawjStibQsQyE6xaRnJgpoHg==}
@@ -4425,6 +4434,12 @@ packages:
       react-native: '*'
       react-native-reanimated: '>=3.0.0'
 
+  react-native-mmkv@3.0.2:
+    resolution: {integrity: sha512-zd+n5qLDy8Ptcj+ZIVa/pkGgL13X/8xFId3o4Ec9TpQVjM3BJaIszNc8jo6UF7dtndtVcvLDoBWBkkYmkpdTYA==}
+    peerDependencies:
+      react: '*'
+      react-native: '*'
+
   react-native-reanimated@3.10.1:
     resolution: {integrity: sha512-sfxg6vYphrDc/g4jf/7iJ7NRi+26z2+BszPmvmk0Vnrz6FL7HYljJqTf531F1x6tFmsf+FEAmuCtTUIXFLVo9w==}
     peerDependencies:
@@ -6977,6 +6992,12 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.0
+
+  '@legendapp/state@3.0.0-beta.8(react@18.2.0)':
+    dependencies:
+      use-sync-external-store: 1.2.2(react@18.2.0)
+    transitivePeerDependencies:
+      - react
 
   '@lingui/babel-plugin-extract-messages@4.11.4': {}
 
@@ -10520,6 +10541,11 @@ snapshots:
       react: 18.2.0
       react-native: 0.74.5(@babel/core@7.25.2)(@babel/preset-env@7.25.4(@babel/core@7.25.2))(@types/react@18.2.79)(react@18.2.0)
       react-native-reanimated: 3.10.1(@babel/core@7.25.2)(react-native@0.74.5(@babel/core@7.25.2)(@babel/preset-env@7.25.4(@babel/core@7.25.2))(@types/react@18.2.79)(react@18.2.0))(react@18.2.0)
+
+  react-native-mmkv@3.0.2(react-native@0.74.5(@babel/core@7.25.2)(@babel/preset-env@7.25.4(@babel/core@7.25.2))(@types/react@18.2.79)(react@18.2.0))(react@18.2.0):
+    dependencies:
+      react: 18.2.0
+      react-native: 0.74.5(@babel/core@7.25.2)(@babel/preset-env@7.25.4(@babel/core@7.25.2))(@types/react@18.2.79)(react@18.2.0)
 
   react-native-reanimated@3.10.1(@babel/core@7.25.2)(react-native@0.74.5(@babel/core@7.25.2)(@babel/preset-env@7.25.4(@babel/core@7.25.2))(@types/react@18.2.79)(react@18.2.0))(react@18.2.0):
     dependencies:
