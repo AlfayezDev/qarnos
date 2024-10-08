@@ -67,11 +67,6 @@ function RootLayoutNav() {
 							redirect
 						/>
 						<Stack.Screen
-							name="welcome-consent"
-							options={{ headerShown: false }}
-							redirect
-						/>
-						<Stack.Screen
 							name="(settings)/settings"
 							options={{ headerShown: false }}
 						/>
