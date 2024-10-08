@@ -94,7 +94,6 @@ function ListHeaderComponent() {
 }
 
 function ListFooterComponent() {
-	const router = useRouter();
 	const navigator = useNavigation();
 	return (
 		<View className="ios:px-0 px-4 pt-8">
@@ -104,7 +103,6 @@ function ListFooterComponent() {
 				className="border-border bg-card"
 				onPress={() => {
 					auth$.delete();
-					router.replace("/");
 					resetNavigator(navigator);
 				}}
 			>

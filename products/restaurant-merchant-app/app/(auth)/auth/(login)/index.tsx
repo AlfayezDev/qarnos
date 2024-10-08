@@ -26,11 +26,13 @@ export default function LoginScreen() {
 	const [focusedTextField, setFocusedTextField] = React.useState<
 		"email" | "password" | null
 	>(null);
-	const login = React.useCallback(() => {
+	const login = () => {
 		auth$.login("meme", "this");
-		router.replace("/");
-		resetNavigator(navigator);
-	}, []);
+		router.dismissAll();
+		setTimeout(() => {
+			router.replace("/");
+		}, 200);
+	};
 	return (
 		<View
 			className="ios:bg-card flex-1"

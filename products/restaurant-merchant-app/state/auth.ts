@@ -11,7 +11,7 @@ interface User {
 interface AuthStore {
 	user?: User;
 	isAuthenticated: boolean;
-	login: (username: string, password: string) => Promise<void>;
+	login: (username: string, password: string) => void;
 	logout: () => void;
 	register: (
 		username: string,
@@ -32,7 +32,7 @@ const auth$ = observable<AuthStore>({
 		},
 	}),
 	isAuthenticated: (): boolean => auth$.user.get() !== undefined,
-	login: async (username: string, password: string) => {
+	login: (username: string, password: string) => {
 		password;
 		const fakeUser: User = {
 			id: "1",
