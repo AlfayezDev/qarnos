@@ -1,12 +1,13 @@
 // Learn more https://docs.expo.io/guides/customizing-metro
 const { getDefaultConfig } = require("expo/metro-config");
+const { withNativeWind } = require("nativewind/metro");
 const path = require("node:path");
 
 /** @type {import('expo/metro-config').MetroConfig} */
 const config = withMonorepoPaths(
-	getDefaultConfig(__dirname, {
-		// [Web-only]: Enables CSS support in Metro.
-		isCSSEnabled: true,
+	withNativeWind(getDefaultConfig(__dirname, {}), {
+		input: "./theme/global.css",
+		inlineRem: 16,
 	}),
 );
 
@@ -26,5 +27,4 @@ function withMonorepoPaths(config) {
 	return config;
 }
 
-config.resolver.unstable_enablePackageExports = true;
 module.exports = config;
