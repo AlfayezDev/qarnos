@@ -62,7 +62,7 @@ function RootLayoutNav() {
 							redirect
 						/>
 						<Stack.Screen
-							name="auth"
+							name="(auth)/auth"
 							options={{ headerShown: false }}
 							redirect
 						/>
