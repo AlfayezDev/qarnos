@@ -1,4 +1,4 @@
-import { Link, Stack, router } from "expo-router";
+import { Link, Stack, useNavigation, useRouter } from "expo-router";
 import * as React from "react";
 import { Image, Platform, View } from "react-native";
 import {
@@ -13,6 +13,7 @@ import { Form, FormItem, FormSection } from "@/components/Form";
 import { Text } from "@/components/Text";
 import { TextField } from "@/components/TextField";
 import { auth$ } from "@/state/auth";
+import { resetNavigator } from "@/lib/navigation";
 
 const LOGO_SOURCE = {
 	uri: "https://nativewindui.com/_next/image?url=/_next/static/media/logo.28276aeb.png&w=2048&q=75",
@@ -20,9 +21,16 @@ const LOGO_SOURCE = {
 
 export default function LoginScreen() {
 	const insets = useSafeAreaInsets();
+	const router = useRouter();
+	const navigator = useNavigation();
 	const [focusedTextField, setFocusedTextField] = React.useState<
 		"email" | "password" | null
 	>(null);
+	const login = React.useCallback(() => {
+		auth$.login("meme", "this");
+		router.replace("/");
+		resetNavigator(navigator);
+	}, []);
 	return (
 		<View
 			className="ios:bg-card flex-1"
@@ -134,12 +142,7 @@ export default function LoginScreen() {
 			>
 				{Platform.OS === "ios" ? (
 					<View className=" px-12 py-4">
-						<Button
-							size="lg"
-							onPress={() => {
-								auth$.login("meme", "this");
-							}}
-						>
+						<Button size="lg" onPress={login}>
 							<Text>Continue</Text>
 						</Button>
 					</View>
@@ -163,7 +166,7 @@ export default function LoginScreen() {
 									return;
 								}
 								KeyboardController.dismiss();
-								router.replace("/");
+								login();
 							}}
 						>
 							<Text className="text-sm">

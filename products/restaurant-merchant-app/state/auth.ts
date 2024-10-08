@@ -1,4 +1,5 @@
 import { observable } from "@legendapp/state";
+import { currentDay } from "@legendapp/state/helpers/time";
 import { sync } from "./helpers";
 
 interface User {
@@ -7,9 +8,8 @@ interface User {
 	email: string;
 	token: string;
 }
-
 interface AuthStore {
-	user: User | null;
+	user?: User;
 	isAuthenticated: boolean;
 	login: (username: string, password: string) => Promise<void>;
 	logout: () => void;
@@ -20,18 +20,19 @@ interface AuthStore {
 	) => Promise<void>;
 }
 
-// Create a global observable for the Auth store
 const auth$ = observable<AuthStore>({
 	user: sync({
-		initial: null,
+		initial: undefined,
 		persist: {
 			name: "auth",
+			mmkv: {
+				encryptionKey: "test",
+				id: "test",
+			},
 		},
 	}),
-	isAuthenticated: (): boolean => auth$.user.get() !== null,
+	isAuthenticated: (): boolean => auth$.user.get() !== undefined,
 	login: async (username: string, password: string) => {
-		// In a real app, you would make an API call here
-		// This is a simplified example
 		password;
 		const fakeUser: User = {
 			id: "1",
@@ -42,14 +43,12 @@ const auth$ = observable<AuthStore>({
 		auth$.user.set(fakeUser);
 	},
 	logout: () => {
-		auth$.user.set(null);
+		auth$.delete();
 	},
 	register: async (username: string, email: string, password: string) => {
-		// In a real app, you would make an API call here
-		// This is a simplified example
 		password;
 		const newUser: User = {
-			id: Date.now().toString(),
+			id: currentDay.peek().toString(),
 			username,
 			email,
 			token: "fake-jwt-token",
