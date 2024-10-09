@@ -54,7 +54,7 @@ export default function AppLayout() {
 				}}
 			/>
 			<Tabs.Screen
-				name="settings"
+				name="(settings)"
 				options={{
 					lazy: false,
 					headerShown: false,
