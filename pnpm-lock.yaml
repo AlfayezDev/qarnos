@@ -13,16 +13,6 @@ catalogs:
 importers:
 
   .:
-    dependencies:
-      expo:
-        specifier: ~51.0.28
-        version: 51.0.36(@babel/core@7.25.2)(@babel/preset-env@7.25.4(@babel/core@7.25.2))
-      react:
-        specifier: 18.2.0
-        version: 18.2.0
-      react-native:
-        specifier: 0.74.5
-        version: 0.74.5(@babel/core@7.25.2)(@babel/preset-env@7.25.4(@babel/core@7.25.2))(@types/react@18.2.79)(react@18.2.0)
     devDependencies:
       '@biomejs/biome':
         specifier: 'catalog:'

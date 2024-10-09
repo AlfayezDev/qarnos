@@ -21,8 +21,8 @@ next-env.d.ts
 # expo
 .expo
 expo-env.d.ts
-products/**/*-app/ios
-products/**/*-app/android
+ios/
+android/
 *.gen.ts
 
 # production
