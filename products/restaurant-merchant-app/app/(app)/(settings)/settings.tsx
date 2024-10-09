@@ -1,12 +1,10 @@
 import { Icon, MaterialIconName } from "@roninoss/icons";
 import { Platform, View } from "react-native";
-import Animated, { FadeInUp } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AdaptiveSearchHeader } from "@/components/AdaptiveSearchHeader";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/Avatar";
 import { Button } from "@/components/Button";
-import { LargeTitleHeader } from "@/components/LargeTitleHeader";
 import {
 	List,
 	ListDataItem,
@@ -14,46 +12,12 @@ import {
 	ListSectionHeader,
 } from "@/components/List";
 import { Text } from "@/components/Text";
-import { cn } from "@/lib/cn";
 import { useColorScheme } from "@/lib/useColorScheme";
 
 export default function SettingsAndroidStyleScreen() {
 	const insets = useSafeAreaInsets();
 	return (
 		<>
-			{Platform.OS === "ios" && (
-				<LargeTitleHeader
-					title="Settings"
-					rightView={() => {
-						return (
-							<Avatar alt="NativeWindUI's avatar" className="h-8 w-8">
-								<AvatarImage
-									source={{
-										uri: "https://pbs.twimg.com/profile_images/1782428433898708992/1voyv4_A_400x400.jpg",
-									}}
-								/>
-								<AvatarFallback>
-									<Text>NU</Text>
-								</AvatarFallback>
-							</Avatar>
-						);
-					}}
-					searchBar={{
-						content: (
-							<View
-								className={cn(
-									"flex-1",
-									Platform.OS === "ios" && "bg-background dark:bg-background",
-								)}
-							>
-								<Animated.View entering={FadeInUp.delay(150)}>
-									<SearchContent />
-								</Animated.View>
-							</View>
-						),
-					}}
-				/>
-			)}
 			<List
 				rootStyle={Platform.select({
 					ios: undefined,
@@ -176,10 +140,8 @@ type MockData =
 	| string;
 
 const DATA: MockData[] = [
-	...Platform.select({
-		ios: [],
-		default: ["material-top-header", "material-search-header"],
-	}),
+	"material-top-header",
+	"material-search-header",
 	{
 		id: "4",
 		title: "Wi-Fi",

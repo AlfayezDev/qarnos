@@ -1,5 +1,5 @@
 import { Icon } from "@roninoss/icons";
-import { router, Stack, useNavigation, useRouter } from "expo-router";
+import { Stack, useNavigation } from "expo-router";
 import { Linking, Platform, View } from "react-native";
 
 import { Avatar, AvatarFallback } from "@/components/Avatar";
@@ -123,7 +123,6 @@ type DataItem =
 	  };
 
 const DATA: DataItem[] = [
-	...(Platform.OS !== "ios" ? ["Basic info"] : []),
 	"Help",
 	{
 		id: "6",

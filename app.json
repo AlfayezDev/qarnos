@@ -1,0 +1,20 @@
+{
+  "expo": {
+    "name": "qarn",
+    "slug": "qarn",
+    "version": "1.0.0",
+    "description": "",
+    "sdkVersion": "51.0.0",
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
+    "android": {
+      "package": "com.malfayez.qarn"
+    },
+    "ios": {
+      "bundleIdentifier": "com.malfayez.qarn"
+    }
+  }
+}

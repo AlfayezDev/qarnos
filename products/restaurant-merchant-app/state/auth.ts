@@ -43,7 +43,7 @@ const auth$ = observable<AuthStore>({
 		auth$.user.set(fakeUser);
 	},
 	logout: () => {
-		auth$.delete();
+		auth$.user.delete();
 	},
 	register: async (username: string, email: string, password: string) => {
 		password;

@@ -24,7 +24,18 @@
 			},
 			"package": "com.malfayez.qrnrestaurantadmin"
 		},
-		"plugins": ["expo-router", "expo-localization"],
+		"plugins": [
+			"expo-router",
+			"expo-localization",
+			[
+				"expo-build-properties",
+				{
+					"ios": {
+						"deploymentTarget": "14.0"
+					}
+				}
+			]
+		],
 		"experiments": {
 			"typedRoutes": true
 		}
