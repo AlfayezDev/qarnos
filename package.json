@@ -5,7 +5,7 @@
 	"main": "index.js",
 	"packageManager": "pnpm@9.4.0",
 	"engines": {
-		"node": ">=v22.8.0"
+		"node": ">=v20.18.0"
 	},
 	"scripts": {
 		"build": "turbo run build",

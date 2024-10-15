@@ -8,8 +8,7 @@ export default function AppLayout() {
 	const isAuthenticated = auth$.isAuthenticated.get();
 	if (!isAuthenticated) return <Redirect href="/auth" />;
 	return (
-		//@ts-ignore
-		<Tabs sidebarAdaptable>
+		<Tabs>
 			<Tabs.Screen
 				name="(home)"
 				options={{
@@ -54,7 +53,7 @@ export default function AppLayout() {
 				}}
 			/>
 			<Tabs.Screen
-				name="(settings)"
+				name="settings"
 				options={{
 					lazy: false,
 					headerShown: false,

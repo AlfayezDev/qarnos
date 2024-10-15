@@ -1,8 +1,6 @@
 import { Icon } from "@roninoss/icons";
 import { Stack, useNavigation } from "expo-router";
 import { Linking, Platform, View } from "react-native";
-
-import { Avatar, AvatarFallback } from "@/components/Avatar";
 import { Button } from "@/components/Button";
 import {
 	ESTIMATED_ITEM_HEIGHT,
@@ -12,16 +10,9 @@ import {
 	ListSectionHeader,
 } from "@/components/List";
 import { Text } from "@/components/Text";
-import { cn } from "@/lib/cn";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { auth$ } from "@/state/auth";
 import { resetNavigator } from "@/lib/navigation";
-
-const SCREEN_OPTIONS = {
-	title: "Profile",
-	headerTransparent: Platform.OS === "ios",
-	headerBlurEffect: "systemMaterial",
-} as const;
 
 const ESTIMATED_ITEM_SIZE =
 	ESTIMATED_ITEM_HEIGHT[Platform.OS === "ios" ? "titleOnly" : "withSubTitle"];
@@ -29,17 +20,14 @@ const ESTIMATED_ITEM_SIZE =
 export default function Profile() {
 	return (
 		<>
-			<Stack.Screen options={SCREEN_OPTIONS} />
-			<View className="w-full h-full self-center mx-auto max-w-xl">
-				<List
-					variant="insets"
-					data={DATA}
-					sectionHeaderAsGap={Platform.OS === "ios"}
-					estimatedItemSize={ESTIMATED_ITEM_SIZE}
-					renderItem={renderItem}
-					ListHeaderComponent={<ListHeaderComponent />}
-				/>
-			</View>
+			<List
+				variant="insets"
+				data={DATA}
+				sectionHeaderAsGap={Platform.OS === "ios"}
+				estimatedItemSize={ESTIMATED_ITEM_SIZE}
+				renderItem={renderItem}
+				ListFooterComponent={<ListFooterComponent />}
+			/>
 		</>
 	);
 }
@@ -71,25 +59,21 @@ function Item({ info }: { info: ListRenderItemInfo<DataItem> }) {
 	);
 }
 
-function ListHeaderComponent() {
+function ListFooterComponent() {
+	const navigator = useNavigation();
 	return (
-		<View className="ios:pb-8 items-center pb-4  pt-8">
-			<Avatar alt="Zach Nugent's Profile" className="h-24 w-24">
-				<AvatarFallback>
-					<Text
-						variant="largeTitle"
-						className={cn(
-							"dark:text-background font-medium text-white",
-							Platform.OS === "ios" && "dark:text-foreground",
-						)}
-					>
-						ZN
-					</Text>
-				</AvatarFallback>
-			</Avatar>
-			<View className="p-1" />
-			<Text variant="title1">Zach Nugent</Text>
-			<Text className="text-muted-foreground">@mrzachnugent</Text>
+		<View className="ios:px-0 px-4 pt-8">
+			<Button
+				size="lg"
+				variant={Platform.select({ ios: "primary", default: "secondary" })}
+				className="border-border bg-card"
+				onPress={() => {
+					auth$.delete();
+					resetNavigator(navigator);
+				}}
+			>
+				<Text className="text-destructive">Delete Account</Text>
+			</Button>
 		</View>
 	);
 }

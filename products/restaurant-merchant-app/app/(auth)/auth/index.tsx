@@ -21,7 +21,7 @@ export default function AuthIndexScreen() {
 	return (
 		<>
 			<SafeAreaView style={{ flex: 1 }}>
-				<View className="ios:justify-end flex-1 justify-center gap-4 px-8 py-4">
+				<View className="ios:justify-end ios:lg:justify-center flex-1 justify-center gap-4 px-8 py-4 max-w-xl w-full self-center">
 					<View className="items-center">
 						<Image
 							source={LOGO_SOURCE}

@@ -30,16 +30,15 @@ export default function Profile() {
 	return (
 		<>
 			<Stack.Screen options={SCREEN_OPTIONS} />
-			<View className="w-full h-full self-center mx-auto max-w-xl">
-				<List
-					variant="insets"
-					data={DATA}
-					sectionHeaderAsGap={Platform.OS === "ios"}
-					estimatedItemSize={ESTIMATED_ITEM_SIZE}
-					renderItem={renderItem}
-					ListHeaderComponent={<ListHeaderComponent />}
-				/>
-			</View>
+			<List
+				variant="insets"
+				data={DATA}
+				sectionHeaderAsGap={Platform.OS === "ios"}
+				estimatedItemSize={ESTIMATED_ITEM_SIZE}
+				renderItem={renderItem}
+				ListHeaderComponent={<ListHeaderComponent />}
+				ListFooterComponent={<ListFooterComponent />}
+			/>
 		</>
 	);
 }
@@ -90,6 +89,25 @@ function ListHeaderComponent() {
 			<View className="p-1" />
 			<Text variant="title1">Zach Nugent</Text>
 			<Text className="text-muted-foreground">@mrzachnugent</Text>
+		</View>
+	);
+}
+
+function ListFooterComponent() {
+	const navigator = useNavigation();
+	return (
+		<View className="ios:px-0 px-4 pt-8">
+			<Button
+				size="lg"
+				variant={Platform.select({ ios: "primary", default: "secondary" })}
+				className="border-border bg-card"
+				onPress={() => {
+					auth$.delete();
+					resetNavigator(navigator);
+				}}
+			>
+				<Text className="text-destructive">Log Out</Text>
+			</Button>
 		</View>
 	);
 }

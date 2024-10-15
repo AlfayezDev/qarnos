@@ -20,6 +20,7 @@
 		"@legendapp/state": "3.0.0-beta.8",
 		"@lingui/core": "^4.11.4",
 		"@lingui/react": "^4.11.4",
+		"@react-navigation/drawer": "^6.7.2",
 		"@react-navigation/native": "^6.0.2",
 		"@rn-primitives/alert-dialog": "^1.0.4",
 		"@rn-primitives/avatar": "^1.0.5",

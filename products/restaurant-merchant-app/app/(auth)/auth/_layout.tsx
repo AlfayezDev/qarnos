@@ -7,7 +7,6 @@ import { Text } from "@/components/Text";
 export default function AuthLayout() {
 	return (
 		<Stack screenOptions={SCREEN_OPTIONS}>
-			<Stack.Screen name="index" />
 			<Stack.Screen name="(login)" options={LOGIN_MODAL_OPTIONS} />
 			<Stack.Screen
 				name="(create-account)"
