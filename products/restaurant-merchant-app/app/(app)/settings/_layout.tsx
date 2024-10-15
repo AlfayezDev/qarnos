@@ -57,7 +57,7 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
 			/>
 			<DrawerItem
 				label="About Qarnos"
-				onPress={() => Linking.openURL("https://mywebsite.com/help")}
+				onPress={() => Linking.openURL("https://mywebsite.com")}
 				icon={(p) => <Quote color={p.color} />}
 			/>
 			<DrawerItem
