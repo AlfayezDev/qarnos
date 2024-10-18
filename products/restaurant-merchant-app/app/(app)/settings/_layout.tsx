@@ -11,7 +11,6 @@ import {
 	DrawerContentComponentProps,
 	DrawerContentScrollView,
 	DrawerItem,
-	DrawerItemList,
 } from "@react-navigation/drawer";
 import {
 	CogIcon,
@@ -20,17 +19,51 @@ import {
 	UsersIcon,
 	Quote,
 	CreditCardIcon,
+	LucideIcon,
 } from "lucide-react-native";
 import { Avatar, AvatarFallback } from "@/components/Avatar";
 import { Text } from "@/components/Text";
 import { cn } from "@/lib/cn";
 import { auth$ } from "@/state/auth";
 import { resetNavigator } from "@/lib/navigation";
-import { Stack } from "expo-router";
-function CustomDrawerContent(props: DrawerContentComponentProps) {
+import { Href, Stack, useNavigation, useRouter } from "expo-router";
+const items: { name: string; icon: LucideIcon; title: string; href: Href }[] = [
+	{
+		name: "(general)",
+		icon: CogIcon,
+		title: "Overview",
+		href: "/(app)/settings/(general)",
+	},
+	{
+		name: "team",
+		icon: UsersIcon,
+		title: "Team",
+		href: "/(app)/settings/team",
+	},
+	{
+		name: "billing",
+		icon: CreditCardIcon,
+		title: "Billing",
+		href: "/(app)/settings/billing",
+	},
+];
+export function CustomDrawerContent(
+	props: DrawerContentComponentProps | { isStack: boolean },
+) {
+	const state = "isStack" in props ? undefined : props.state;
+	const descriptors = "isStack" in props ? undefined : props.descriptors;
 	const user = auth$.user.peek();
+	const navigation = useNavigation();
+	const router = useRouter();
+	const focusedRoute = state?.routes[state.index];
+	const focusedDescriptor = focusedRoute && descriptors?.[focusedRoute?.key];
+	const focusedOptions = focusedDescriptor?.options;
+
 	return (
-		<DrawerContentScrollView {...props} style={{ height: "100%", flex: 1 }}>
+		<DrawerContentScrollView
+			style={{ height: "100%", flex: 1 }}
+			className={"bg-background"}
+		>
 			<View className="ios:pb-8 items-center pb-4  pt-8">
 				<Avatar alt={user?.username ?? ""} className="h-24 w-24">
 					<AvatarFallback>
@@ -49,7 +82,25 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
 				<Text variant="title1">{user?.username}</Text>
 				<Text className="text-muted-foreground">{user?.email}</Text>
 			</View>
-			<DrawerItemList {...props} />
+			{items.map((item) => {
+				const focused = item.name === focusedRoute?.name;
+				return (
+					<DrawerItem
+						key={item.name}
+						label={item.title}
+						focused={focused}
+						activeTintColor={focusedOptions?.drawerActiveTintColor}
+						inactiveTintColor={focusedOptions?.drawerInactiveTintColor}
+						activeBackgroundColor={focusedOptions?.drawerActiveBackgroundColor}
+						inactiveBackgroundColor={
+							focusedOptions?.drawerInactiveBackgroundColor
+						}
+						onPress={() => router.push(item.href)}
+						to={item.href.toString()}
+						icon={(p) => <item.icon color={p.color} />}
+					/>
+				);
+			})}
 			<DrawerItem
 				label="Support"
 				onPress={() => Linking.openURL("https://qarnos.com")}
@@ -74,7 +125,8 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
 							style: "destructive",
 							onPress: () => {
 								auth$.delete();
-								props.navigation.reset(resetNavigator(props.navigation));
+								//@ts-ignore
+								navigation.reset(resetNavigator(navigation));
 							},
 						},
 					]);
@@ -97,86 +149,41 @@ export default function SettingsLayout() {
 					screenOptions={{
 						drawerType: "permanent",
 						drawerStyle: null,
+						headerLeftLabelVisible: false,
+						headerLeft: () => <></>,
 					}}
 				>
-					<Drawer.Screen
-						name="(general)"
-						options={{
-							drawerLabel: "General",
-							title: "General",
-							drawerIcon: (props) => <CogIcon color={props.color} />,
-							headerShown: false,
-							headerTitleStyle: {
-								fontWeight: "bold",
-							},
-						}}
-					/>
-					<Drawer.Screen
-						name="team"
-						options={{
-							drawerLabel: "Team",
-							title: "Team",
-							drawerIcon: (props) => <UsersIcon color={props.color} />,
-							headerShown: false,
-							headerTitleStyle: {
-								fontWeight: "bold",
-							},
-						}}
-					/>
-					<Drawer.Screen
-						name="billing"
-						options={{
-							drawerLabel: "Billing",
-							title: "Billing",
-							drawerIcon: (props) => <CreditCardIcon color={props.color} />,
-							headerShown: false,
-							headerTitleStyle: {
-								fontWeight: "bold",
-							},
-						}}
-					/>
+					{items.map((item) => (
+						<Drawer.Screen
+							name={item.name}
+							key={item.name}
+							options={{
+								drawerLabel: item.title,
+								title: item.title,
+								drawerIcon: (props) => <item.icon color={props.color} />,
+								headerLeftLabelVisible: false,
+								// headerShown: false,
+							}}
+						/>
+					))}
 				</Drawer>
 			</GestureHandlerRootView>
 		);
 	return (
 		<Stack initialRouteName="catalog">
-			<Stack.Screen
-				name="catalog"
-				options={{
-					title: "catalog",
-					headerTitleStyle: {
-						fontWeight: "bold",
-					},
-				}}
-			/>
-
-			<Stack.Screen
-				name="(general)"
-				options={{
-					title: "General",
-					headerTitleStyle: {
-						fontWeight: "bold",
-					},
-				}}
-			/>
-			<Stack.Screen
-				name="team"
-				options={{
-					title: "Team",
-					headerTitleStyle: {
-						fontWeight: "bold",
-					},
-				}}
-			/>
-			<Stack.Screen
-				name="billing"
-				options={{
-					title: "Billing",
-					headerTitleStyle: {
-						fontWeight: "bold",
-					},
-				}}
-			/>
+			{items.map((item) => (
+				<Stack.Screen
+					name={item.name}
+					key={item.name}
+					options={{
+						title: item.title,
+						headerTitleStyle: {
+							fontWeight: "bold",
+						},
+						headerBackTitleVisible: false,
+					}}
+				/>
+			))}
 		</Stack>
 	);
 }

@@ -10,6 +10,7 @@ import { useEffect } from "react";
 import { useColorScheme, useInitialAndroidBarSync } from "@/lib/useColorScheme";
 import { StatusBar } from "expo-status-bar";
 import { NAV_THEME } from "@/theme";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 export {
 	// Catch any errors thrown by the Layout component.
@@ -48,7 +49,7 @@ function RootLayoutNav() {
 	const { colorScheme, isDarkColorScheme } = useColorScheme();
 
 	return (
-		<>
+		<GestureHandlerRootView>
 			<StatusBar
 				key={`root-status-bar-${isDarkColorScheme ? "light" : "dark"}`}
 				style={isDarkColorScheme ? "light" : "dark"}
@@ -65,6 +66,6 @@ function RootLayoutNav() {
 					<PortalHost />
 				</NavThemeProvider>
 			</KeyboardProvider>
-		</>
+		</GestureHandlerRootView>
 	);
 }
