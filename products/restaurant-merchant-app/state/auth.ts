@@ -1,6 +1,6 @@
 import { observable } from "@legendapp/state";
 import { currentDay } from "@legendapp/state/helpers/time";
-import { sync } from "./helpers";
+import { state } from "./helpers";
 
 interface User {
 	id: string;
@@ -21,7 +21,7 @@ interface AuthStore {
 }
 
 const auth$ = observable<AuthStore>({
-	user: sync({
+	user: state({
 		initial: undefined,
 		persist: {
 			name: "auth",

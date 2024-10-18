@@ -1,6 +1,6 @@
 import { Icon } from "@roninoss/icons";
-import { Stack, useNavigation } from "expo-router";
-import { Linking, Platform, View } from "react-native";
+import { useNavigation } from "expo-router";
+import { Platform, View } from "react-native";
 import { Button } from "@/components/Button";
 import {
 	ESTIMATED_ITEM_HEIGHT,
@@ -22,7 +22,7 @@ export default function Profile() {
 		<>
 			<List
 				variant="insets"
-				data={DATA}
+				data={[]}
 				sectionHeaderAsGap={Platform.OS === "ios"}
 				estimatedItemSize={ESTIMATED_ITEM_SIZE}
 				renderItem={renderItem}
@@ -87,21 +87,3 @@ type DataItem =
 			subTitle?: string;
 			onPress: () => void;
 	  };
-
-const DATA: DataItem[] = [
-	"Help",
-	{
-		id: "6",
-		title: "Support",
-		...(Platform.OS === "ios" ? { value: "Discord" } : { subTitle: "Discord" }),
-		onPress: () => Linking.openURL("https://nativewindui.com/discord"),
-	},
-	{
-		id: "7",
-		title: "About",
-		...(Platform.OS === "ios"
-			? { value: "NativeWindUI" }
-			: { subTitle: "NativeWindUI" }),
-		onPress: () => Linking.openURL("https://nativewindui.com/"),
-	},
-];
