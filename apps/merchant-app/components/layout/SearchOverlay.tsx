@@ -4,7 +4,6 @@ import {
 	TextInput,
 	TouchableOpacity,
 	StyleSheet,
-	Animated,
 	Keyboard,
 	FlatList,
 	StatusBar,
@@ -14,7 +13,33 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/hooks/useTheme";
 import { Text } from "../ui";
+import Animated, {
+	useSharedValue,
+	useAnimatedStyle,
+	withTiming,
+	withSpring,
+	Easing,
+} from "react-native-reanimated";
 
+function interpolate(
+	value: number,
+	inputRange: number[],
+	outputRange: number[],
+) {
+	"worklet";
+
+	if (value <= inputRange[0]) {
+		return outputRange[0];
+	}
+	if (value >= inputRange[1]) {
+		return outputRange[1];
+	}
+	return (
+		outputRange[0] +
+		((value - inputRange[0]) * (outputRange[1] - outputRange[0])) /
+			(inputRange[1] - inputRange[0])
+	);
+}
 interface SearchResult {
 	id: string | number;
 	title: string;
@@ -48,8 +73,8 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({
 	const searchInputRef = useRef<TextInput>(null);
 
 	// Animation values
-	const translateY = useRef(new Animated.Value(0)).current;
-	const opacity = useRef(new Animated.Value(0)).current;
+	const translateY = useSharedValue(0);
+	const opacity = useSharedValue(0);
 
 	// Show/hide the overlay
 	useEffect(() => {
@@ -58,42 +83,30 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({
 			setSearchValue("");
 
 			// Start animations
-			Animated.parallel([
-				Animated.timing(opacity, {
-					toValue: 1,
-					duration: 200,
-					useNativeDriver: true,
-				}),
-				Animated.spring(translateY, {
-					toValue: 1,
-					tension: 65,
-					friction: 11,
-					useNativeDriver: true,
-				}),
-			]).start(() => {
-				// Focus the input
+			opacity.value = withTiming(1, { duration: 200 });
+			translateY.value = withSpring(1, {
+				damping: 11,
+				stiffness: 65,
+			});
+
+			// Focus the input
+			const timeoutId = setTimeout(() => {
 				if (searchInputRef.current) {
 					searchInputRef.current.focus();
 				}
-			});
-		} else {
-			// Hide animations
-			Animated.parallel([
-				Animated.timing(opacity, {
-					toValue: 0,
-					duration: 150,
-					useNativeDriver: true,
-				}),
-				Animated.timing(translateY, {
-					toValue: 0,
-					duration: 200,
-					useNativeDriver: true,
-				}),
-			]).start();
+			}, 300);
 
-			// Dismiss keyboard
-			Keyboard.dismiss();
+			return () => clearTimeout(timeoutId);
 		}
+		// Hide animations
+		opacity.value = withTiming(0, { duration: 150 });
+		translateY.value = withTiming(0, {
+			duration: 200,
+			easing: Easing.ease,
+		});
+
+		// Dismiss keyboard
+		Keyboard.dismiss();
 	}, [isVisible]);
 
 	// Handle search
@@ -115,17 +128,14 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({
 	};
 
 	// Create animation styles
-	const containerStyle = {
-		opacity: opacity,
-		transform: [
-			{
-				translateY: translateY.interpolate({
-					inputRange: [0, 1],
-					outputRange: [-50, 0],
-				}),
-			},
-		],
-	};
+	const containerStyle = useAnimatedStyle(() => {
+		const translateYValue = interpolate(translateY.value, [0, 1], [-50, 0]);
+
+		return {
+			opacity: opacity.value,
+			transform: [{ translateY: translateYValue }],
+		};
+	});
 
 	// If completely hidden, don't render
 	if (!isVisible) return null;

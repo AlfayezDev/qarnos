@@ -1,16 +1,23 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
-
+import React, { useState, useCallback } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
-	Animated,
 	RefreshControl,
 	I18nManager,
 	Platform,
 	LayoutAnimation,
 	UIManager,
+	View,
+	ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
+import Animated, {
+	useSharedValue,
+	useAnimatedStyle,
+	useAnimatedScrollHandler,
+	interpolate,
+	Extrapolation,
+} from "react-native-reanimated";
 
 import { useTheme } from "@/hooks/useTheme";
 import { Box, Text } from "@/components/ui";
@@ -140,62 +147,17 @@ const HomeScreen: React.FC = () => {
 	const [refreshing, setRefreshing] = useState(false);
 	const insets = useSafeAreaInsets(); // Get safe area insets
 
-	// Animation values
-	const progressAnim = useRef(new Animated.Value(0)).current;
-	const fadeAnim = useRef(new Animated.Value(0)).current;
-	const translateY = useRef(new Animated.Value(30)).current;
-	const scrollY = useRef(new Animated.Value(0)).current;
+	// Animation values (using Reanimated shared values)
+	const progressAnim = useSharedValue(5 / 6); // Start with progress visible
+	const scrollY = useSharedValue(0);
 
-	// Run animations when component mounts or when screen is focused
-	const animateElements = useCallback(() => {
-		// Reset animation values
-		fadeAnim.setValue(0);
-		progressAnim.setValue(0);
-		translateY.setValue(30);
-
-		// Configure layout animation for smoother transitions
-		LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-
-		// Run animations in sequence
-		Animated.parallel([
-			// Fade in content
-			Animated.timing(fadeAnim, {
-				toValue: 1,
-				duration: 600,
-				useNativeDriver: true,
-			}),
-			// Slide up content
-			Animated.timing(translateY, {
-				toValue: 0,
-				duration: 600,
-				useNativeDriver: true,
-			}),
-		]).start();
-
-		// Animate progress bar with a slight delay
-		setTimeout(() => {
-			Animated.spring(progressAnim, {
-				toValue: 5 / 6, // 5 of 6 tasks completed
-				friction: 8,
-				tension: 40,
-				useNativeDriver: false,
-			}).start();
-		}, 300);
-	}, []);
-
-	// Initial animation
-	useEffect(() => {
-		animateElements();
-	}, []);
-
-	// Run animations when screen is focused
+	// Initial setup
 	useFocusEffect(
 		useCallback(() => {
-			if (fadeAnim._value === 0) {
-				animateElements();
-			}
+			// Configure layout animation for smoother transitions
+			LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
 			return () => {};
-		}, [animateElements]),
+		}, []),
 	);
 
 	// Handle pull-to-refresh
@@ -205,9 +167,8 @@ const HomeScreen: React.FC = () => {
 		// Simulate data fetch
 		setTimeout(() => {
 			setRefreshing(false);
-			animateElements();
 		}, 1500);
-	}, [animateElements]);
+	}, []);
 
 	// Event handlers
 	const handleAnalytics = () => console.log("Analytics pressed");
@@ -221,40 +182,53 @@ const HomeScreen: React.FC = () => {
 	const handleSearch = () => console.log("Search pressed");
 	const handleNotifications = () => console.log("Notifications pressed");
 
-	// Handle scroll for header effects
-	const handleScroll = Animated.event(
-		[{ nativeEvent: { contentOffset: { y: scrollY } } }],
-		{ useNativeDriver: true },
-	);
-
-	// Header properties based on scroll position
-	const headerTranslate = scrollY.interpolate({
-		inputRange: [0, 100],
-		outputRange: [0, -8],
-		extrapolate: "clamp",
+	const scrollHandler = useAnimatedScrollHandler({
+		onScroll: (event) => {
+			scrollY.value = event.contentOffset.y;
+		},
 	});
 
-	const headerShadowOpacity = scrollY.interpolate({
-		inputRange: [0, 40],
-		outputRange: [0, 0.2],
-		extrapolate: "clamp",
+	const headerAnimatedStyle = useAnimatedStyle(() => {
+		const translateYValue = interpolate(
+			scrollY.value,
+			[0, 100],
+			[0, -8],
+			Extrapolation.CLAMP,
+		);
+
+		const shadowOpacity = interpolate(
+			scrollY.value,
+			[0, 40],
+			[0, 0.2],
+			Extrapolation.CLAMP,
+		);
+
+		return {
+			transform: [{ translateY: translateYValue }],
+			shadowOpacity,
+			shadowColor: "#000",
+			shadowOffset: { width: 0, height: 2 },
+			shadowRadius: 3,
+			elevation: scrollY.value > 20 ? 4 : 0,
+		};
 	});
 
-	// Header Component
+	const progressBarStyle = useAnimatedStyle(() => {
+		return {
+			width: `${progressAnim.value * 100}%`,
+		};
+	});
+
 	const Header = () => (
 		<Animated.View
-			style={{
-				backgroundColor: theme.colors.primary,
-				transform: [{ translateY: headerTranslate }],
-				shadowOpacity: headerShadowOpacity,
-				shadowColor: "#000",
-				shadowOffset: { width: 0, height: 2 },
-				shadowRadius: 3,
-				elevation: scrollY._value > 20 ? 4 : 0,
-				zIndex: 10,
-				// Use safe area insets for top padding
-				paddingTop: insets.top,
-			}}
+			style={[
+				{
+					backgroundColor: theme.colors.primary,
+					paddingTop: insets.top,
+					zIndex: 10,
+				},
+				headerAnimatedStyle,
+			]}
 		>
 			{/* Top bar with logo and notifications */}
 			<Box
@@ -354,12 +328,9 @@ const HomeScreen: React.FC = () => {
 		</Animated.View>
 	);
 
-	// Progress Card Component
 	const ProgressCard = () => (
-		<Animated.View
+		<View
 			style={{
-				opacity: fadeAnim,
-				transform: [{ translateY }],
 				marginHorizontal: theme.spacing.md,
 				marginTop: -20,
 				marginBottom: theme.spacing.md,
@@ -376,7 +347,7 @@ const HomeScreen: React.FC = () => {
 						</Text>
 					</Box>
 
-					<Animated.View
+					<View
 						style={{
 							width: theme.sizes.avatarMd + 6,
 							height: theme.sizes.avatarMd + 6,
@@ -384,20 +355,12 @@ const HomeScreen: React.FC = () => {
 							backgroundColor: theme.colors.primaryLight,
 							alignItems: "center",
 							justifyContent: "center",
-							transform: [
-								{
-									scale: fadeAnim.interpolate({
-										inputRange: [0, 1],
-										outputRange: [0.8, 1],
-									}),
-								},
-							],
 						}}
 					>
 						<Text variant="lg" weight="bold" color="primary">
 							83%
 						</Text>
-					</Animated.View>
+					</View>
 				</Box>
 
 				<Box
@@ -409,15 +372,14 @@ const HomeScreen: React.FC = () => {
 					style={{ overflow: "hidden" }}
 				>
 					<Animated.View
-						style={{
-							width: progressAnim.interpolate({
-								inputRange: [0, 1],
-								outputRange: ["0%", "100%"],
-							}),
-							height: "100%",
-							backgroundColor: theme.colors.primary,
-							borderRadius: theme.radius.xs,
-						}}
+						style={[
+							{
+								height: "100%",
+								backgroundColor: theme.colors.primary,
+								borderRadius: theme.radius.xs,
+							},
+							progressBarStyle,
+						]}
 					/>
 				</Box>
 
@@ -485,10 +447,9 @@ const HomeScreen: React.FC = () => {
 					</Box>
 				</Box>
 			</Box>
-		</Animated.View>
+		</View>
 	);
 
-	// Tasks Section Component
 	const TasksSection = () => (
 		<Box marginTop="md" marginHorizontal="md">
 			<Text variant="lg" weight="semibold" marginBottom="sm">
@@ -502,21 +463,12 @@ const HomeScreen: React.FC = () => {
 					justifyContent: "space-between",
 				}}
 			>
-				{TASKS.map((task, index) => (
-					<Animated.View
+				{TASKS.map((task) => (
+					<View
 						key={task.id}
 						style={{
 							width: "48.5%",
 							marginBottom: theme.spacing.sm,
-							opacity: fadeAnim,
-							transform: [
-								{
-									translateY: fadeAnim.interpolate({
-										inputRange: [0, 1],
-										outputRange: [40 + index * 10, 0],
-									}),
-								},
-							],
 						}}
 					>
 						<TaskCard
@@ -526,13 +478,12 @@ const HomeScreen: React.FC = () => {
 							icon={task.icon}
 							onPress={() => handleTaskPress(task.id)}
 						/>
-					</Animated.View>
+					</View>
 				))}
 			</Box>
 		</Box>
 	);
 
-	// Meal Plans Section Component
 	const MealPlansSection = () => (
 		<Box marginTop="lg">
 			<Box
@@ -557,23 +508,14 @@ const HomeScreen: React.FC = () => {
 					</Text>
 				</Box>
 			</Box>
-
-			{/* Category Filters */}
-			<Animated.View
-				style={{
-					opacity: fadeAnim,
-					transform: [{ translateY }],
-				}}
-			>
+			<View>
 				<CategoryFilters
 					categories={MEAL_TYPES}
 					selectedCategory={selectedType}
 					onSelectCategory={setSelectedType}
 				/>
-			</Animated.View>
-
-			{/* Meal Plan Cards */}
-			<Animated.ScrollView
+			</View>
+			<ScrollView
 				horizontal
 				showsHorizontalScrollIndicator={false}
 				contentContainerStyle={{
@@ -583,17 +525,6 @@ const HomeScreen: React.FC = () => {
 				}}
 				snapToInterval={260 + theme.spacing.md}
 				decelerationRate={Platform.OS === "ios" ? "fast" : 0.85}
-				style={{
-					opacity: fadeAnim,
-					transform: [
-						{
-							translateX: fadeAnim.interpolate({
-								inputRange: [0, 1],
-								outputRange: [isRTL ? -50 : 50, 0],
-							}),
-						},
-					],
-				}}
 			>
 				{MEAL_PLANS.filter(
 					(plan) => selectedType === "All" || plan.diet === selectedType,
@@ -610,38 +541,24 @@ const HomeScreen: React.FC = () => {
 						/>
 					</Box>
 				))}
-			</Animated.ScrollView>
+			</ScrollView>
 		</Box>
 	);
 
-	// Restaurants Section Component
 	const RestaurantsSection = () => (
 		<Box marginTop="lg" marginHorizontal="md" marginBottom="xl">
 			<Text variant="lg" weight="semibold" marginBottom="sm">
 				Active Restaurants
 			</Text>
 
-			{RESTAURANTS.map((restaurant, index) => (
-				<Animated.View
-					key={restaurant.id}
-					style={{
-						opacity: fadeAnim,
-						transform: [
-							{
-								translateY: fadeAnim.interpolate({
-									inputRange: [0, 1],
-									outputRange: [30 + index * 15, 0],
-								}),
-							},
-						],
-					}}
-				>
+			{RESTAURANTS.map((restaurant) => (
+				<View key={restaurant.id}>
 					<RestaurantCard
 						name={restaurant.name}
 						items={restaurant.items}
 						onPress={() => handleRestaurantPress(restaurant.id)}
 					/>
-				</Animated.View>
+				</View>
 			))}
 		</Box>
 	);
@@ -649,11 +566,10 @@ const HomeScreen: React.FC = () => {
 	return (
 		<Box flex={1} bg="background">
 			<Header />
-
 			<Animated.ScrollView
 				showsVerticalScrollIndicator={false}
 				contentContainerStyle={{ paddingBottom: theme.spacing.xl }}
-				onScroll={handleScroll}
+				onScroll={scrollHandler}
 				scrollEventThrottle={16}
 				refreshControl={
 					<RefreshControl
@@ -667,16 +583,9 @@ const HomeScreen: React.FC = () => {
 					/>
 				}
 			>
-				{/* Progress Status Card */}
 				<ProgressCard />
-
-				{/* Tasks Section */}
 				<TasksSection />
-
-				{/* Meal Plans Section */}
 				<MealPlansSection />
-
-				{/* Restaurants Section */}
 				<RestaurantsSection />
 			</Animated.ScrollView>
 		</Box>

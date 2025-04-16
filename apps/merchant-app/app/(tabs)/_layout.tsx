@@ -6,14 +6,13 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 import { QarnColors } from "@/constants/Colors";
 import { QarnSizes } from "@/constants/Spacing";
 import { QarnTypography } from "@/constants/Typography";
+const { height } = Dimensions.get("window");
 
 export default function TabLayout(): React.ReactElement {
 	const colorScheme = useColorScheme();
 	const isDark = colorScheme === "dark";
 	const colors = QarnColors[isDark ? "dark" : "light"];
 
-	// Get device info to determine if it has a home indicator
-	const { height } = Dimensions.get("window");
 	const isIphoneWithNotch = Platform.OS === "ios" && height > 800;
 
 	return (

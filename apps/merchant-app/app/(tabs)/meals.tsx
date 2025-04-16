@@ -1,22 +1,25 @@
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useRef } from "react";
 import {
+	View,
 	ScrollView,
-	I18nManager,
-	Animated,
 	RefreshControl,
-	Platform,
+	Dimensions,
+	TouchableOpacity,
+	Pressable,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useFocusEffect } from "@react-navigation/native";
-
-// Import our components
-import { useTheme } from "@/hooks/useTheme";
-import { Box, Text } from "@/components/ui";
-import { ScreenContainer } from "@/components/layout";
-import SearchOverlay from "@/components/layout/SearchOverlay";
-import CategoryFilters from "@/components/category-filters";
-import MealPlanCard from "@/components/meal-plan-card";
+import Animated, {
+	useSharedValue,
+	useAnimatedStyle,
+	useAnimatedScrollHandler,
+	interpolate,
+	Extrapolation,
+} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTheme } from "@/hooks/useTheme";
+import { Text, Badge, Button } from "@/components/ui";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 // Types for meal plan data
 interface MealPlan {
@@ -29,83 +32,33 @@ interface MealPlan {
 	diet: string;
 	featured?: boolean;
 	description?: string;
+	tags?: string[];
+	subscriptions?: number;
 }
 
-interface SearchResult {
-	id: string | number;
-	title: string;
-	subtitle?: string;
-	icon?: string;
+interface DietType {
+	id: string;
+	name: string;
+	icon: string;
 }
 
 const MealsScreen: React.FC = () => {
 	const theme = useTheme();
-	const isRTL = I18nManager.isRTL;
 	const insets = useSafeAreaInsets();
-	// State
-	const [selectedType, setSelectedType] = useState<string>("All");
-	const [isSearchVisible, setIsSearchVisible] = useState(false);
-	const [_, setSearchQuery] = useState<string>("");
-	const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
-	const [recentSearches, setRecentSearches] = useState<string[]>([
-		"keto meals",
-		"vegan options",
-		"low calorie",
-	]);
 	const [refreshing, setRefreshing] = useState(false);
+	const [activeDiet, setActiveDiet] = useState<string>("all");
+	const [activeTab, setActiveTab] = useState<"all" | "featured">("all");
+	const scrollY = useSharedValue(0);
+	const scrollRef = useRef<Animated.ScrollView>(null);
 
-	// Animation refs
-	const fadeAnim = useRef(new Animated.Value(0)).current;
-	const translateY = useRef(new Animated.Value(20)).current;
-
-	// Reset search when screen re-focuses
-	useFocusEffect(
-		useCallback(() => {
-			setIsSearchVisible(false);
-			animateElements();
-			return () => {};
-		}, []),
-	);
-
-	// Animation function
-	const animateElements = () => {
-		// Reset animation values
-		fadeAnim.setValue(0);
-		translateY.setValue(20);
-
-		// Run animations
-		Animated.parallel([
-			Animated.timing(fadeAnim, {
-				toValue: 1,
-				duration: 600,
-				useNativeDriver: true,
-			}),
-			Animated.timing(translateY, {
-				toValue: 0,
-				duration: 600,
-				useNativeDriver: true,
-			}),
-		]).start();
-	};
-
-	// Handle refresh
-	const handleRefresh = () => {
-		setRefreshing(true);
-		// Simulate API call
-		setTimeout(() => {
-			setRefreshing(false);
-			animateElements();
-		}, 1500);
-	};
-
-	// Sample meal plan categories
-	const MEAL_TYPES: string[] = [
-		"All",
-		"Keto",
-		"Vegan",
-		"Paleo",
-		"Low-carb",
-		"Vegetarian",
+	// Diet types with icons
+	const DIET_TYPES: DietType[] = [
+		{ id: "all", name: "All Plans", icon: "restaurant-outline" },
+		{ id: "keto", name: "Keto", icon: "nutrition-outline" },
+		{ id: "vegan", name: "Vegan", icon: "leaf-outline" },
+		{ id: "paleo", name: "Paleo", icon: "barbell-outline" },
+		{ id: "lowcarb", name: "Low-Carb", icon: "fitness-outline" },
+		{ id: "vegetarian", name: "Vegetarian", icon: "flower-outline" },
 	];
 
 	// Sample meal plans
@@ -117,9 +70,11 @@ const MealsScreen: React.FC = () => {
 			calories: "1,500",
 			image: "nutrition-outline",
 			meals: "5",
-			diet: "Keto",
+			diet: "keto",
 			featured: true,
 			description: "High fat, low carb meals designed for ketosis",
+			tags: ["Gluten-Free", "High Protein"],
+			subscriptions: 42,
 		},
 		{
 			id: 2,
@@ -128,8 +83,10 @@ const MealsScreen: React.FC = () => {
 			calories: "1,200",
 			image: "leaf-outline",
 			meals: "7",
-			diet: "Vegan",
+			diet: "vegan",
 			description: "100% plant-based meals rich in nutrients",
+			tags: ["Organic", "Plant-Based"],
+			subscriptions: 28,
 		},
 		{
 			id: 3,
@@ -138,9 +95,11 @@ const MealsScreen: React.FC = () => {
 			calories: "1,800",
 			image: "barbell-outline",
 			meals: "6",
-			diet: "Paleo",
+			diet: "paleo",
 			featured: true,
 			description: "Whole foods based on our ancestral diet",
+			tags: ["Grain-Free", "High Protein"],
+			subscriptions: 35,
 		},
 		{
 			id: 4,
@@ -149,8 +108,10 @@ const MealsScreen: React.FC = () => {
 			calories: "1,400",
 			image: "flower-outline",
 			meals: "5",
-			diet: "Vegetarian",
+			diet: "vegetarian",
 			description: "Meat-free meals with dairy and eggs",
+			tags: ["Lacto-Ovo", "Plant-Forward"],
+			subscriptions: 31,
 		},
 		{
 			id: 5,
@@ -159,8 +120,10 @@ const MealsScreen: React.FC = () => {
 			calories: "1,600",
 			image: "fitness-outline",
 			meals: "5",
-			diet: "Low-carb",
+			diet: "lowcarb",
 			description: "Reduced carb meals for steady energy",
+			tags: ["Diabetes-Friendly", "Weight Loss"],
+			subscriptions: 24,
 		},
 		{
 			id: 6,
@@ -169,251 +132,532 @@ const MealsScreen: React.FC = () => {
 			calories: "1,300",
 			image: "nutrition-outline",
 			meals: "4",
-			diet: "Keto",
+			diet: "keto",
 			description: "A lighter version of our keto plan",
+			tags: ["Beginner-Friendly", "Budget"],
+			subscriptions: 19,
 		},
 	];
 
-	// Handler functions
-	const handleMealPlanPress = (mealPlanId: number) => {
-		console.log(`Meal plan ${mealPlanId} pressed`);
-	};
-
-	const handleAddMealPlan = () => {
-		console.log("Add new meal plan");
-	};
-
-	const handleSearch = useCallback(
-		(query: string) => {
-			setSearchQuery(query);
-
-			if (!query.trim()) {
-				setSearchResults([]);
-				return;
-			}
-
-			// Filter meal plans based on search query
-			const results = MEAL_PLANS.filter(
-				(plan) =>
-					plan.title.toLowerCase().includes(query.toLowerCase()) ||
-					plan.diet.toLowerCase().includes(query.toLowerCase()) ||
-					plan.description?.toLowerCase().includes(query.toLowerCase()),
-			).map((plan) => ({
-				id: plan.id,
-				title: plan.title,
-				subtitle: `${plan.diet} • ${plan.calories} cal • ${plan.meals} meals`,
-				icon: plan.image,
-			}));
-
-			setSearchResults(results);
-
-			// Save to recent searches when query has results
-			if (
-				query.trim() &&
-				results.length > 0 &&
-				!recentSearches.includes(query)
-			) {
-				setRecentSearches((prev) => [query, ...prev.slice(0, 4)]);
-			}
-		},
-		[MEAL_PLANS, recentSearches],
-	);
-
-	const handleSearchResultPress = (result: SearchResult) => {
-		// Find and handle the corresponding meal plan
-		const plan = MEAL_PLANS.find((p) => p.id === result.id);
-		if (plan) {
-			handleMealPlanPress(plan.id);
-			setIsSearchVisible(false);
-		}
-	};
-
 	const filteredMealPlans = MEAL_PLANS.filter(
-		(plan) => selectedType === "All" || plan.diet === selectedType,
+		(plan) => activeDiet === "all" || plan.diet === activeDiet,
+	).filter(
+		(plan) =>
+			activeTab === "all" || (activeTab === "featured" && plan.featured),
 	);
 
-	const featuredMealPlans = filteredMealPlans.filter((plan) => plan.featured);
-	const regularMealPlans = filteredMealPlans.filter((plan) => !plan.featured);
+	const featuredMealPlans = MEAL_PLANS.filter((plan) => plan.featured === true);
 
-	const Header = () => (
-		<Box bg="primary">
-			<Box
-				row
-				justifyContent="space-between"
-				alignItems="center"
-				paddingTop={insets.top} // Use safe area inset for top padding
-				paddingBottom="md"
-				paddingHorizontal="md"
-			>
-				<Text variant="xl" weight="bold" color="white">
-					Meal Plans
-				</Text>
-			</Box>
+	// Handle refresh
+	const handleRefresh = () => {
+		setRefreshing(true);
+		// Simulate API call
+		setTimeout(() => {
+			setRefreshing(false);
+		}, 1500);
+	};
 
-			{/* Search Bar Button */}
-			<Box
-				bg="rgba(255,255,255,0.15)"
-				rounded="md"
-				row={!isRTL}
-				style={{
-					flexDirection: isRTL ? "row-reverse" : "row",
-					alignItems: "center",
-					height: theme.sizes.inputHeight,
-					marginHorizontal: theme.spacing.md,
-					marginBottom: theme.spacing.lg,
-				}}
-				onPress={() => setIsSearchVisible(true)}
-				activeOpacity={0.8}
-			>
-				<Box paddingHorizontal="md">
-					<Ionicons name="search" size={22} color="rgba(255,255,255,0.9)" />
-				</Box>
+	// Scroll handler for animations
+	const scrollHandler = useAnimatedScrollHandler({
+		onScroll: (event) => {
+			scrollY.value = event.contentOffset.y;
+		},
+	});
 
-				<Text color="rgba(255,255,255,0.7)" style={{ fontSize: 16 }}>
-					Search meal plans
-				</Text>
-			</Box>
-		</Box>
-	);
+	// Header animations
+	const headerStyle = useAnimatedStyle(() => {
+		const height = interpolate(
+			scrollY.value,
+			[0, 120],
+			[200, 120],
+			Extrapolation.CLAMP,
+		);
 
-	// Stats Card component
-	const StatsCard = () => (
-		<Animated.View
-			style={{
-				opacity: fadeAnim,
-				transform: [{ translateY }],
-				marginHorizontal: theme.spacing.md,
-				marginVertical: theme.spacing.sm,
+		const opacity = interpolate(
+			scrollY.value,
+			[60, 120],
+			[1, 0],
+			Extrapolation.CLAMP,
+		);
+
+		return {
+			height,
+			opacity,
+		};
+	});
+
+	const headerTextStyle = useAnimatedStyle(() => {
+		const scale = interpolate(
+			scrollY.value,
+			[0, 120],
+			[1, 0.85],
+			Extrapolation.CLAMP,
+		);
+
+		const translateY = interpolate(
+			scrollY.value,
+			[0, 120],
+			[0, -10],
+			Extrapolation.CLAMP,
+		);
+
+		return {
+			transform: [{ scale }, { translateY }],
+		};
+	});
+
+	const compactHeaderStyle = useAnimatedStyle(() => {
+		const opacity = interpolate(
+			scrollY.value,
+			[100, 130],
+			[0, 1],
+			Extrapolation.CLAMP,
+		);
+
+		return {
+			opacity,
+			position: "absolute",
+			top: 0,
+			left: 0,
+			right: 0,
+			zIndex: 100,
+		};
+	});
+
+	// Diet type selector
+	const DietTypeSelector = () => (
+		<ScrollView
+			horizontal
+			showsHorizontalScrollIndicator={false}
+			contentContainerStyle={{
+				paddingHorizontal: theme.spacing.md,
+				paddingVertical: theme.spacing.sm,
+				gap: theme.spacing.sm,
 			}}
 		>
-			<Box card rounded="lg" elevation="medium" padding={0}>
-				<Box row>
-					<Box
-						flex={1}
-						paddingVertical="md"
-						alignCenter
-						style={{
-							borderRightWidth: 1,
-							borderRightColor: theme.colors.divider,
-						}}
+			{DIET_TYPES.map((diet) => (
+				<TouchableOpacity
+					key={diet.id}
+					style={{
+						backgroundColor:
+							activeDiet === diet.id
+								? theme.colors.primary
+								: theme.colors.cardAlt,
+						borderRadius: theme.radius.lg,
+						padding: theme.spacing.sm,
+						paddingHorizontal: theme.spacing.md,
+						flexDirection: "row",
+						alignItems: "center",
+						height: 40,
+						minWidth: 100,
+						justifyContent: "center",
+					}}
+					onPress={() => setActiveDiet(diet.id)}
+					activeOpacity={0.7}
+				>
+					<Ionicons
+						name={diet.icon as any}
+						size={18}
+						color={activeDiet === diet.id ? "white" : theme.colors.primary}
+						style={{ marginRight: 8 }}
+					/>
+					<Text
+						variant="sm"
+						weight="medium"
+						color={activeDiet === diet.id ? "white" : "text"}
 					>
-						<Text variant="lg" weight="bold" color="primary" marginBottom={4}>
-							{filteredMealPlans.length}
-						</Text>
-						<Text variant="sm" color="textSecondary">
-							Active Plans
-						</Text>
-					</Box>
+						{diet.name}
+					</Text>
+				</TouchableOpacity>
+			))}
+		</ScrollView>
+	);
 
-					<Box
-						flex={1}
-						paddingVertical="md"
-						alignItems="center"
+	// Tabs switcher
+	const TabSwitcher = () => (
+		<View
+			style={{
+				flexDirection: "row",
+				paddingHorizontal: theme.spacing.md,
+				marginTop: theme.spacing.md,
+				marginBottom: theme.spacing.sm,
+			}}
+		>
+			<TouchableOpacity
+				style={{
+					borderBottomWidth: 2,
+					borderBottomColor:
+						activeTab === "all" ? theme.colors.primary : "transparent",
+					paddingBottom: theme.spacing.xs,
+					marginRight: theme.spacing.lg,
+				}}
+				onPress={() => setActiveTab("all")}
+			>
+				<Text
+					variant="md"
+					weight={activeTab === "all" ? "semibold" : "medium"}
+					color={activeTab === "all" ? "primary" : "textSecondary"}
+				>
+					All Plans
+				</Text>
+			</TouchableOpacity>
+
+			<TouchableOpacity
+				style={{
+					borderBottomWidth: 2,
+					borderBottomColor:
+						activeTab === "featured" ? theme.colors.primary : "transparent",
+					paddingBottom: theme.spacing.xs,
+				}}
+				onPress={() => setActiveTab("featured")}
+			>
+				<Text
+					variant="md"
+					weight={activeTab === "featured" ? "semibold" : "medium"}
+					color={activeTab === "featured" ? "primary" : "textSecondary"}
+				>
+					Featured
+				</Text>
+			</TouchableOpacity>
+		</View>
+	);
+
+	// Enhanced Meal Plan Card
+	const EnhancedMealPlanCard = ({ plan }: { plan: MealPlan }) => (
+		<Pressable
+			style={({ pressed }) => ({
+				backgroundColor: theme.colors.card,
+				borderRadius: theme.radius.lg,
+				marginBottom: theme.spacing.md,
+				overflow: "hidden",
+				...theme.shadows.medium,
+				opacity: pressed ? 0.9 : 1,
+			})}
+			onPress={() => console.log(`Meal plan ${plan.id} pressed`)}
+		>
+			{/* Top section with image and diet badge */}
+			<View
+				style={{
+					height: 120,
+					backgroundColor: theme.colors.primaryLight,
+					justifyContent: "center",
+					alignItems: "center",
+					position: "relative",
+				}}
+			>
+				<Ionicons
+					name={plan.image as any}
+					size={60}
+					color={theme.colors.primary}
+				/>
+
+				{plan.featured && (
+					<Badge
+						text="Featured"
+						variant="primary"
 						style={{
-							borderRightWidth: 1,
-							borderRightColor: theme.colors.divider,
+							position: "absolute",
+							top: theme.spacing.sm,
+							right: theme.spacing.sm,
 						}}
-					>
-						<Text variant="lg" weight="bold" color="info" marginBottom={4}>
-							12
-						</Text>
-						<Text variant="sm" color="textSecondary">
-							Subscribers
-						</Text>
-					</Box>
+					/>
+				)}
 
-					<Box flex={1} paddingVertical="md" alignItems="center">
-						<Text variant="lg" weight="bold" color="success" marginBottom={4}>
-							$968
+				<View
+					style={{
+						position: "absolute",
+						bottom: theme.spacing.sm,
+						left: theme.spacing.sm,
+						backgroundColor: "rgba(255,255,255,0.9)",
+						paddingHorizontal: theme.spacing.sm,
+						paddingVertical: 4,
+						borderRadius: theme.radius.sm,
+						flexDirection: "row",
+						alignItems: "center",
+					}}
+				>
+					<Ionicons name="flame" size={14} color="#FF9500" />
+					<Text variant="xs" weight="medium" style={{ marginLeft: 4 }}>
+						{plan.calories} cal
+					</Text>
+				</View>
+			</View>
+
+			{/* Content section */}
+			<View style={{ padding: theme.spacing.md }}>
+				<View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+					<Text variant="lg" weight="semibold" style={{ flex: 1 }}>
+						{plan.title}
+					</Text>
+					<Text variant="lg" weight="bold" color="primary">
+						${plan.price}
+					</Text>
+				</View>
+
+				<Text
+					variant="sm"
+					color="textSecondary"
+					style={{ marginTop: 4, marginBottom: 8 }}
+				>
+					{plan.description}
+				</Text>
+
+				{/* Tags */}
+				<View
+					style={{
+						flexDirection: "row",
+						flexWrap: "wrap",
+						marginBottom: 12,
+						gap: 6,
+					}}
+				>
+					{plan.tags?.map((tag) => (
+						<View
+							key={`plan-tag-${tag}`}
+							style={{
+								backgroundColor: theme.colors.cardAlt,
+								paddingHorizontal: 8,
+								paddingVertical: 4,
+								borderRadius: theme.radius.sm,
+							}}
+						>
+							<Text variant="xs" color="textSecondary">
+								{tag}
+							</Text>
+						</View>
+					))}
+				</View>
+
+				{/* Bottom stats */}
+				<View
+					style={{
+						flexDirection: "row",
+						justifyContent: "space-between",
+						alignItems: "center",
+					}}
+				>
+					<View style={{ flexDirection: "row", alignItems: "center" }}>
+						<Ionicons
+							name="calendar-outline"
+							size={16}
+							color={theme.colors.textSecondary}
+						/>
+						<Text variant="sm" color="textSecondary" style={{ marginLeft: 4 }}>
+							{plan.meals} meals weekly
 						</Text>
-						<Text variant="sm" color="textSecondary">
-							Monthly
+					</View>
+
+					<View style={{ flexDirection: "row", alignItems: "center" }}>
+						<Ionicons
+							name="people-outline"
+							size={16}
+							color={theme.colors.textSecondary}
+						/>
+						<Text variant="sm" color="textSecondary" style={{ marginLeft: 4 }}>
+							{plan.subscriptions} subscribers
 						</Text>
-					</Box>
-				</Box>
-			</Box>
+					</View>
+				</View>
+			</View>
+		</Pressable>
+	);
+
+	// Compact Header (appears when scrolling)
+	const CompactHeader = () => (
+		<Animated.View
+			style={[
+				{
+					backgroundColor: theme.colors.background,
+					paddingTop: insets.top,
+					paddingHorizontal: theme.spacing.md,
+					paddingBottom: theme.spacing.sm,
+					borderBottomWidth: 1,
+					borderBottomColor: theme.colors.divider,
+					flexDirection: "row",
+					alignItems: "center",
+					justifyContent: "space-between",
+				},
+				compactHeaderStyle,
+			]}
+		>
+			<Text variant="lg" weight="bold">
+				Meal Plans
+			</Text>
+
+			<View style={{ flexDirection: "row", gap: 16 }}>
+				<TouchableOpacity>
+					<Ionicons name="search" size={24} color={theme.colors.text} />
+				</TouchableOpacity>
+				<TouchableOpacity>
+					<Ionicons
+						name="options-outline"
+						size={24}
+						color={theme.colors.text}
+					/>
+				</TouchableOpacity>
+			</View>
 		</Animated.View>
 	);
 
-	// Floating Action Button
-	const AddButton = () => (
-		<Box
-			style={{
-				position: "absolute",
-				bottom: theme.spacing.xl,
-				right: isRTL ? undefined : theme.spacing.lg,
-				left: isRTL ? theme.spacing.lg : undefined,
-				backgroundColor: theme.colors.primary,
-				height: 56,
-				width: 56,
-				borderRadius: 28,
-				alignItems: "center",
-				justifyContent: "center",
-				elevation: 4,
-				shadowColor: "#000",
-				shadowOffset: { width: 0, height: 2 },
-				shadowOpacity: 0.2,
-				shadowRadius: 3.5,
-			}}
-			onPress={handleAddMealPlan}
+	// Full Header (collapses when scrolling)
+	const FullHeader = () => (
+		<Animated.View
+			style={[
+				{
+					backgroundColor: theme.colors.primary,
+					paddingTop: insets.top + theme.spacing.sm,
+					padding: theme.spacing.md,
+					overflow: "hidden",
+				},
+				headerStyle,
+			]}
 		>
-			<Ionicons name="add" size={28} color="white" />
-		</Box>
-	);
-
-	// Featured Plans Section
-	const FeaturedPlansSection = () =>
-		featuredMealPlans.length > 0 ? (
-			<Animated.View
-				style={{
-					opacity: fadeAnim,
-					transform: [{ translateY }],
-					marginTop: theme.spacing.sm,
-				}}
-			>
+			<Animated.View style={headerTextStyle}>
 				<Text
-					variant="lg"
-					weight="semibold"
-					margin="md"
-					marginTop="sm"
-					marginBottom="sm"
+					variant="xxl"
+					weight="bold"
+					color="white"
+					style={{ marginBottom: 8 }}
 				>
-					Featured Plans
+					Meal Plans
+				</Text>
+				<Text
+					variant="md"
+					color="rgba(255,255,255,0.8)"
+					style={{ marginBottom: 16 }}
+				>
+					Discover your perfect meal subscription
 				</Text>
 
-				{featuredMealPlans.map((plan) => (
-					<Box key={plan.id} marginHorizontal="md" marginBottom="md">
-						<MealPlanCard
-							title={plan.title}
-							price={plan.price}
-							calories={plan.calories}
-							image={plan.image}
-							meals={plan.meals}
-							diet={plan.diet}
-							onPress={() => handleMealPlanPress(plan.id)}
-							featured={true}
-						/>
-					</Box>
-				))}
+				<View
+					style={{
+						flexDirection: "row",
+						backgroundColor: "rgba(255,255,255,0.15)",
+						padding: 12,
+						borderRadius: theme.radius.md,
+						alignItems: "center",
+						marginTop: theme.spacing.sm,
+					}}
+				>
+					<Ionicons
+						name="search"
+						size={20}
+						color="rgba(255,255,255,0.9)"
+						style={{ marginRight: 8 }}
+					/>
+					<Text color="rgba(255,255,255,0.7)">Search meal plans...</Text>
+				</View>
 			</Animated.View>
-		) : null;
+		</Animated.View>
+	);
 
-	// Regular Plans Section
-	const RegularPlansSection = () => (
-		<Animated.View
+	// Stats Card
+	const StatsCard = () => (
+		<View
 			style={{
-				opacity: fadeAnim,
-				transform: [{ translateY }],
+				marginHorizontal: theme.spacing.md,
+				marginBottom: theme.spacing.md,
 			}}
 		>
+			<View
+				style={{
+					backgroundColor: theme.colors.card,
+					borderRadius: theme.radius.lg,
+					padding: theme.spacing.sm,
+					...theme.shadows.small,
+				}}
+			>
+				<View
+					style={{
+						flexDirection: "row",
+						alignItems: "center",
+						marginBottom: 12,
+					}}
+				>
+					<View
+						style={{
+							width: 40,
+							height: 40,
+							borderRadius: 20,
+							backgroundColor: theme.colors.primaryLight,
+							alignItems: "center",
+							justifyContent: "center",
+							marginRight: 12,
+						}}
+					>
+						<Ionicons
+							name="analytics-outline"
+							size={22}
+							color={theme.colors.primary}
+						/>
+					</View>
+					<View>
+						<Text variant="md" weight="semibold">
+							Meal Plan Overview
+						</Text>
+						<Text variant="xs" color="textSecondary">
+							Updated today
+						</Text>
+					</View>
+				</View>
+
+				<View style={{ flexDirection: "row" }}>
+					<View
+						style={{ flex: 1, alignItems: "center", padding: theme.spacing.sm }}
+					>
+						<Text variant="lg" weight="bold" color="primary">
+							{MEAL_PLANS.length}
+						</Text>
+						<Text variant="xs" color="textSecondary">
+							Total Plans
+						</Text>
+					</View>
+
+					<View
+						style={{
+							flex: 1,
+							alignItems: "center",
+							padding: theme.spacing.sm,
+							borderLeftWidth: 1,
+							borderRightWidth: 1,
+							borderColor: theme.colors.divider,
+						}}
+					>
+						<Text variant="lg" weight="bold" color="success">
+							145
+						</Text>
+						<Text variant="xs" color="textSecondary">
+							Subscribers
+						</Text>
+					</View>
+
+					<View
+						style={{ flex: 1, alignItems: "center", padding: theme.spacing.sm }}
+					>
+						<Text variant="lg" weight="bold" color="info">
+							$1.2k
+						</Text>
+						<Text variant="xs" color="textSecondary">
+							Revenue
+						</Text>
+					</View>
+				</View>
+			</View>
+		</View>
+	);
+
+	// Trending Section
+	const TrendingSection = () => (
+		<View style={{ marginBottom: theme.spacing.lg }}>
 			<Text
 				variant="lg"
 				weight="semibold"
-				margin="md"
-				marginTop="md"
-				marginBottom="sm"
+				style={{
+					marginHorizontal: theme.spacing.md,
+					marginBottom: theme.spacing.sm,
+				}}
 			>
-				All Meal Plans
+				Trending Now
 			</Text>
 
 			<ScrollView
@@ -422,86 +666,226 @@ const MealsScreen: React.FC = () => {
 				contentContainerStyle={{
 					paddingLeft: theme.spacing.md,
 					paddingRight: theme.spacing.md,
-					paddingBottom: theme.spacing.sm,
+					gap: theme.spacing.md,
 				}}
-				snapToInterval={260 + theme.spacing.md}
-				decelerationRate={Platform.OS === "ios" ? "fast" : 0.85}
 			>
-				{regularMealPlans.map((plan) => (
-					<Box key={plan.id} marginBottom="sm" marginRight="sm">
-						<MealPlanCard
-							title={plan.title}
-							price={plan.price}
-							calories={plan.calories}
-							image={plan.image}
-							meals={plan.meals}
-							diet={plan.diet}
-							onPress={() => handleMealPlanPress(plan.id)}
-						/>
-					</Box>
+				{featuredMealPlans.map((plan) => (
+					<Pressable
+						key={plan.id}
+						style={({ pressed }) => ({
+							width: SCREEN_WIDTH * 0.7,
+							backgroundColor: theme.colors.card,
+							borderRadius: theme.radius.lg,
+							overflow: "hidden",
+							...theme.shadows.small,
+							opacity: pressed ? 0.9 : 1,
+						})}
+						onPress={() => console.log(`Featured plan ${plan.id} pressed`)}
+					>
+						<View
+							style={{
+								height: 100,
+								backgroundColor: theme.colors.primaryLight,
+								justifyContent: "center",
+								alignItems: "center",
+							}}
+						>
+							<Ionicons
+								name={plan.image as any}
+								size={40}
+								color={theme.colors.primary}
+							/>
+						</View>
+
+						<View style={{ padding: theme.spacing.md }}>
+							<View
+								style={{
+									flexDirection: "row",
+									justifyContent: "space-between",
+								}}
+							>
+								<Badge
+									text={
+										DIET_TYPES.find((d) => d.id === plan.diet)?.name ||
+										plan.diet
+									}
+									variant="primary"
+								/>
+								<Text variant="md" weight="bold" color="primary">
+									${plan.price}
+								</Text>
+							</View>
+
+							<Text variant="md" weight="semibold" style={{ marginTop: 8 }}>
+								{plan.title}
+							</Text>
+							<Text
+								variant="sm"
+								color="textSecondary"
+								style={{ marginTop: 2 }}
+								numberOfLines={2}
+							>
+								{plan.description}
+							</Text>
+
+							<View
+								style={{
+									flexDirection: "row",
+									marginTop: 12,
+									alignItems: "center",
+									justifyContent: "space-between",
+								}}
+							>
+								<View style={{ flexDirection: "row", alignItems: "center" }}>
+									<Ionicons
+										name="flame-outline"
+										size={16}
+										color={theme.colors.textSecondary}
+									/>
+									<Text
+										variant="xs"
+										color="textSecondary"
+										style={{ marginLeft: 4 }}
+									>
+										{plan.calories} cal
+									</Text>
+								</View>
+
+								<View style={{ flexDirection: "row", alignItems: "center" }}>
+									<Ionicons
+										name="calendar-outline"
+										size={16}
+										color={theme.colors.textSecondary}
+									/>
+									<Text
+										variant="xs"
+										color="textSecondary"
+										style={{ marginLeft: 4 }}
+									>
+										{plan.meals} meals
+									</Text>
+								</View>
+							</View>
+						</View>
+					</Pressable>
 				))}
 			</ScrollView>
-		</Animated.View>
+		</View>
+	);
+
+	// Content section with meal plans
+	const MealPlansContent = () => (
+		<>
+			{filteredMealPlans.length === 0 ? (
+				<View
+					style={{
+						alignItems: "center",
+						justifyContent: "center",
+						padding: theme.spacing.xl,
+						marginTop: theme.spacing.xl,
+					}}
+				>
+					<Ionicons
+						name="restaurant-outline"
+						size={48}
+						color={theme.colors.textSecondary}
+						style={{ marginBottom: 16 }}
+					/>
+					<Text
+						variant="md"
+						weight="medium"
+						color="textSecondary"
+						style={{ textAlign: "center" }}
+					>
+						No meal plans found
+					</Text>
+					<Text
+						variant="sm"
+						color="textSecondary"
+						style={{ textAlign: "center", marginTop: 8 }}
+					>
+						Try selecting a different diet type or create a new plan
+					</Text>
+					<Button
+						title="Create Meal Plan"
+						variant="primary"
+						size="md"
+						leftIcon="add"
+						style={{ marginTop: 24 }}
+					/>
+				</View>
+			) : (
+				<View style={{ paddingHorizontal: theme.spacing.md }}>
+					{filteredMealPlans.map((plan) => (
+						<EnhancedMealPlanCard key={plan.id} plan={plan} />
+					))}
+				</View>
+			)}
+		</>
+	);
+
+	// Floating Action Button
+	const FloatingActionButton = () => (
+		<TouchableOpacity
+			style={{
+				position: "absolute",
+				bottom: insets.bottom + theme.spacing.md,
+				right: theme.spacing.md,
+				width: 56,
+				height: 56,
+				borderRadius: 28,
+				backgroundColor: theme.colors.primary,
+				alignItems: "center",
+				justifyContent: "center",
+				elevation: 4,
+				shadowColor: "#000",
+				shadowOffset: { width: 0, height: 2 },
+				shadowOpacity: 0.3,
+				shadowRadius: 3,
+			}}
+			onPress={() => console.log("Add new meal plan")}
+		>
+			<Ionicons name="add" size={28} color="white" />
+		</TouchableOpacity>
 	);
 
 	return (
-		<>
-			<ScreenContainer header={<Header />} scrollable={false} padded={false}>
-				<Animated.ScrollView
-					style={{ flex: 1 }}
-					contentContainerStyle={{ paddingBottom: theme.spacing.xl + 40 }}
-					showsVerticalScrollIndicator={false}
-					refreshControl={
-						<RefreshControl
-							refreshing={refreshing}
-							onRefresh={handleRefresh}
-							tintColor={theme.colors.primary}
-							colors={[theme.colors.primary]}
-							progressBackgroundColor={
-								theme.isDark ? theme.colors.card : undefined
-							}
-						/>
-					}
-				>
-					{/* Category Filters */}
-					<Animated.View
-						style={{
-							opacity: fadeAnim,
-							transform: [{ translateY: translateY }],
-						}}
-					>
-						<CategoryFilters
-							categories={MEAL_TYPES}
-							selectedCategory={selectedType}
-							onSelectCategory={setSelectedType}
-						/>
-					</Animated.View>
+		<View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+			<CompactHeader />
 
-					{/* Stats Bar */}
-					<StatsCard />
+			<Animated.ScrollView
+				ref={scrollRef}
+				onScroll={scrollHandler}
+				scrollEventThrottle={16}
+				contentContainerStyle={{ paddingBottom: insets.bottom + 80 }}
+				showsVerticalScrollIndicator={false}
+				refreshControl={
+					<RefreshControl
+						refreshing={refreshing}
+						onRefresh={handleRefresh}
+						tintColor={theme.colors.primary}
+						colors={[theme.colors.primary]}
+						progressBackgroundColor={
+							theme.isDark ? theme.colors.card : undefined
+						}
+					/>
+				}
+			>
+				<FullHeader />
 
-					{/* Featured Plans */}
-					<FeaturedPlansSection />
+				<StatsCard />
 
-					{/* All Meal Plans Grid */}
-					<RegularPlansSection />
-				</Animated.ScrollView>
+				<TrendingSection />
 
-				<AddButton />
-			</ScreenContainer>
+				<DietTypeSelector />
 
-			{/* Search Overlay */}
-			<SearchOverlay
-				isVisible={isSearchVisible}
-				onClose={() => setIsSearchVisible(false)}
-				placeholder="Search meal plans"
-				onSearch={handleSearch}
-				results={searchResults}
-				onResultPress={handleSearchResultPress}
-				recentSearches={recentSearches}
-				onClearRecents={() => setRecentSearches([])}
-			/>
-		</>
+				<TabSwitcher />
+
+				<MealPlansContent />
+			</Animated.ScrollView>
+
+			<FloatingActionButton />
+		</View>
 	);
 };
 

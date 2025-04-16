@@ -1,7 +1,14 @@
-import React, { useState, useRef, useEffect } from "react";
-import { Switch, Animated, Pressable, View } from "react-native";
+import React, { useState, useCallback } from "react";
+import { Switch, Pressable, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
+import Animated, {
+	useSharedValue,
+	useAnimatedStyle,
+	useAnimatedScrollHandler,
+	interpolate,
+	Extrapolation,
+} from "react-native-reanimated";
 
 import { useTheme } from "@/hooks/useTheme";
 import { Box, Text, Badge } from "@/components/ui";
@@ -31,44 +38,60 @@ const ProfileScreen: React.FC = () => {
 	const [darkModeEnabled, setDarkModeEnabled] = useState(theme.isDark);
 
 	// Animation values
-	const fadeAnim = useRef(new Animated.Value(0)).current;
-	const scrollY = useRef(new Animated.Value(0)).current;
-	const headerTranslate = scrollY.interpolate({
-		inputRange: [0, 100],
-		outputRange: [0, -25],
-		extrapolate: "clamp",
-	});
+	const fadeAnim = useSharedValue(1); // Start with visible content
+	const scrollY = useSharedValue(0);
 
 	// Run animations when component mounts
-	useEffect(() => {
-		animateElements();
-	}, []);
-
-	// Reset animations when tab is focused
 	useFocusEffect(
-		React.useCallback(() => {
-			animateElements();
+		useCallback(() => {
+			// No need to animate from 0 to 1 to make content visible
+			// Just ensure content is already visible when screen is focused
+			fadeAnim.value = 1;
 			return () => {};
 		}, []),
 	);
 
-	const animateElements = () => {
-		// Reset animation values
-		fadeAnim.setValue(0);
-
-		// Animate content fade in
-		Animated.timing(fadeAnim, {
-			toValue: 1,
-			duration: 600,
-			useNativeDriver: true,
-		}).start();
-	};
-
 	// Handle scroll events for header parallax
-	const handleScroll = Animated.event(
-		[{ nativeEvent: { contentOffset: { y: scrollY } } }],
-		{ useNativeDriver: true },
-	);
+	const scrollHandler = useAnimatedScrollHandler({
+		onScroll: (event) => {
+			scrollY.value = event.contentOffset.y;
+		},
+	});
+
+	// Header animation styles
+	const headerStyle = useAnimatedStyle(() => {
+		const translateYValue = interpolate(
+			scrollY.value,
+			[0, 100],
+			[0, -25],
+			Extrapolation.CLAMP,
+		);
+
+		const opacityValue = interpolate(
+			scrollY.value,
+			[0, 60, 120],
+			[1, 0.8, 0.6],
+			Extrapolation.CLAMP,
+		);
+
+		return {
+			transform: [{ translateY: translateYValue }],
+			opacity: opacityValue,
+		};
+	});
+
+	const avatarStyle = useAnimatedStyle(() => {
+		const scaleValue = interpolate(
+			scrollY.value,
+			[-100, 0, 100],
+			[1.2, 1, 0.9],
+			Extrapolation.CLAMP,
+		);
+
+		return {
+			transform: [{ scale: scaleValue }],
+		};
+	});
 
 	// Sample profile sections
 	const profileSections: ProfileSection[] = [
@@ -172,41 +195,32 @@ const ProfileScreen: React.FC = () => {
 
 	// Profile Header Component with parallax effect
 	const ProfileHeader = () => {
-		const scaleAnim = scrollY.interpolate({
-			inputRange: [-100, 0, 100],
-			outputRange: [1.2, 1, 0.9],
-			extrapolate: "clamp",
-		});
-
-		const opacityAnim = scrollY.interpolate({
-			inputRange: [0, 60, 120],
-			outputRange: [1, 0.8, 0.6],
-			extrapolate: "clamp",
-		});
-
 		return (
 			<Animated.View
-				style={{
-					backgroundColor: theme.colors.primary,
-					paddingTop: theme.platform.topInset,
-					paddingBottom: theme.spacing.xl,
-					alignItems: "center",
-					transform: [{ translateY: headerTranslate }],
-					opacity: opacityAnim,
-				}}
+				style={[
+					{
+						backgroundColor: theme.colors.primary,
+						paddingTop: theme.platform.topInset,
+						paddingBottom: theme.spacing.xl,
+						alignItems: "center",
+					},
+					headerStyle,
+				]}
 			>
 				{/* Avatar - scales on pull down */}
 				<Animated.View
-					style={{
-						transform: [{ scale: scaleAnim }],
-						width: theme.sizes.avatarLg + 20,
-						height: theme.sizes.avatarLg + 20,
-						borderRadius: (theme.sizes.avatarLg + 20) / 2,
-						backgroundColor: "rgba(255,255,255,0.2)",
-						alignItems: "center",
-						justifyContent: "center",
-						marginBottom: theme.spacing.md,
-					}}
+					style={[
+						{
+							width: theme.sizes.avatarLg + 20,
+							height: theme.sizes.avatarLg + 20,
+							borderRadius: (theme.sizes.avatarLg + 20) / 2,
+							backgroundColor: "rgba(255,255,255,0.2)",
+							alignItems: "center",
+							justifyContent: "center",
+							marginBottom: theme.spacing.md,
+						},
+						avatarStyle,
+					]}
 				>
 					<Text
 						color="white"
@@ -253,17 +267,8 @@ const ProfileScreen: React.FC = () => {
 	};
 
 	// Setting Item Component with animation
-	const SettingItem = ({
-		item,
-	}: {
-		item: ProfileSetting;
-	}) => {
+	const SettingItem = ({ item }: { item: ProfileSetting }) => {
 		const isLogout = item.id === "logout";
-
-		const itemTranslateY = fadeAnim.interpolate({
-			inputRange: [0, 1],
-			outputRange: [30, 0],
-		});
 
 		const renderRightElement = () => {
 			switch (item.rightElement) {
@@ -295,12 +300,7 @@ const ProfileScreen: React.FC = () => {
 		};
 
 		return (
-			<Animated.View
-				style={{
-					opacity: fadeAnim,
-					transform: [{ translateY: itemTranslateY }],
-				}}
-			>
+			<View>
 				<Pressable
 					style={({ pressed }) => [
 						{
@@ -353,7 +353,7 @@ const ProfileScreen: React.FC = () => {
 						{renderRightElement()}
 					</Box>
 				</Pressable>
-			</Animated.View>
+			</View>
 		);
 	};
 
@@ -374,24 +374,15 @@ const ProfileScreen: React.FC = () => {
 					paddingHorizontal: theme.spacing.md,
 				}}
 				showsVerticalScrollIndicator={false}
-				onScroll={handleScroll}
+				onScroll={scrollHandler}
 				scrollEventThrottle={16}
 				bounces={true}
 			>
 				{profileSections.map((section, sectionIndex) => (
-					<Animated.View
+					<View
 						key={sectionIndex.toString()}
 						style={{
 							marginBottom: theme.spacing.lg,
-							opacity: fadeAnim,
-							transform: [
-								{
-									translateY: fadeAnim.interpolate({
-										inputRange: [0, 1],
-										outputRange: [20, 0],
-									}),
-								},
-							],
 						}}
 					>
 						{section.title && (
@@ -415,27 +406,15 @@ const ProfileScreen: React.FC = () => {
 								<SettingItem key={item.id} item={item} />
 							))}
 						</Box>
-					</Animated.View>
+					</View>
 				))}
 
 				{/* App Version */}
-				<Animated.View
-					style={{
-						opacity: fadeAnim,
-						transform: [
-							{
-								translateY: fadeAnim.interpolate({
-									inputRange: [0, 1],
-									outputRange: [10, 0],
-								}),
-							},
-						],
-					}}
-				>
+				<View>
 					<Text variant="sm" color="textSecondary" center marginTop="md">
 						Version 1.0.0
 					</Text>
-				</Animated.View>
+				</View>
 			</Animated.ScrollView>
 		</View>
 	);
