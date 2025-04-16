@@ -1,0 +1,2789 @@
+This file is a merged representation of a subset of the codebase, containing files not matching ignore patterns, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching these patterns are excluded: **/*.log, tmp/, **/Illustrations/**, **/*.json, **/Localization.ts, **/SVGS/**, **/generated/**
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+<additional_info>
+
+</additional_info>
+
+</file_summary>
+
+<directory_structure>
+apps/
+  merchant-app/
+    app/
+      (tabs)/
+        (home)/
+          index.tsx
+        _layout.tsx
+        meals.tsx
+        profile.tsx
+      _layout.tsx
+      +not-found.tsx
+    components/
+      category-filters.tsx
+      header.tsx
+      meal-plan-card.tsx
+      progress-status-card.tsx
+      restaurant-card.tsx
+      task-card.tsx
+    constants/
+      Colors.ts
+      Spacing.ts
+      Typography.ts
+    hooks/
+      useColorScheme.ts
+      useColorScheme.web.ts
+      useThemeColor.ts
+    .gitignore
+.gitignore
+.npmrc
+.nvimrc
+pnpm-workspace.yaml
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="apps/merchant-app/app/(tabs)/(home)/index.tsx">
+import React, { useState, useRef, useEffect } from "react";
+import { View, ScrollView, Text, Animated } from "react-native";
+import { Screen } from "expo-router/build/views/Screen";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import { QarnColors } from "@/constants/Colors";
+import { QarnSpacing } from "@/constants/Spacing";
+
+// Import our components
+import HeaderSection from "@/components/header";
+import ProgressStatusCard from "@/components/progress-status-card";
+import TaskCard from "@/components/task-card";
+import CategoryFilters from "@/components/category-filters";
+import MealPlanCard from "@/components/meal-plan-card";
+import RestaurantCard from "@/components/restaurant-card";
+
+// Types for our data
+interface Task {
+	id: number;
+	title: string;
+	details: string;
+	completed: boolean;
+	icon: string;
+}
+
+interface MealPlan {
+	id: number;
+	title: string;
+	price: string;
+	calories: string;
+	image: string;
+	meals: string;
+	diet: string;
+}
+
+interface Restaurant {
+	id: number;
+	name: string;
+	items: number;
+}
+
+// Sample data
+const TASKS: Task[] = [
+	{
+		id: 1,
+		title: "First meal plan",
+		details: "Create your signature meals",
+		completed: true,
+		icon: "restaurant",
+	},
+	{
+		id: 2,
+		title: "Your domain",
+		details: "Connect your web address",
+		completed: true,
+		icon: "globe",
+	},
+	{
+		id: 3,
+		title: "Branding",
+		details: "Style your restaurant's look",
+		completed: true,
+		icon: "color-palette",
+	},
+	{
+		id: 4,
+		title: "Delivery zones",
+		details: "Set where you'll deliver",
+		completed: true,
+		icon: "map",
+	},
+	{
+		id: 5,
+		title: "Nutrition facts",
+		details: "Add health information",
+		completed: true,
+		icon: "fitness",
+	},
+	{
+		id: 6,
+		title: "Payments",
+		details: "Set up subscription billing",
+		completed: false,
+		icon: "card",
+	},
+];
+
+const MEAL_TYPES: string[] = ["All", "Keto", "Vegan", "Paleo", "Low-carb"];
+
+const MEAL_PLANS: MealPlan[] = [
+	{
+		id: 1,
+		title: "Keto Premium",
+		price: "89",
+		calories: "1,500",
+		image: "nutrition-outline",
+		meals: "5",
+		diet: "Keto",
+	},
+	{
+		id: 2,
+		title: "Plant Power",
+		price: "79",
+		calories: "1,200",
+		image: "leaf-outline",
+		meals: "7",
+		diet: "Vegan",
+	},
+	{
+		id: 3,
+		title: "Paleo Basics",
+		price: "95",
+		calories: "1,800",
+		image: "barbell-outline",
+		meals: "6",
+		diet: "Paleo",
+	},
+];
+
+const RESTAURANTS: Restaurant[] = [
+	{ id: 1, name: "Green Kitchen", items: 8 },
+	{ id: 2, name: "Harvest Table", items: 5 },
+];
+
+const HomeScreen: React.FC = () => {
+	const colorScheme = useColorScheme();
+	const isDark = colorScheme === "dark";
+	const tokens = QarnColors[isDark ? "dark" : "light"];
+
+	const [selectedType, setSelectedType] = useState<string>("All");
+	const progressAnim = useRef(new Animated.Value(0)).current;
+	const opacityAnim = useRef(new Animated.Value(0)).current;
+
+	useEffect(() => {
+		// Animate progress
+		Animated.timing(progressAnim, {
+			toValue: 5 / 6, // 5 of 6 tasks completed
+			duration: 1000,
+			useNativeDriver: false,
+		}).start();
+
+		// Fade in card
+		Animated.timing(opacityAnim, {
+			toValue: 1,
+			duration: 800,
+			useNativeDriver: true,
+		}).start();
+	}, []);
+
+	const handleAnalytics = (): void => {
+		console.log("Analytics pressed");
+	};
+
+	const handleFinishSetup = (): void => {
+		console.log("Finish setup pressed");
+	};
+
+	const handleTaskPress = (taskId: number): void => {
+		console.log(`Task ${taskId} pressed`);
+	};
+
+	const handleRestaurantPress = (restaurantId: number): void => {
+		console.log(`Restaurant ${restaurantId} pressed`);
+	};
+
+	const handleMealPlanPress = (mealPlanId: number): void => {
+		console.log(`Meal plan ${mealPlanId} pressed`);
+	};
+
+	return (
+		<>
+			<Screen options={{ headerShown: false }} />
+			<View style={{ flex: 1, backgroundColor: tokens.background }}>
+				{/* Header with Search */}
+				<HeaderSection
+					restaurantName="Green Kitchen"
+					restaurantLogo="https://example.com/logo.png" // Optional, will use first letter if not provided
+					onLogoPress={() => console.log("Logo pressed")}
+					onNotificationPress={() => console.log("Notifications pressed")}
+				/>
+				<ScrollView
+					contentContainerStyle={{ paddingVertical: 30 }}
+					showsVerticalScrollIndicator={false}
+				>
+					{/* Progress Status Card */}
+					<Animated.View style={{ opacity: opacityAnim }}>
+						<ProgressStatusCard
+							restaurantName="Green Kitchen"
+							completedTasks={5}
+							totalTasks={6}
+							onAnalytics={handleAnalytics}
+							onFinish={handleFinishSetup}
+							progressAnim={progressAnim}
+						/>
+					</Animated.View>
+
+					{/* Tasks Section */}
+					<View
+						style={{
+							marginTop: QarnSpacing.sm,
+							marginHorizontal: QarnSpacing.md,
+						}}
+					>
+						<Text
+							style={{
+								fontSize: 17,
+								fontWeight: "600",
+								color: tokens.text,
+								marginBottom: QarnSpacing.sm,
+							}}
+						>
+							Complete Your Setup
+						</Text>
+
+						<View
+							style={{
+								flexDirection: "row",
+								flexWrap: "wrap",
+								justifyContent: "space-between",
+							}}
+						>
+							{TASKS.map((task) => (
+								<View
+									key={task.id}
+									style={{ width: "48.5%", marginBottom: QarnSpacing.sm }}
+								>
+									<TaskCard
+										title={task.title}
+										details={task.details}
+										completed={task.completed}
+										icon={task.icon}
+										onPress={() => handleTaskPress(task.id)}
+									/>
+								</View>
+							))}
+						</View>
+					</View>
+
+					{/* Meal Plans Section */}
+					<View
+						style={{ marginTop: QarnSpacing.sm, marginBottom: QarnSpacing.sm }}
+					>
+						<View
+							style={{
+								marginHorizontal: QarnSpacing.md,
+								flexDirection: "row",
+								justifyContent: "space-between",
+								alignItems: "center",
+							}}
+						>
+							<Text
+								style={{
+									fontSize: 17,
+									fontWeight: "600",
+									color: tokens.text,
+								}}
+							>
+								Your Meal Plans
+							</Text>
+							<Text
+								style={{
+									color: tokens.primary,
+									fontWeight: "500",
+									fontSize: 14,
+									padding: QarnSpacing.sm,
+								}}
+							>
+								View All
+							</Text>
+						</View>
+
+						{/* Category Filters */}
+						<CategoryFilters
+							categories={MEAL_TYPES}
+							selectedCategory={selectedType}
+							onSelectCategory={setSelectedType}
+						/>
+
+						{/* Meal Plan Cards */}
+						<ScrollView
+							horizontal
+							showsHorizontalScrollIndicator={false}
+							contentContainerStyle={{
+								paddingLeft: QarnSpacing.md,
+								paddingBottom: QarnSpacing.sm,
+							}}
+							snapToInterval={260 + QarnSpacing.md}
+							decelerationRate="fast"
+						>
+							{MEAL_PLANS.filter(
+								(plan) => selectedType === "All" || plan.diet === selectedType,
+							).map((plan) => (
+								<MealPlanCard
+									key={plan.id}
+									title={plan.title}
+									price={plan.price}
+									calories={plan.calories}
+									image={plan.image}
+									meals={plan.meals}
+									diet={plan.diet}
+									onPress={() => handleMealPlanPress(plan.id)}
+								/>
+							))}
+						</ScrollView>
+					</View>
+
+					{/* Restaurants Section */}
+					<View
+						style={{
+							marginTop: QarnSpacing.sm,
+							marginHorizontal: QarnSpacing.md,
+						}}
+					>
+						<Text
+							style={{
+								fontSize: 17,
+								fontWeight: "600",
+								color: tokens.text,
+								marginBottom: QarnSpacing.sm,
+							}}
+						>
+							Active Restaurants
+						</Text>
+
+						{RESTAURANTS.map((restaurant) => (
+							<RestaurantCard
+								key={restaurant.id}
+								name={restaurant.name}
+								items={restaurant.items}
+								onPress={() => handleRestaurantPress(restaurant.id)}
+							/>
+						))}
+					</View>
+				</ScrollView>
+			</View>
+		</>
+	);
+};
+
+export default HomeScreen;
+</file>
+
+<file path="apps/merchant-app/app/(tabs)/_layout.tsx">
+import { Tabs } from "expo-router";
+import React from "react";
+import { Platform, Dimensions } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import { QarnColors } from "@/constants/Colors";
+import { QarnSizes } from "@/constants/Spacing";
+import { QarnTypography } from "@/constants/Typography";
+
+export default function TabLayout(): React.ReactElement {
+	const colorScheme = useColorScheme();
+	const isDark = colorScheme === "dark";
+	const colors = QarnColors[isDark ? "dark" : "light"];
+
+	// Get device info to determine if it has a home indicator
+	const { height } = Dimensions.get("window");
+	const isIphoneWithNotch = Platform.OS === "ios" && height > 800;
+
+	return (
+		<Tabs
+			screenOptions={{
+				tabBarActiveTintColor: colors.primary,
+				tabBarInactiveTintColor: colors.tabIconDefault,
+				headerShown: false,
+				tabBarStyle: {
+					backgroundColor: colors.tabBar,
+					height: QarnSizes.tabBarHeight + (isIphoneWithNotch ? 20 : 0),
+					paddingBottom:
+						Platform.OS === "ios" ? (isIphoneWithNotch ? 36 : 24) : 8,
+				},
+				tabBarLabelStyle: {
+					fontSize: QarnTypography.sizes.xs,
+					fontWeight: QarnTypography.weights.medium,
+					marginTop: 0,
+				},
+			}}
+		>
+			<Tabs.Screen
+				name="(home)/index"
+				options={{
+					title: "Home",
+					tabBarIcon: ({ color }) => (
+						<Ionicons name="home" size={QarnSizes.iconMd} color={color} />
+					),
+				}}
+			/>
+			<Tabs.Screen
+				name="meals"
+				options={{
+					title: "Meal Plans",
+					tabBarIcon: ({ color }) => (
+						<Ionicons name="restaurant" size={QarnSizes.iconMd} color={color} />
+					),
+				}}
+			/>
+			<Tabs.Screen
+				name="profile"
+				options={{
+					title: "Profile",
+					tabBarIcon: ({ color }) => (
+						<Ionicons name="person" size={QarnSizes.iconMd} color={color} />
+					),
+				}}
+			/>
+		</Tabs>
+	);
+}
+</file>
+
+<file path="apps/merchant-app/app/(tabs)/meals.tsx">
+import React, { useState } from "react";
+import {
+	View,
+	Text,
+	ScrollView,
+	TouchableOpacity,
+	TextInput,
+	Platform,
+} from "react-native";
+import { Screen } from "expo-router/build/views/Screen";
+import { Ionicons } from "@expo/vector-icons";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import { QarnColors } from "@/constants/Colors";
+import { QarnSpacing, QarnRadius, QarnSizes } from "@/constants/Spacing";
+import { QarnTypography, QarnShadows } from "@/constants/Typography";
+import CategoryFilters from "@/components/category-filters";
+import MealPlanCard from "@/components/meal-plan-card";
+
+// Types for meal plan data
+interface MealPlan {
+	id: number;
+	title: string;
+	price: string;
+	calories: string;
+	image: string;
+	meals: string;
+	diet: string;
+	featured?: boolean;
+	description?: string;
+}
+
+const MealsScreen: React.FC = () => {
+	const colorScheme = useColorScheme();
+	const isDark = colorScheme === "dark";
+	const tokens = QarnColors[isDark ? "dark" : "light"];
+	const shadows = QarnShadows[isDark ? "dark" : "light"];
+
+	const [selectedType, setSelectedType] = useState<string>("All");
+	const [searchQuery, setSearchQuery] = useState<string>("");
+
+	// Sample meal plan categories
+	const MEAL_TYPES: string[] = [
+		"All",
+		"Keto",
+		"Vegan",
+		"Paleo",
+		"Low-carb",
+		"Vegetarian",
+	];
+
+	// Sample meal plans
+	const MEAL_PLANS: MealPlan[] = [
+		{
+			id: 1,
+			title: "Keto Premium",
+			price: "89",
+			calories: "1,500",
+			image: "nutrition-outline",
+			meals: "5",
+			diet: "Keto",
+			featured: true,
+			description: "High fat, low carb meals designed for ketosis",
+		},
+		{
+			id: 2,
+			title: "Plant Power",
+			price: "79",
+			calories: "1,200",
+			image: "leaf-outline",
+			meals: "7",
+			diet: "Vegan",
+			description: "100% plant-based meals rich in nutrients",
+		},
+		{
+			id: 3,
+			title: "Paleo Basics",
+			price: "95",
+			calories: "1,800",
+			image: "barbell-outline",
+			meals: "6",
+			diet: "Paleo",
+			featured: true,
+			description: "Whole foods based on our ancestral diet",
+		},
+		{
+			id: 4,
+			title: "Vegetarian Delight",
+			price: "75",
+			calories: "1,400",
+			image: "flower-outline",
+			meals: "5",
+			diet: "Vegetarian",
+			description: "Meat-free meals with dairy and eggs",
+		},
+		{
+			id: 5,
+			title: "Low-Carb Classic",
+			price: "85",
+			calories: "1,600",
+			image: "fitness-outline",
+			meals: "5",
+			diet: "Low-carb",
+			description: "Reduced carb meals for steady energy",
+		},
+		{
+			id: 6,
+			title: "Keto Lite",
+			price: "69",
+			calories: "1,300",
+			image: "nutrition-outline",
+			meals: "4",
+			diet: "Keto",
+			description: "A lighter version of our keto plan",
+		},
+	];
+
+	const handleMealPlanPress = (mealPlanId: number) => {
+		console.log(`Meal plan ${mealPlanId} pressed`);
+	};
+
+	const handleAddMealPlan = () => {
+		console.log("Add new meal plan");
+	};
+
+	const filteredMealPlans = MEAL_PLANS.filter(
+		(plan) =>
+			(selectedType === "All" || plan.diet === selectedType) &&
+			(!searchQuery ||
+				plan.title.toLowerCase().includes(searchQuery.toLowerCase())),
+	);
+
+	const featuredMealPlans = filteredMealPlans.filter((plan) => plan.featured);
+	const regularMealPlans = filteredMealPlans.filter((plan) => !plan.featured);
+
+	return (
+		<>
+			<Screen options={{ headerShown: false }} />
+			<View style={{ flex: 1, backgroundColor: tokens.background }}>
+				{/* Header */}
+				<View
+					style={{
+						backgroundColor: tokens.primary,
+						paddingTop: Platform.OS === "ios" ? 50 : 16,
+						paddingBottom: QarnSpacing.lg,
+						paddingHorizontal: QarnSpacing.md,
+					}}
+				>
+					<View
+						style={{
+							marginBottom: QarnSpacing.md,
+						}}
+					>
+						<Text
+							style={{
+								color: "white",
+								fontWeight: QarnTypography.weights.bold,
+								fontSize: QarnTypography.sizes.xl,
+							}}
+						>
+							Meal Plans
+						</Text>
+					</View>
+
+					{/* Search Bar */}
+					<TouchableOpacity
+						style={{
+							backgroundColor: "rgba(255,255,255,0.15)",
+							borderRadius: QarnRadius.md,
+							flexDirection: "row",
+							alignItems: "center",
+							paddingHorizontal: QarnSpacing.md,
+							height: QarnSizes.inputHeight,
+						}}
+						activeOpacity={0.8}
+					>
+						<Ionicons
+							name="search"
+							size={QarnSizes.iconMd}
+							color="rgba(255,255,255,0.9)"
+							style={{ marginRight: QarnSpacing.sm }}
+						/>
+						<TextInput
+							placeholder="Search meal plans"
+							placeholderTextColor="rgba(255,255,255,0.7)"
+							style={{
+								flex: 1,
+								fontSize: QarnTypography.sizes.md,
+								color: "#FFFFFF",
+								height: QarnSizes.inputHeight,
+							}}
+							value={searchQuery}
+							onChangeText={setSearchQuery}
+						/>
+						{searchQuery ? (
+							<TouchableOpacity
+								onPress={() => setSearchQuery("")}
+								style={{
+									padding: QarnSpacing.xs,
+									height: QarnSizes.touchTarget,
+									width: QarnSizes.touchTarget,
+									alignItems: "center",
+									justifyContent: "center",
+								}}
+							>
+								<Ionicons
+									name="close-circle"
+									size={QarnSizes.iconMd}
+									color="rgba(255,255,255,0.9)"
+								/>
+							</TouchableOpacity>
+						) : null}
+					</TouchableOpacity>
+				</View>
+
+				{/* Content */}
+				<ScrollView
+					style={{ flex: 1 }}
+					contentContainerStyle={{ paddingBottom: QarnSpacing.xl }}
+					showsVerticalScrollIndicator={false}
+				>
+					{/* Category Filters */}
+					<CategoryFilters
+						categories={MEAL_TYPES}
+						selectedCategory={selectedType}
+						onSelectCategory={setSelectedType}
+					/>
+
+					{/* Stats Bar */}
+					<View
+						style={{
+							flexDirection: "row",
+							backgroundColor: tokens.card,
+							margin: QarnSpacing.md,
+							borderRadius: QarnRadius.lg,
+							overflow: "hidden",
+							...shadows.medium,
+						}}
+					>
+						<View
+							style={{
+								flex: 1,
+								paddingVertical: QarnSpacing.md,
+								alignItems: "center",
+								borderRightWidth: 1,
+								borderRightColor: tokens.divider,
+							}}
+						>
+							<Text
+								style={{
+									fontSize: QarnTypography.sizes.lg,
+									fontWeight: QarnTypography.weights.bold,
+									color: tokens.primary,
+									marginBottom: 4,
+								}}
+							>
+								{filteredMealPlans.length}
+							</Text>
+							<Text
+								style={{
+									fontSize: QarnTypography.sizes.sm,
+									color: tokens.textSecondary,
+								}}
+							>
+								Active Plans
+							</Text>
+						</View>
+
+						<View
+							style={{
+								flex: 1,
+								paddingVertical: QarnSpacing.md,
+								alignItems: "center",
+								borderRightWidth: 1,
+								borderRightColor: tokens.divider,
+							}}
+						>
+							<Text
+								style={{
+									fontSize: QarnTypography.sizes.lg,
+									fontWeight: QarnTypography.weights.bold,
+									color: tokens.info,
+									marginBottom: 4,
+								}}
+							>
+								12
+							</Text>
+							<Text
+								style={{
+									fontSize: QarnTypography.sizes.sm,
+									color: tokens.textSecondary,
+								}}
+							>
+								Subscribers
+							</Text>
+						</View>
+
+						<View
+							style={{
+								flex: 1,
+								paddingVertical: QarnSpacing.md,
+								alignItems: "center",
+							}}
+						>
+							<Text
+								style={{
+									fontSize: QarnTypography.sizes.lg,
+									fontWeight: QarnTypography.weights.bold,
+									color: tokens.success,
+									marginBottom: 4,
+								}}
+							>
+								$968
+							</Text>
+							<Text
+								style={{
+									fontSize: QarnTypography.sizes.sm,
+									color: tokens.textSecondary,
+								}}
+							>
+								Monthly
+							</Text>
+						</View>
+					</View>
+
+					{/* Featured Plans */}
+					{featuredMealPlans.length > 0 && (
+						<View style={{ marginTop: QarnSpacing.sm }}>
+							<Text
+								style={{
+									fontSize: QarnTypography.sizes.lg,
+									fontWeight: QarnTypography.weights.semibold,
+									color: tokens.text,
+									marginHorizontal: QarnSpacing.md,
+									marginBottom: QarnSpacing.sm,
+								}}
+							>
+								Featured Plans
+							</Text>
+
+							{featuredMealPlans.map((plan) => (
+								<View
+									key={plan.id}
+									style={{
+										marginHorizontal: QarnSpacing.md,
+										marginBottom: QarnSpacing.md,
+									}}
+								>
+									{/* Using a custom style for featured plans - horizontal layout */}
+									<TouchableOpacity
+										style={{
+											flexDirection: "row",
+											backgroundColor: tokens.card,
+											borderRadius: QarnRadius.lg,
+											overflow: "hidden",
+											...shadows.medium,
+										}}
+										onPress={() => handleMealPlanPress(plan.id)}
+										activeOpacity={0.7}
+									>
+										<View
+											style={{
+												width: 120,
+												backgroundColor: isDark ? tokens.cardAlt : "#EFEFEF",
+												justifyContent: "center",
+												alignItems: "center",
+											}}
+										>
+											<Ionicons
+												name={plan.image as any}
+												size={QarnSizes.iconLg}
+												color={tokens.primary}
+											/>
+										</View>
+
+										<View
+											style={{
+												flex: 1,
+												padding: QarnSpacing.md,
+												justifyContent: "center",
+											}}
+										>
+											<View
+												style={{
+													flexDirection: "row",
+													justifyContent: "space-between",
+													alignItems: "center",
+													marginBottom: 4,
+												}}
+											>
+												<Text
+													style={{
+														fontSize: QarnTypography.sizes.md,
+														fontWeight: QarnTypography.weights.semibold,
+														color: tokens.text,
+													}}
+												>
+													{plan.title}
+												</Text>
+
+												<Text
+													style={{
+														fontSize: QarnTypography.sizes.md,
+														fontWeight: QarnTypography.weights.bold,
+														color: tokens.primary,
+													}}
+												>
+													${plan.price}
+												</Text>
+											</View>
+
+											<Text
+												style={{
+													fontSize: QarnTypography.sizes.sm,
+													color: tokens.textSecondary,
+													marginBottom: QarnSpacing.sm,
+												}}
+											>
+												{plan.description}
+											</Text>
+
+											<View style={{ flexDirection: "row" }}>
+												<View
+													style={{
+														flexDirection: "row",
+														alignItems: "center",
+														marginEnd: QarnSpacing.md,
+													}}
+												>
+													<Ionicons
+														name="flame-outline"
+														size={QarnSizes.iconXs}
+														color={tokens.textSecondary}
+													/>
+													<Text
+														style={{
+															fontSize: QarnTypography.sizes.xs,
+															color: tokens.textSecondary,
+															marginLeft: 4,
+														}}
+													>
+														{plan.calories} cal
+													</Text>
+												</View>
+
+												<View
+													style={{
+														flexDirection: "row",
+														alignItems: "center",
+													}}
+												>
+													<Ionicons
+														name="restaurant-outline"
+														size={QarnSizes.iconXs}
+														color={tokens.textSecondary}
+													/>
+													<Text
+														style={{
+															fontSize: QarnTypography.sizes.xs,
+															color: tokens.textSecondary,
+															marginLeft: 4,
+														}}
+													>
+														{plan.meals} meals
+													</Text>
+												</View>
+											</View>
+										</View>
+									</TouchableOpacity>
+								</View>
+							))}
+						</View>
+					)}
+
+					{/* All Meal Plans Grid */}
+					<Text
+						style={{
+							fontSize: QarnTypography.sizes.lg,
+							fontWeight: QarnTypography.weights.semibold,
+							color: tokens.text,
+							marginHorizontal: QarnSpacing.md,
+							marginTop: QarnSpacing.md,
+							marginBottom: QarnSpacing.sm,
+						}}
+					>
+						All Meal Plans
+					</Text>
+
+					<ScrollView
+						horizontal
+						showsHorizontalScrollIndicator={false}
+						contentContainerStyle={{
+							paddingLeft: QarnSpacing.md,
+							paddingBottom: QarnSpacing.sm,
+						}}
+						snapToInterval={260 + QarnSpacing.md}
+						decelerationRate="fast"
+					>
+						{regularMealPlans.map((plan) => (
+							<View
+								key={plan.id}
+								style={{
+									marginBottom: QarnSpacing.sm,
+								}}
+							>
+								<MealPlanCard
+									title={plan.title}
+									price={plan.price}
+									calories={plan.calories}
+									image={plan.image}
+									meals={plan.meals}
+									diet={plan.diet}
+									onPress={() => handleMealPlanPress(plan.id)}
+								/>
+							</View>
+						))}
+					</ScrollView>
+				</ScrollView>
+
+				<TouchableOpacity
+					style={{
+						position: "absolute",
+						bottom: QarnSpacing.xl,
+						end: QarnSpacing.lg,
+						backgroundColor: tokens.primary,
+						height: 60,
+						width: 60,
+						borderRadius: 30,
+						alignItems: "center",
+						justifyContent: "center",
+						elevation: 5,
+						shadowColor: "#000",
+						shadowOffset: { width: 0, height: 2 },
+						shadowOpacity: 0.25,
+						shadowRadius: 3.84,
+					}}
+					onPress={handleAddMealPlan}
+				>
+					<Ionicons name="add" size={32} color="white" />
+				</TouchableOpacity>
+			</View>
+		</>
+	);
+};
+
+export default MealsScreen;
+</file>
+
+<file path="apps/merchant-app/app/(tabs)/profile.tsx">
+import { QarnColors } from "@/constants/Colors";
+import { QarnRadius, QarnSizes, QarnSpacing } from "@/constants/Spacing";
+import { QarnShadows, QarnTypography } from "@/constants/Typography";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import { Ionicons } from "@expo/vector-icons";
+import { Screen } from "expo-router/build/views/Screen";
+import React, { useState } from "react";
+import {
+	Platform,
+	ScrollView,
+	Switch,
+	Text,
+	TouchableOpacity,
+	View,
+} from "react-native";
+
+// Define types for our profile data
+interface ProfileSetting {
+	id: string;
+	title: string;
+	subtitle?: string;
+	icon: string;
+	rightElement?: "arrow" | "switch" | "badge";
+	badgeText?: string;
+	switchValue?: boolean;
+	onPress: () => void;
+	onToggle?: (value: boolean) => void;
+}
+
+interface ProfileSection {
+	title: string;
+	data: ProfileSetting[];
+}
+
+const ProfileScreen: React.FC = () => {
+	const colorScheme = useColorScheme();
+	const isDark = colorScheme === "dark";
+	const tokens = QarnColors[isDark ? "dark" : "light"];
+	const shadows = QarnShadows[isDark ? "dark" : "light"];
+
+	// Profile data
+	const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+	const [darkModeEnabled, setDarkModeEnabled] = useState(isDark);
+
+	// Sample profile sections
+	const profileSections: ProfileSection[] = [
+		{
+			title: "Account",
+			data: [
+				{
+					id: "personal-info",
+					title: "Personal Information",
+					icon: "person-outline",
+					rightElement: "arrow",
+					onPress: () => console.log("Personal info pressed"),
+				},
+				{
+					id: "restaurants",
+					title: "My Restaurants",
+					subtitle: "Manage your restaurant profiles",
+					icon: "restaurant-outline",
+					rightElement: "badge",
+					badgeText: "2",
+					onPress: () => console.log("Restaurants pressed"),
+				},
+				{
+					id: "payment",
+					title: "Payment Methods",
+					icon: "card-outline",
+					rightElement: "arrow",
+					onPress: () => console.log("Payment methods pressed"),
+				},
+			],
+		},
+		{
+			title: "Preferences",
+			data: [
+				{
+					id: "notifications",
+					title: "Notifications",
+					icon: "notifications-outline",
+					rightElement: "switch",
+					switchValue: notificationsEnabled,
+					onPress: () => console.log("Notifications pressed"),
+					onToggle: (value) => setNotificationsEnabled(value),
+				},
+				{
+					id: "dark-mode",
+					title: "Dark Mode",
+					icon: "moon-outline",
+					rightElement: "switch",
+					switchValue: darkModeEnabled,
+					onPress: () => console.log("Dark mode pressed"),
+					onToggle: (value) => setDarkModeEnabled(value),
+				},
+				{
+					id: "language",
+					title: "Language",
+					subtitle: "English (US)",
+					icon: "language-outline",
+					rightElement: "arrow",
+					onPress: () => console.log("Language pressed"),
+				},
+			],
+		},
+		{
+			title: "Support",
+			data: [
+				{
+					id: "help",
+					title: "Help Center",
+					icon: "help-circle-outline",
+					rightElement: "arrow",
+					onPress: () => console.log("Help pressed"),
+				},
+				{
+					id: "contact",
+					title: "Contact Support",
+					icon: "mail-outline",
+					rightElement: "arrow",
+					onPress: () => console.log("Contact pressed"),
+				},
+				{
+					id: "feedback",
+					title: "Give Feedback",
+					icon: "chatbubble-outline",
+					rightElement: "arrow",
+					onPress: () => console.log("Feedback pressed"),
+				},
+			],
+		},
+		{
+			title: "",
+			data: [
+				{
+					id: "logout",
+					title: "Log Out",
+					icon: "log-out-outline",
+					onPress: () => console.log("Logout pressed"),
+				},
+			],
+		},
+	];
+
+	const renderRightElement = (item: ProfileSetting) => {
+		switch (item.rightElement) {
+			case "arrow":
+				return (
+					<Ionicons
+						name="chevron-forward"
+						size={QarnSizes.iconMd}
+						color={tokens.textSecondary}
+					/>
+				);
+			case "switch":
+				return (
+					<Switch
+						value={item.switchValue}
+						onValueChange={(value) => item.onToggle?.(value)}
+						trackColor={{ false: tokens.cardAlt, true: tokens.primary }}
+						thumbColor="white"
+					/>
+				);
+			case "badge":
+				return (
+					<View
+						style={{
+							backgroundColor: tokens.primary,
+							paddingHorizontal: QarnSpacing.sm,
+							paddingVertical: QarnSpacing.xs / 2,
+							borderRadius: QarnRadius.round,
+							minWidth: 24,
+							alignItems: "center",
+						}}
+					>
+						<Text
+							style={{
+								color: "white",
+								fontSize: QarnTypography.sizes.xs,
+								fontWeight: QarnTypography.weights.medium,
+							}}
+						>
+							{item.badgeText}
+						</Text>
+					</View>
+				);
+			default:
+				return null;
+		}
+	};
+
+	const renderProfileItem = (item: ProfileSetting) => {
+		const isLogout = item.id === "logout";
+
+		return (
+			<TouchableOpacity
+				key={item.id}
+				style={{
+					flexDirection: "row",
+					alignItems: "center",
+					backgroundColor: tokens.card,
+					paddingVertical: QarnSpacing.md,
+					paddingHorizontal: QarnSpacing.md,
+					marginBottom: 1,
+					borderRadius: item.id === "logout" ? QarnRadius.md : undefined,
+					...shadows.small,
+				}}
+				onPress={item.onPress}
+				activeOpacity={0.7}
+			>
+				<View
+					style={{
+						width: QarnSizes.avatarSm,
+						height: QarnSizes.avatarSm,
+						borderRadius: QarnSizes.avatarSm / 2,
+						backgroundColor: isLogout
+							? `${tokens.error}20`
+							: tokens.primaryLight,
+						alignItems: "center",
+						justifyContent: "center",
+						marginRight: QarnSpacing.md,
+					}}
+				>
+					<Ionicons
+						name={item.icon as any}
+						size={QarnSizes.iconSm}
+						color={isLogout ? tokens.error : tokens.primary}
+					/>
+				</View>
+
+				<View style={{ flex: 1 }}>
+					<Text
+						style={{
+							fontSize: QarnTypography.sizes.md,
+							fontWeight: isLogout
+								? QarnTypography.weights.semibold
+								: QarnTypography.weights.medium,
+							color: isLogout ? tokens.error : tokens.text,
+						}}
+					>
+						{item.title}
+					</Text>
+
+					{item.subtitle && (
+						<Text
+							style={{
+								fontSize: QarnTypography.sizes.sm,
+								color: tokens.textSecondary,
+								marginTop: 2,
+							}}
+						>
+							{item.subtitle}
+						</Text>
+					)}
+				</View>
+
+				{renderRightElement(item)}
+			</TouchableOpacity>
+		);
+	};
+
+	return (
+		<>
+			<Screen options={{ headerShown: false }} />
+			<View
+				style={{
+					flex: 1,
+					backgroundColor: tokens.background,
+				}}
+			>
+				{/* Profile Header */}
+				<View
+					style={{
+						backgroundColor: tokens.primary,
+						paddingTop: Platform.OS === "ios" ? 60 : 30,
+						paddingBottom: QarnSpacing.xl,
+						alignItems: "center",
+					}}
+				>
+					{/* Avatar */}
+					<View
+						style={{
+							width: QarnSizes.avatarLg + 20,
+							height: QarnSizes.avatarLg + 20,
+							borderRadius: (QarnSizes.avatarLg + 20) / 2,
+							backgroundColor: "rgba(255,255,255,0.2)",
+							alignItems: "center",
+							justifyContent: "center",
+							marginBottom: QarnSpacing.md,
+						}}
+					>
+						<Text
+							style={{
+								color: "white",
+								fontSize: QarnTypography.sizes.xxxl,
+								fontWeight: QarnTypography.weights.bold,
+							}}
+						>
+							G
+						</Text>
+					</View>
+
+					{/* Name and Email */}
+					<Text
+						style={{
+							fontSize: QarnTypography.sizes.xl,
+							fontWeight: QarnTypography.weights.bold,
+							color: "white",
+							marginBottom: QarnSpacing.xs,
+						}}
+					>
+						Green Kitchen
+					</Text>
+
+					<Text
+						style={{
+							fontSize: QarnTypography.sizes.md,
+							color: "rgba(255,255,255,0.8)",
+						}}
+					>
+						contact@greenkitchen.com
+					</Text>
+
+					{/* Edit Profile Button */}
+					<TouchableOpacity
+						style={{
+							flexDirection: "row",
+							backgroundColor: "rgba(255,255,255,0.2)",
+							paddingHorizontal: QarnSpacing.md,
+							paddingVertical: QarnSpacing.sm,
+							borderRadius: QarnRadius.round,
+							alignItems: "center",
+							marginTop: QarnSpacing.md,
+						}}
+						onPress={() => console.log("Edit profile")}
+					>
+						<Ionicons name="pencil" size={QarnSizes.iconSm} color="white" />
+						<Text
+							style={{
+								color: "white",
+								marginLeft: QarnSpacing.xs,
+								fontWeight: QarnTypography.weights.medium,
+							}}
+						>
+							Edit Profile
+						</Text>
+					</TouchableOpacity>
+				</View>
+
+				{/* Profile Content */}
+				<ScrollView
+					style={{
+						flex: 1,
+						marginTop: -QarnRadius.xl,
+						borderTopLeftRadius: QarnRadius.xl,
+						borderTopRightRadius: QarnRadius.xl,
+						backgroundColor: tokens.background,
+						paddingTop: QarnSpacing.md,
+					}}
+					contentContainerStyle={{
+						paddingBottom: QarnSpacing.xl,
+						paddingHorizontal: QarnSpacing.md,
+					}}
+					showsVerticalScrollIndicator={false}
+				>
+					{profileSections.map((section, index) => (
+						<View
+							key={index.toString()}
+							style={{ marginBottom: QarnSpacing.lg }}
+						>
+							{section.title && (
+								<Text
+									style={{
+										fontSize: QarnTypography.sizes.md,
+										fontWeight: QarnTypography.weights.semibold,
+										color: tokens.text,
+										marginBottom: QarnSpacing.sm,
+										marginLeft: QarnSpacing.xs,
+									}}
+								>
+									{section.title}
+								</Text>
+							)}
+
+							<View
+								style={{
+									borderRadius: QarnRadius.md,
+									overflow: "hidden",
+								}}
+							>
+								{section.data.map((item) => renderProfileItem(item))}
+							</View>
+						</View>
+					))}
+
+					{/* App Version */}
+					<Text
+						style={{
+							textAlign: "center",
+							color: tokens.textSecondary,
+							fontSize: QarnTypography.sizes.sm,
+							marginTop: QarnSpacing.md,
+						}}
+					>
+						Version 1.0.0
+					</Text>
+				</ScrollView>
+			</View>
+		</>
+	);
+};
+
+export default ProfileScreen;
+</file>
+
+<file path="apps/merchant-app/app/_layout.tsx">
+import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { useFonts } from 'expo-font';
+import { Stack } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
+import 'react-native-reanimated';
+
+import { useColorScheme } from '@/hooks/useColorScheme';
+
+// Prevent the splash screen from auto-hiding before asset loading is complete.
+SplashScreen.preventAutoHideAsync();
+
+export default function RootLayout() {
+  const colorScheme = useColorScheme();
+  const [loaded] = useFonts({
+    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+  });
+
+  useEffect(() => {
+    if (loaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [loaded]);
+
+  if (!loaded) {
+    return null;
+  }
+
+  return (
+    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <Stack>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="+not-found" />
+      </Stack>
+      <StatusBar style="auto" />
+    </ThemeProvider>
+  );
+}
+</file>
+
+<file path="apps/merchant-app/app/+not-found.tsx">
+import { Stack } from "expo-router";
+
+export default function NotFoundScreen() {
+	return (
+		<>
+			<Stack.Screen options={{ title: "Oops!" }} />
+		</>
+	);
+}
+</file>
+
+<file path="apps/merchant-app/components/category-filters.tsx">
+import React from "react";
+import { ScrollView, TouchableOpacity, Text } from "react-native";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import { QarnColors } from "@/constants/Colors";
+import { QarnSpacing, QarnRadius, QarnSizes } from "@/constants/Spacing";
+import { QarnTypography } from "@/constants/Typography";
+
+interface CategoryFiltersProps {
+	categories: string[];
+	selectedCategory: string;
+	onSelectCategory: (category: string) => void;
+}
+const CategoryFilters = ({
+	categories,
+	selectedCategory,
+	onSelectCategory,
+}: CategoryFiltersProps) => {
+	const colorScheme = useColorScheme();
+	const isDark = colorScheme === "dark";
+	const tokens = QarnColors[isDark ? "dark" : "light"];
+
+	return (
+		<ScrollView
+			horizontal
+			showsHorizontalScrollIndicator={false}
+			contentContainerStyle={{
+				paddingLeft: QarnSpacing.md,
+				paddingRight: QarnSpacing.sm,
+				paddingVertical: QarnSpacing.sm,
+			}}
+		>
+			{categories.map((category) => (
+				<TouchableOpacity
+					key={category}
+					style={{
+						paddingHorizontal: QarnSpacing.md,
+						height: QarnSizes.buttonMd,
+						borderRadius: QarnRadius.round,
+						backgroundColor:
+							selectedCategory === category
+								? tokens.primary
+								: tokens.primaryLight,
+						marginRight: QarnSpacing.sm,
+						alignItems: "center",
+						justifyContent: "center",
+						minWidth: 80,
+					}}
+					onPress={() => onSelectCategory(category)}
+					activeOpacity={0.7}
+				>
+					<Text
+						style={{
+							color:
+								selectedCategory === category
+									? "white"
+									: isDark
+										? tokens.text
+										: tokens.primary,
+							fontWeight: QarnTypography.weights.medium,
+							fontSize: QarnTypography.sizes.sm,
+						}}
+					>
+						{category}
+					</Text>
+				</TouchableOpacity>
+			))}
+		</ScrollView>
+	);
+};
+
+export default CategoryFilters;
+</file>
+
+<file path="apps/merchant-app/components/header.tsx">
+import React, { useRef, useState } from "react";
+import {
+	View,
+	Text,
+	TouchableOpacity,
+	TextInput,
+	Platform,
+	Image,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import { QarnColors } from "@/constants/Colors";
+import { QarnSpacing, QarnRadius, QarnSizes } from "@/constants/Spacing";
+import { QarnTypography } from "@/constants/Typography";
+
+interface HeaderSectionProps {
+	restaurantName: string;
+	restaurantLogo?: string; // Optional URL for the logo image
+	onLogoPress?: () => void;
+	onNotificationPress?: () => void;
+}
+
+const HeaderSection: React.FC<HeaderSectionProps> = ({
+	restaurantName,
+	restaurantLogo,
+	onLogoPress,
+	onNotificationPress,
+}) => {
+	const colorScheme = useColorScheme();
+	const isDark = colorScheme === "dark";
+	const tokens = QarnColors[isDark ? "dark" : "light"];
+	const searchRef = useRef<TextInput>(null);
+	const [isSearchFocused, setIsSearchFocused] = useState<boolean>(false);
+
+	// Get the first letter of restaurant name for the fallback logo
+	const firstLetter = restaurantName ? restaurantName.charAt(0) : "Q";
+
+	return (
+		<>
+			{/* Header */}
+			<View
+				style={{
+					backgroundColor: tokens.primary,
+					paddingTop: Platform.OS === "ios" ? 50 : 16,
+					paddingBottom: 8,
+					paddingHorizontal: QarnSpacing.md,
+					flexDirection: "row",
+					alignItems: "center",
+					justifyContent: "space-between",
+				}}
+			>
+				<View style={{ flexDirection: "row", alignItems: "center" }}>
+					<TouchableOpacity
+						style={{
+							backgroundColor: "rgba(255,255,255,0.2)",
+							height: QarnSizes.avatarMd,
+							width: QarnSizes.avatarMd,
+							borderRadius: QarnRadius.md,
+							alignItems: "center",
+							justifyContent: "center",
+							marginRight: QarnSpacing.sm,
+							overflow: "hidden",
+						}}
+						onPress={onLogoPress}
+					>
+						{restaurantLogo ? (
+							<Image
+								source={{ uri: restaurantLogo }}
+								style={{
+									width: QarnSizes.avatarMd,
+									height: QarnSizes.avatarMd,
+								}}
+								resizeMode="cover"
+							/>
+						) : (
+							<Text
+								style={{
+									color: "white",
+									fontWeight: QarnTypography.weights.bold,
+									fontSize: QarnTypography.sizes.lg,
+								}}
+							>
+								{firstLetter}
+							</Text>
+						)}
+					</TouchableOpacity>
+
+					<Text
+						style={{
+							color: "white",
+							fontWeight: QarnTypography.weights.bold,
+							fontSize: QarnTypography.sizes.lg,
+						}}
+					>
+						{restaurantName}
+					</Text>
+				</View>
+
+				<TouchableOpacity
+					style={{
+						height: QarnSizes.touchTarget,
+						width: QarnSizes.touchTarget,
+						borderRadius: QarnSizes.touchTarget / 2,
+						backgroundColor: "rgba(255,255,255,0.2)",
+						alignItems: "center",
+						justifyContent: "center",
+						position: "relative",
+					}}
+					hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
+					onPress={onNotificationPress}
+				>
+					<Ionicons
+						name="notifications-outline"
+						size={QarnSizes.iconMd}
+						color="white"
+					/>
+					<View
+						style={{
+							position: "absolute",
+							top: 10,
+							right: 10,
+							width: 8,
+							height: 8,
+							borderRadius: 4,
+							backgroundColor: tokens.warning,
+						}}
+					/>
+				</TouchableOpacity>
+			</View>
+
+			{/* Search Section */}
+			<View
+				style={{
+					backgroundColor: tokens.primary,
+					paddingHorizontal: QarnSpacing.md,
+					paddingBottom: QarnSpacing.xl - 6,
+					borderBottomLeftRadius: QarnRadius.xl,
+					borderBottomRightRadius: QarnRadius.xl,
+				}}
+			>
+				<TouchableOpacity
+					style={{
+						backgroundColor: "rgba(255,255,255,0.15)",
+						borderRadius: QarnRadius.md,
+						flexDirection: "row",
+						alignItems: "center",
+						paddingHorizontal: QarnSpacing.md,
+						height: QarnSizes.inputHeight,
+						justifyContent: "flex-start",
+					}}
+					onPress={() => searchRef.current?.focus()}
+					activeOpacity={0.8}
+				>
+					<Ionicons
+						name="search"
+						size={QarnSizes.iconMd}
+						color="rgba(255,255,255,0.9)"
+						style={{ marginRight: QarnSpacing.sm }}
+					/>
+
+					<TextInput
+						ref={searchRef}
+						placeholder="Search meal plans or restaurants"
+						placeholderTextColor="rgba(255,255,255,0.7)"
+						style={{
+							flex: 1,
+							fontSize: QarnTypography.sizes.md,
+							color: "#FFFFFF",
+							height: QarnSizes.inputHeight,
+						}}
+						onFocus={() => setIsSearchFocused(true)}
+						onBlur={() => setIsSearchFocused(false)}
+					/>
+
+					{isSearchFocused && (
+						<TouchableOpacity
+							onPress={() => {
+								searchRef.current?.blur();
+								searchRef.current?.clear();
+							}}
+							style={{
+								padding: QarnSpacing.xs,
+								height: QarnSizes.touchTarget,
+								width: QarnSizes.touchTarget,
+								alignItems: "center",
+								justifyContent: "center",
+							}}
+							hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
+						>
+							<Ionicons
+								name="close-circle"
+								size={QarnSizes.iconMd}
+								color="rgba(255,255,255,0.9)"
+							/>
+						</TouchableOpacity>
+					)}
+				</TouchableOpacity>
+			</View>
+		</>
+	);
+};
+
+export default HeaderSection;
+</file>
+
+<file path="apps/merchant-app/components/meal-plan-card.tsx">
+import React from "react";
+import { View, Text, TouchableOpacity } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import { QarnColors } from "@/constants/Colors";
+import { QarnSpacing, QarnRadius, QarnSizes } from "@/constants/Spacing";
+import { QarnTypography, QarnShadows } from "@/constants/Typography";
+interface MealPlanCardProps {
+	title: string;
+	price: string;
+	calories: string;
+	image: string;
+	meals: string;
+	diet: string;
+	onPress: () => void;
+}
+const MealPlanCard = ({
+	title,
+	price,
+	calories,
+	image,
+	meals,
+	diet,
+	onPress,
+}: MealPlanCardProps) => {
+	const colorScheme = useColorScheme();
+	const isDark = colorScheme === "dark";
+	const tokens = QarnColors[isDark ? "dark" : "light"];
+	const shadows = QarnShadows[isDark ? "dark" : "light"];
+
+	return (
+		<TouchableOpacity
+			style={{
+				height: 160,
+				borderRadius: QarnRadius.card,
+				marginRight: QarnSpacing.md,
+				width: 260,
+				overflow: "hidden",
+				backgroundColor: tokens.card,
+				...shadows.medium,
+			}}
+			onPress={onPress}
+			activeOpacity={0.7}
+		>
+			<View
+				style={{
+					height: 100,
+					backgroundColor: isDark ? tokens.cardAlt : "#EFEFEF",
+					justifyContent: "flex-end",
+				}}
+			>
+				<View
+					style={{
+						backgroundColor: tokens.primary,
+						position: "absolute",
+						top: QarnSpacing.sm,
+						left: QarnSpacing.sm,
+						paddingHorizontal: QarnSpacing.sm,
+						paddingVertical: QarnSpacing.xs,
+						borderRadius: QarnRadius.badge,
+						zIndex: 10,
+						minHeight: 24,
+						justifyContent: "center",
+					}}
+				>
+					<Text
+						style={{
+							color: "white",
+							fontWeight: QarnTypography.weights.semibold,
+							fontSize: QarnTypography.sizes.xs,
+						}}
+					>
+						{diet}
+					</Text>
+				</View>
+
+				<View
+					style={{
+						position: "absolute",
+						top: 0,
+						left: 0,
+						right: 0,
+						bottom: 0,
+						justifyContent: "center",
+						alignItems: "center",
+					}}
+				>
+					<Ionicons
+						name={image as any}
+						size={QarnSizes.iconLg + 12}
+						color={tokens.primary}
+					/>
+				</View>
+
+				<View
+					style={{
+						backgroundColor: isDark
+							? "rgba(0,0,0,0.7)"
+							: "rgba(255,255,255,0.8)",
+						borderTopLeftRadius: QarnRadius.sm,
+						paddingVertical: QarnSpacing.xs,
+						paddingHorizontal: QarnSpacing.sm,
+						alignSelf: "flex-start",
+						margin: QarnSpacing.sm,
+						flexDirection: "row",
+						alignItems: "center",
+						minHeight: 28,
+					}}
+				>
+					<Ionicons name="flame" size={QarnSizes.iconXs} color="#FF9500" />
+					<Text
+						style={{
+							fontWeight: QarnTypography.weights.medium,
+							fontSize: QarnTypography.sizes.xs,
+							color: isDark ? tokens.text : tokens.text,
+							marginLeft: 4,
+						}}
+					>
+						{calories} cal
+					</Text>
+				</View>
+			</View>
+
+			<View style={{ padding: QarnSpacing.md }}>
+				<View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+					<Text
+						style={{
+							fontWeight: QarnTypography.weights.semibold,
+							fontSize: QarnTypography.sizes.md,
+							color: tokens.text,
+							flex: 1,
+						}}
+						numberOfLines={1}
+					>
+						{title}
+					</Text>
+					<Text
+						style={{
+							fontWeight: QarnTypography.weights.bold,
+							fontSize: QarnTypography.sizes.md,
+							color: tokens.primary,
+						}}
+					>
+						${price}
+					</Text>
+				</View>
+
+				<View
+					style={{ flexDirection: "row", alignItems: "center", marginTop: 4 }}
+				>
+					<Ionicons
+						name="calendar-outline"
+						size={QarnSizes.iconXs}
+						color={tokens.textSecondary}
+					/>
+					<Text
+						style={{
+							marginLeft: 4,
+							fontSize: QarnTypography.sizes.sm,
+							color: tokens.textSecondary,
+						}}
+					>
+						{meals} meals weekly
+					</Text>
+				</View>
+			</View>
+		</TouchableOpacity>
+	);
+};
+
+export default MealPlanCard;
+</file>
+
+<file path="apps/merchant-app/components/progress-status-card.tsx">
+import React from "react";
+import { View, Text, TouchableOpacity, Animated } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import { QarnColors } from "@/constants/Colors";
+import { QarnSpacing, QarnRadius, QarnSizes } from "@/constants/Spacing";
+import { QarnTypography, QarnShadows } from "@/constants/Typography";
+interface ProgressStatusCardProps {
+	restaurantName: string;
+	completedTasks: number;
+	totalTasks: number;
+	onAnalytics: () => void;
+	onFinish: () => void;
+	progressAnim?: Animated.Value;
+}
+const ProgressStatusCard = ({
+	restaurantName,
+	completedTasks,
+	totalTasks,
+	onAnalytics,
+	onFinish,
+	progressAnim,
+}: ProgressStatusCardProps) => {
+	const colorScheme = useColorScheme();
+	const isDark = colorScheme === "dark";
+	const tokens = QarnColors[isDark ? "dark" : "light"];
+	const shadows = QarnShadows[isDark ? "dark" : "light"];
+
+	const progressPercentage = Math.round((completedTasks / totalTasks) * 100);
+
+	return (
+		<View
+			style={{
+				backgroundColor: tokens.card,
+				borderRadius: QarnRadius.lg,
+				padding: QarnSpacing.md,
+				...shadows.large,
+				marginHorizontal: QarnSpacing.md,
+				marginTop: -20,
+				marginBottom: QarnSpacing.md,
+			}}
+		>
+			<View
+				style={{
+					flexDirection: "row",
+					alignItems: "center",
+					justifyContent: "space-between",
+				}}
+			>
+				<View>
+					<Text
+						style={{
+							fontSize: QarnTypography.sizes.lg,
+							fontWeight: QarnTypography.weights.bold,
+							color: tokens.text,
+							marginBottom: 4,
+						}}
+					>
+						{restaurantName}
+					</Text>
+					<Text
+						style={{
+							fontSize: QarnTypography.sizes.sm,
+							color: tokens.textSecondary,
+						}}
+					>
+						{completedTasks} of {totalTasks} tasks completed
+					</Text>
+				</View>
+
+				<View
+					style={{
+						backgroundColor: tokens.primaryLight,
+						height: QarnSizes.avatarMd + 6,
+						width: QarnSizes.avatarMd + 6,
+						borderRadius: (QarnSizes.avatarMd + 6) / 2,
+						alignItems: "center",
+						justifyContent: "center",
+					}}
+				>
+					<Text
+						style={{
+							fontSize: QarnTypography.sizes.lg,
+							fontWeight: QarnTypography.weights.bold,
+							color: tokens.primary,
+						}}
+					>
+						{progressPercentage}%
+					</Text>
+				</View>
+			</View>
+
+			<View
+				style={{
+					height: 6,
+					backgroundColor: tokens.primaryLight,
+					borderRadius: 3,
+					marginTop: QarnSpacing.md,
+					marginBottom: QarnSpacing.md + 4,
+					overflow: "hidden",
+				}}
+			>
+				<Animated.View
+					style={{
+						width: progressAnim
+							? progressAnim.interpolate({
+									inputRange: [0, 1],
+									outputRange: ["0%", "100%"],
+								})
+							: `${progressPercentage}%`,
+						height: "100%",
+						backgroundColor: tokens.primary,
+						borderRadius: 3,
+					}}
+				/>
+			</View>
+
+			<View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+				<TouchableOpacity
+					style={{
+						backgroundColor: tokens.cardAlt,
+						height: QarnSizes.buttonMd,
+						paddingHorizontal: QarnSpacing.md,
+						borderRadius: QarnRadius.button,
+						flexDirection: "row",
+						alignItems: "center",
+						justifyContent: "center",
+						minWidth: 120,
+					}}
+					onPress={onAnalytics}
+					activeOpacity={0.7}
+				>
+					<Ionicons
+						name="stats-chart"
+						size={QarnSizes.iconSm}
+						color={tokens.text}
+					/>
+					<Text
+						style={{
+							color: tokens.text,
+							fontWeight: QarnTypography.weights.medium,
+							marginLeft: QarnSpacing.xs,
+							fontSize: QarnTypography.sizes.sm,
+						}}
+					>
+						Analytics
+					</Text>
+				</TouchableOpacity>
+
+				<TouchableOpacity
+					style={{
+						backgroundColor: tokens.primary,
+						height: QarnSizes.buttonMd,
+						paddingHorizontal: QarnSpacing.md,
+						borderRadius: QarnRadius.button,
+						flexDirection: "row",
+						alignItems: "center",
+						justifyContent: "center",
+						minWidth: 130,
+					}}
+					onPress={onFinish}
+					activeOpacity={0.7}
+				>
+					<Text
+						style={{
+							color: "white",
+							fontWeight: QarnTypography.weights.semibold,
+							fontSize: QarnTypography.sizes.sm,
+						}}
+					>
+						Finish Setup
+					</Text>
+					<Ionicons
+						name="arrow-forward"
+						size={QarnSizes.iconSm}
+						color="white"
+						style={{ marginLeft: QarnSpacing.xs }}
+					/>
+				</TouchableOpacity>
+			</View>
+		</View>
+	);
+};
+
+export default ProgressStatusCard;
+</file>
+
+<file path="apps/merchant-app/components/restaurant-card.tsx">
+import React from "react";
+import { View, Text, TouchableOpacity } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import { QarnColors } from "@/constants/Colors";
+import { QarnSpacing, QarnRadius, QarnSizes } from "@/constants/Spacing";
+import { QarnTypography, QarnShadows } from "@/constants/Typography";
+interface RestaurantCardProps {
+	name: string;
+	items: number;
+	onPress: () => void;
+}
+const RestaurantCard = ({ name, items, onPress }: RestaurantCardProps) => {
+	const colorScheme = useColorScheme();
+	const isDark = colorScheme === "dark";
+	const tokens = QarnColors[isDark ? "dark" : "light"];
+	const shadows = QarnShadows[isDark ? "dark" : "light"];
+
+	return (
+		<TouchableOpacity
+			style={{
+				borderRadius: QarnRadius.md,
+				overflow: "hidden",
+				backgroundColor: tokens.card,
+				marginBottom: QarnSpacing.sm,
+				...shadows.small,
+				minHeight: QarnSizes.touchTarget + 16,
+			}}
+			onPress={onPress}
+			activeOpacity={0.7}
+		>
+			<View
+				style={{
+					flexDirection: "row",
+					alignItems: "center",
+					paddingVertical: QarnSpacing.md,
+					paddingHorizontal: QarnSpacing.md,
+				}}
+			>
+				<View
+					style={{
+						width: QarnSizes.avatarMd,
+						height: QarnSizes.avatarMd,
+						borderRadius: QarnSizes.avatarMd / 2,
+						backgroundColor: tokens.primaryLight,
+						alignItems: "center",
+						justifyContent: "center",
+						marginRight: QarnSpacing.md,
+					}}
+				>
+					<Text
+						style={{
+							fontSize: QarnTypography.sizes.md,
+							fontWeight: QarnTypography.weights.extrabold,
+							color: tokens.primary,
+						}}
+					>
+						{name.charAt(0)}
+					</Text>
+				</View>
+
+				<View style={{ flex: 1 }}>
+					<Text
+						style={{
+							fontWeight: QarnTypography.weights.semibold,
+							fontSize: QarnTypography.sizes.md,
+							color: tokens.text,
+							marginBottom: 2,
+						}}
+						numberOfLines={1}
+					>
+						{name}
+					</Text>
+					<Text
+						style={{
+							fontSize: QarnTypography.sizes.sm,
+							color: tokens.textSecondary,
+						}}
+					>
+						{items} active meal plans
+					</Text>
+				</View>
+
+				<View style={{ paddingLeft: QarnSpacing.sm }}>
+					<TouchableOpacity
+						style={{
+							height: QarnSizes.touchTarget,
+							width: QarnSizes.touchTarget,
+							alignItems: "center",
+							justifyContent: "center",
+						}}
+						hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
+					>
+						<Ionicons
+							name="chevron-forward"
+							size={QarnSizes.iconMd}
+							color={tokens.textSecondary}
+						/>
+					</TouchableOpacity>
+				</View>
+			</View>
+		</TouchableOpacity>
+	);
+};
+
+export default RestaurantCard;
+</file>
+
+<file path="apps/merchant-app/components/task-card.tsx">
+import React from "react";
+import { View, Text, TouchableOpacity } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import { QarnColors } from "@/constants/Colors";
+import { QarnSpacing, QarnRadius, QarnSizes } from "@/constants/Spacing";
+import { QarnTypography, QarnShadows } from "@/constants/Typography";
+interface TaskCardProps {
+	title: string;
+	details: string;
+	completed: boolean;
+	icon: string;
+	onPress: () => void;
+}
+const TaskCard = ({
+	title,
+	details,
+	completed,
+	icon,
+	onPress,
+}: TaskCardProps) => {
+	const colorScheme = useColorScheme();
+	const isDark = colorScheme === "dark";
+	const tokens = QarnColors[isDark ? "dark" : "light"];
+	const shadows = QarnShadows[isDark ? "dark" : "light"];
+
+	return (
+		<TouchableOpacity
+			style={{
+				backgroundColor: tokens.card,
+				borderRadius: QarnRadius.md,
+				padding: QarnSpacing.md,
+				...shadows.small,
+				minHeight: 130,
+			}}
+			onPress={onPress}
+			activeOpacity={0.7}
+		>
+			<View
+				style={{
+					flexDirection: "row",
+					alignItems: "center",
+					justifyContent: "space-between",
+				}}
+			>
+				<View
+					style={{
+						width: QarnSizes.avatarSm,
+						height: QarnSizes.avatarSm,
+						borderRadius: QarnSizes.avatarSm / 2,
+						backgroundColor: completed ? tokens.primary : tokens.primaryLight,
+						alignItems: "center",
+						justifyContent: "center",
+					}}
+				>
+					{completed ? (
+						<Ionicons name="checkmark" size={QarnSizes.iconSm} color="white" />
+					) : (
+						<Ionicons
+							name={icon as any}
+							size={QarnSizes.iconSm - 2}
+							color={tokens.primary}
+						/>
+					)}
+				</View>
+
+				{!completed && (
+					<View
+						style={{
+							width: 8,
+							height: 8,
+							borderRadius: 4,
+							backgroundColor: tokens.primary,
+						}}
+					/>
+				)}
+			</View>
+
+			<Text
+				style={{
+					marginTop: QarnSpacing.sm,
+					fontWeight: QarnTypography.weights.semibold,
+					fontSize: QarnTypography.sizes.md,
+					color: tokens.text,
+				}}
+			>
+				{title}
+			</Text>
+
+			<Text
+				style={{
+					marginTop: 4,
+					fontSize: QarnTypography.sizes.sm,
+					color: tokens.textSecondary,
+					marginBottom: completed ? QarnSpacing.md : QarnSpacing.sm,
+				}}
+				numberOfLines={2}
+			>
+				{details}
+			</Text>
+
+			{!completed && (
+				<TouchableOpacity
+					style={{
+						backgroundColor: tokens.primaryLight,
+						height: QarnSizes.buttonMd,
+						borderRadius: QarnRadius.button,
+						alignItems: "center",
+						justifyContent: "center",
+						marginTop: "auto",
+					}}
+					activeOpacity={0.7}
+				>
+					<Text
+						style={{
+							color: tokens.primary,
+							fontWeight: QarnTypography.weights.medium,
+							fontSize: QarnTypography.sizes.sm,
+						}}
+					>
+						Complete
+					</Text>
+				</TouchableOpacity>
+			)}
+		</TouchableOpacity>
+	);
+};
+
+export default TaskCard;
+</file>
+
+<file path="apps/merchant-app/constants/Colors.ts">
+/**
+ * Qarn Color Tokens
+ */
+export const QarnColors = {
+	light: {
+		// Brand colors
+		primary: "#22C55E",
+		primaryDark: "#15803D",
+		primaryLight: "#E5F6ED",
+
+		// UI colors
+		background: "#F8FAF8",
+		card: "#FFFFFF",
+		cardAlt: "#F3F4F6",
+
+		// Text colors
+		text: "#1C1D1F",
+		textSecondary: "#6B7280",
+		textMuted: "#9CA3AF",
+
+		// Status colors
+		success: "#22C55E",
+		warning: "#FFD60A",
+		info: "#3B82F6",
+		error: "#EF4444",
+
+		// Special UI elements
+		divider: "#E5E7EB",
+		overlay: "rgba(0,0,0,0.4)",
+		shadow: "rgba(0,0,0,0.1)",
+
+		// Tab navigation
+		tabBar: "#FFFFFF",
+		tabIconDefault: "#9CA3AF",
+		tabIconSelected: "#22C55E",
+	},
+	dark: {
+		// Brand colors
+		primary: "#22C55E",
+		primaryDark: "#15803D",
+		primaryLight: "#2C2C2E",
+
+		// UI colors
+		background: "#0C0C0C",
+		card: "#1C1C1E",
+		cardAlt: "#2C2C2E",
+
+		// Text colors
+		text: "#F2F2F7",
+		textSecondary: "#8E8E93",
+		textMuted: "#636366",
+
+		// Status colors
+		success: "#22C55E",
+		warning: "#FFD60A",
+		info: "#3B82F6",
+		error: "#EF4444",
+
+		// Special UI elements
+		divider: "#38383A",
+		overlay: "rgba(0,0,0,0.6)",
+		shadow: "rgba(0,0,0,0.3)",
+
+		// Tab navigation
+		tabBar: "#1C1C1E",
+		tabIconDefault: "#8E8E93",
+		tabIconSelected: "#22C55E",
+	},
+};
+</file>
+
+<file path="apps/merchant-app/constants/Spacing.ts">
+export const QarnSpacing = {
+	// Base spacing units
+	xs: 4,
+	sm: 8,
+	md: 16,
+	lg: 24,
+	xl: 32,
+	xxl: 48,
+
+	// Special spacing
+	screenPadding: 16,
+	cardPadding: 16,
+	itemSpacing: 12,
+	sectionSpacing: 24,
+};
+
+export const QarnRadius = {
+	// Border radius values
+	xs: 4,
+	sm: 8,
+	md: 12,
+	lg: 16,
+	xl: 24,
+	round: 999, // For circular elements
+
+	// Special elements
+	button: 12,
+	card: 16,
+	input: 12,
+	badge: 12,
+};
+
+export const QarnSizes = {
+	// Touch target sizes (minimum recommended size for touchable elements)
+	touchTarget: 44,
+	smallTouchTarget: 36,
+
+	// Icon sizes
+	iconXs: 16,
+	iconSm: 20,
+	iconMd: 24,
+	iconLg: 32,
+
+	// Button heights
+	buttonSm: 36,
+	buttonMd: 44,
+	buttonLg: 52,
+
+	// Input heights
+	inputHeight: 48,
+
+	// Navigation
+	headerHeight: 56,
+	tabBarHeight: 49,
+
+	// Other common elements
+	avatarSm: 32,
+	avatarMd: 44,
+	avatarLg: 64,
+};
+</file>
+
+<file path="apps/merchant-app/constants/Typography.ts">
+/**
+ * Qarn Typography and Shadow Tokens
+ */
+
+export const QarnTypography = {
+	// Font sizes
+	sizes: {
+		xs: 12,
+		sm: 14,
+		md: 16,
+		lg: 18,
+		xl: 20,
+		xxl: 24,
+		xxxl: 30,
+	},
+
+	// Font weights
+	weights: {
+		regular: "400",
+		medium: "500",
+		semibold: "600",
+		bold: "700",
+		extrabold: "800",
+	} as const,
+
+	// Line heights
+	lineHeights: {
+		tight: 1.2,
+		normal: 1.5,
+		loose: 1.8,
+	},
+};
+
+export const QarnShadows = {
+	light: {
+		small: {
+			shadowColor: "#000",
+			shadowOffset: { width: 0, height: 1 },
+			shadowOpacity: 0.1,
+			shadowRadius: 2,
+			elevation: 1,
+		},
+		medium: {
+			shadowColor: "#000",
+			shadowOffset: { width: 0, height: 2 },
+			shadowOpacity: 0.1,
+			shadowRadius: 4,
+			elevation: 2,
+		},
+		large: {
+			shadowColor: "#000",
+			shadowOffset: { width: 0, height: 4 },
+			shadowOpacity: 0.1,
+			shadowRadius: 8,
+			elevation: 4,
+		},
+	},
+	dark: {
+		small: {
+			shadowColor: "#000",
+			shadowOffset: { width: 0, height: 1 },
+			shadowOpacity: 0.3,
+			shadowRadius: 2,
+			elevation: 1,
+		},
+		medium: {
+			shadowColor: "#000",
+			shadowOffset: { width: 0, height: 2 },
+			shadowOpacity: 0.4,
+			shadowRadius: 4,
+			elevation: 2,
+		},
+		large: {
+			shadowColor: "#000",
+			shadowOffset: { width: 0, height: 4 },
+			shadowOpacity: 0.5,
+			shadowRadius: 8,
+			elevation: 4,
+		},
+	},
+};
+</file>
+
+<file path="apps/merchant-app/hooks/useColorScheme.ts">
+export { useColorScheme } from 'react-native';
+</file>
+
+<file path="apps/merchant-app/hooks/useColorScheme.web.ts">
+import { useEffect, useState } from 'react';
+import { useColorScheme as useRNColorScheme } from 'react-native';
+
+/**
+ * To support static rendering, this value needs to be re-calculated on the client side for web
+ */
+export function useColorScheme() {
+  const [hasHydrated, setHasHydrated] = useState(false);
+
+  useEffect(() => {
+    setHasHydrated(true);
+  }, []);
+
+  const colorScheme = useRNColorScheme();
+
+  if (hasHydrated) {
+    return colorScheme;
+  }
+
+  return 'light';
+}
+</file>
+
+<file path="apps/merchant-app/hooks/useThemeColor.ts">
+/**
+ * Learn more about light and dark modes:
+ * https://docs.expo.dev/guides/color-schemes/
+ */
+
+import { Colors } from '@/constants/Colors';
+import { useColorScheme } from '@/hooks/useColorScheme';
+
+export function useThemeColor(
+  props: { light?: string; dark?: string },
+  colorName: keyof typeof Colors.light & keyof typeof Colors.dark
+) {
+  const theme = useColorScheme() ?? 'light';
+  const colorFromProps = props[theme];
+
+  if (colorFromProps) {
+    return colorFromProps;
+  } else {
+    return Colors[theme][colorName];
+  }
+}
+</file>
+
+<file path="apps/merchant-app/.gitignore">
+# @generated expo-cli sync-2b81b286409207a5da26e14c78851eb30d8ccbdb
+# The following patterns were generated by expo-cli
+
+expo-env.d.ts
+# @end expo-cli
+</file>
+
+<file path=".npmrc">
+node-linker=hoisted
+engine-strict=true
+</file>
+
+<file path=".nvimrc">
+23.11.0
+</file>
+
+<file path="pnpm-workspace.yaml">
+packages:
+  - apps/*
+
+catalog:
+  '@biomejs/biome': 1.9.4
+  typescript: ~5.8.3
+
+catalogs:
+  react18:
+    react: 18.3.1
+    react-dom: 18.3.1
+    '@types/react': ^18.3.3
+    '@types/react-dom': ^18.3.0
+  react-native:
+    react: 19.0.0
+    react-dom: 19.0.0
+    react-native: 0.79.0
+    '@types/react': ~19.0.10
+
+nodeLinker: hoisted
+
+onlyBuiltDependencies:
+  - '@biomejs/biome'
+</file>
+
+<file path=".gitignore">
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+node_modules
+.pnp
+.pnp.js
+
+# testing
+coverage
+
+# next.js
+.next/
+out/
+next-env.d.ts
+#sveltekit
+.svelte-kit
+# nitro
+.nitro/
+.output/
+
+# expo
+.expo
+expo-env.d.ts
+ios/
+android/
+*.gen.ts
+
+# production
+build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# local env files
+.env
+.env*.local
+
+# typescript
+*.tsbuildinfo
+dist/
+
+# turbo
+.turbo
+
+
+
+
+# Output
+.cache
+.output
+.vercel
+/.svelte-kit
+/build
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.*
+!.env.example
+!.env.test
+
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+.maestro/tests/
+messages.js
+</file>
+
+</files>

@@ -2,23 +2,17 @@
 	"name": "qarn",
 	"version": "1.0.0",
 	"description": "",
-	"main": "index.js",
-	"packageManager": "pnpm@9.4.0",
+	"packageManager": "pnpm@10.8.1",
 	"engines": {
-		"node": ">=v20.18.0"
+		"node": ">=v23.11.0"
 	},
 	"scripts": {
 		"build": "turbo run build",
-		"clean": "git clean -xdf node_modules .turbo rm pnpm-lock.yaml",
+		"clean:root": "git clean -xdf node_modules .turbo rm pnpm-lock.yaml",
 		"clean:workspaces": "turbo run clean",
-		"db:generate": "turbo run generate --filter=@qarn-nutritionist/db",
-		"dev": "turbo watch dev",
-		"format": "turbo format --continue --",
-		"format:fix": "turbo format --continue -- --write",
-		"lint": "turbo lint --continue --",
-		"lint:fix": "turbo lint --continue -- --apply",
-		"lint:ws": "pnpm dlx sherif@latest",
-		"typecheck": "turbo run typecheck",
+		"clean": "pnpm clean:workspaces && pnpm clean:root",
+		"lint": "biome lint .",
+		"format": "biome format .",
 		"noly": "pnpm dlx nolyfill"
 	},
 	"keywords": [],
