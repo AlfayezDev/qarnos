@@ -13,7 +13,8 @@
 		"clean": "pnpm clean:workspaces && pnpm clean:root",
 		"lint": "biome lint .",
 		"format": "biome format .",
-		"noly": "pnpm dlx nolyfill"
+		"noly": "pnpm dlx nolyfill",
+		"repomix": "repomix --ignore \"**/*.log,tmp/,**/Illustrations/**,**/*.json,**/Localization.ts,**/SVGS/**,**/generated/**\" --remove-comments --remove-empty-lines"
 	},
 	"keywords": [],
 	"author": "",

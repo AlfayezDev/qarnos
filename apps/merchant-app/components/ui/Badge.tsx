@@ -3,7 +3,7 @@ import { View, StyleSheet, ViewProps } from "react-native";
 import { useTheme } from "@/hooks/useTheme";
 import { Text } from "./Text";
 
-interface BadgeProps extends ViewProps {
+export interface BadgeProps extends ViewProps {
 	text: string;
 	variant?: "primary" | "success" | "warning" | "info" | "error";
 }
