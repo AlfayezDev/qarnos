@@ -3,26 +3,25 @@ import {
 	RefreshControl,
 	View,
 	ScrollView,
-	TouchableOpacity,
 	Pressable,
 	StyleSheet,
+	FlatList,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 import Animated, {
 	useSharedValue,
 	useAnimatedStyle,
 	useAnimatedScrollHandler,
 	interpolate,
 	Extrapolation,
-	withSpring,
 	FadeInUp,
 	FadeOutDown,
 	LinearTransition,
 } from "react-native-reanimated";
 import { useTheme, AppTheme } from "@/hooks/useTheme";
 import { Box, Text, Badge } from "@/components/ui";
-
 interface MealCount {
 	name: string;
 	count: number;
@@ -45,12 +44,10 @@ interface StatItem {
 	value: string | number;
 	icon: string;
 }
-
 interface OverviewStats {
 	activeSubscriptions: number;
 	newThisWeek: number;
 }
-
 const TODAY_PREP_SUMMARY: MealPrepSummary[] = [
 	{
 		period: "Breakfast",
@@ -81,7 +78,6 @@ const TODAY_PREP_SUMMARY: MealPrepSummary[] = [
 		],
 	},
 ];
-
 const getActivityStats = (tab: string): StatItem[] => {
 	switch (tab) {
 		case "Week":
@@ -101,12 +97,10 @@ const getActivityStats = (tab: string): StatItem[] => {
 			];
 	}
 };
-
 const OVERVIEW_STATS: OverviewStats = {
 	activeSubscriptions: 52,
 	newThisWeek: 3,
 };
-
 const ALERTS: Alert[] = [
 	{
 		id: 1,
@@ -130,15 +124,13 @@ const ALERTS: Alert[] = [
 		timestamp: "Yesterday",
 	},
 ];
-
 const HEADER_HEIGHT = 65;
 const MAX_MEALS_TO_SHOW = 3;
-const PREP_CARD_WIDTH = 180;
-
+const PREP_CARD_WIDTH = 170;
 const AnimatedBox = Animated.createAnimatedComponent(Box);
 const AnimatedText = Animated.createAnimatedComponent(Text);
 const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
-
+const AnimatedView = Animated.View;
 interface DashboardTabsProps {
 	tabs: string[];
 	selectedTab: string;
@@ -147,20 +139,28 @@ interface DashboardTabsProps {
 }
 const DashboardTabs: React.FC<DashboardTabsProps> = React.memo(
 	({ tabs, selectedTab, onSelectTab, theme }) => {
+		const handlePress = (tab: string) => {
+			if (tab !== selectedTab) {
+				Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+				onSelectTab(tab);
+			}
+		};
 		return (
 			<AnimatedBox
 				entering={FadeInUp.delay(50).duration(400).springify().damping(15)}
 				style={localStyles.tabsContainer}
 				bg="backgroundAlt"
-				rounded="xl"
+				rounded="md"
 				padding="xs"
+				marginHorizontal="md"
+				marginBottom="lg"
 			>
 				{tabs.map((tab) => (
-					<TouchableOpacity
+					<Pressable
 						key={tab}
-						style={[
+						style={({ pressed }) => [
 							localStyles.tab,
-							{ borderRadius: theme.radius.lg },
+							{ borderRadius: theme.radius.sm },
 							tab === selectedTab && [
 								localStyles.selectedTab,
 								{
@@ -168,9 +168,10 @@ const DashboardTabs: React.FC<DashboardTabsProps> = React.memo(
 									shadowColor: theme.colors.shadow,
 								},
 							],
+							pressed && { backgroundColor: theme.colors.overlay },
 						]}
-						onPress={() => onSelectTab(tab)}
-						activeOpacity={0.7}
+						onPress={() => handlePress(tab)}
+						android_ripple={{ color: theme.colors.overlay, borderless: true }}
 					>
 						<Text
 							variant="sm"
@@ -179,13 +180,12 @@ const DashboardTabs: React.FC<DashboardTabsProps> = React.memo(
 						>
 							{tab}
 						</Text>
-					</TouchableOpacity>
+					</Pressable>
 				))}
 			</AnimatedBox>
 		);
 	},
 );
-
 interface StatsGridProps {
 	stats: StatItem[];
 	theme: AppTheme;
@@ -206,21 +206,19 @@ const StatsGridComponent: React.FC<StatsGridProps> = React.memo(
 						exiting={FadeOutDown.duration(200)}
 						layout={LinearTransition.duration(300)}
 						flex={1}
-						marginRight={index === 0 ? "sm" : undefined}
+						marginRight={index < stats.length - 1 ? "sm" : undefined}
 					>
 						<Box
 							bg="card"
 							padding="md"
 							rounded="lg"
-							style={[
-								localStyles.statCard,
-								{ shadowColor: theme.colors.shadow },
-							]}
+							elevation="small"
+							style={localStyles.statCard}
 						>
 							<Box row alignCenter marginBottom="sm">
 								<Box
 									style={[
-										localStyles.statIcon,
+										localStyles.statIconContainer,
 										{ borderRadius: theme.radius.sm },
 									]}
 									bg="primaryLight"
@@ -236,7 +234,17 @@ const StatsGridComponent: React.FC<StatsGridProps> = React.memo(
 									{stat.title}
 								</Text>
 							</Box>
-							<Text variant="xl" weight="bold">
+							<Text
+								variant="xl"
+								weight="bold"
+								color={
+									stat.title.startsWith("New") &&
+									typeof stat.value === "string" &&
+									stat.value.startsWith("+")
+										? "success"
+										: "text"
+								}
+							>
 								{stat.value}
 							</Text>
 						</Box>
@@ -246,41 +254,6 @@ const StatsGridComponent: React.FC<StatsGridProps> = React.memo(
 		);
 	},
 );
-
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
-const ScaleOnPress = ({
-	children,
-	onPress,
-	style,
-	disabled,
-}: {
-	children: React.ReactNode;
-	onPress?: () => void;
-	style?: any;
-	disabled?: boolean;
-}) => {
-	const scale = useSharedValue(1);
-	const pressedStyle = useAnimatedStyle(() => ({
-		transform: [{ scale: scale.value }],
-	}));
-	return (
-		<AnimatedPressable
-			onPress={onPress}
-			disabled={disabled || !onPress}
-			onPressIn={() => {
-				if (!disabled)
-					scale.value = withSpring(0.97, { damping: 18, stiffness: 400 });
-			}}
-			onPressOut={() => {
-				if (!disabled) scale.value = withSpring(1);
-			}}
-			style={[style, pressedStyle]}
-		>
-			{children}
-		</AnimatedPressable>
-	);
-};
-
 interface TodayPrepCardProps {
 	summary: MealPrepSummary;
 	theme: AppTheme;
@@ -298,12 +271,14 @@ const TodayPrepCard: React.FC<TodayPrepCardProps> = React.memo(
 			"info" | "primary" | "error"
 		> = { Breakfast: "info", Lunch: "primary", Dinner: "error" };
 		return (
-			<ScaleOnPress
+			<Pressable
 				onPress={onPress}
-				style={[
+				style={({ pressed }) => [
 					localStyles.prepCardContainer,
 					{ borderRadius: theme.radius.lg },
+					pressed && { opacity: 0.8 },
 				]}
+				android_ripple={{ color: theme.colors.overlay }}
 			>
 				<Box
 					style={[
@@ -314,6 +289,7 @@ const TodayPrepCard: React.FC<TodayPrepCardProps> = React.memo(
 							shadowColor: theme.colors.shadow,
 						},
 					]}
+					elevation="small"
 				>
 					<Box row alignCenter marginBottom="sm">
 						<Ionicons
@@ -340,7 +316,7 @@ const TodayPrepCard: React.FC<TodayPrepCardProps> = React.memo(
 								key={meal.id}
 								row
 								justifyContent="space-between"
-								paddingVertical={theme.spacing.xs / 2}
+								paddingVertical={theme.spacing.xs / 1.5}
 							>
 								<Text
 									variant="sm"
@@ -364,6 +340,7 @@ const TodayPrepCard: React.FC<TodayPrepCardProps> = React.memo(
 						<Badge
 							text={`${summary.totalMeals} Total`}
 							variant={periodColors[summary.period]}
+							size="sm"
 						/>
 						{summary.mealsToPrep.length > MAX_MEALS_TO_SHOW && (
 							<Text variant="xs" color="textMuted">
@@ -372,11 +349,10 @@ const TodayPrepCard: React.FC<TodayPrepCardProps> = React.memo(
 						)}
 					</Box>
 				</Box>
-			</ScaleOnPress>
+			</Pressable>
 		);
 	},
 );
-
 interface AlertRowProps {
 	alert: Alert;
 	theme: AppTheme;
@@ -386,39 +362,43 @@ const AlertRow: React.FC<AlertRowProps> = React.memo(
 	({ alert, theme, onPress }) => {
 		const iconColor = theme.colors[alert.type];
 		return (
-			<ScaleOnPress onPress={onPress}>
-				<Box row alignCenter paddingVertical="sm">
-					<Ionicons
-						name={alert.icon as any}
-						size={theme.sizes.iconSm}
-						color={iconColor}
-						style={{ marginRight: theme.spacing.sm }}
-					/>
-					<Box flex={1}>
-						<Text variant="sm" numberOfLines={1}>
-							{alert.title}
+			<Pressable
+				onPress={onPress}
+				style={({ pressed }) => [
+					localStyles.alertRowContainer,
+					pressed && { backgroundColor: theme.colors.backgroundAlt },
+				]}
+				android_ripple={{ color: theme.colors.overlay }}
+			>
+				<Ionicons
+					name={alert.icon as any}
+					size={theme.sizes.iconSm}
+					color={iconColor}
+					style={{ marginRight: theme.spacing.md }}
+				/>
+				<Box flex={1}>
+					<Text variant="sm" numberOfLines={1}>
+						{alert.title}
+					</Text>
+					{alert.timestamp && (
+						<Text
+							variant="xs"
+							color="textMuted"
+							marginTop={theme.spacing.xs / 2}
+						>
+							{alert.timestamp}
 						</Text>
-						{alert.timestamp && (
-							<Text
-								variant="xs"
-								color="textMuted"
-								marginTop={theme.spacing.xs / 2}
-							>
-								{alert.timestamp}
-							</Text>
-						)}
-					</Box>
-					<Ionicons
-						name="chevron-forward"
-						size={theme.sizes.iconSm}
-						color={theme.colors.textMuted}
-					/>
+					)}
 				</Box>
-			</ScaleOnPress>
+				<Ionicons
+					name="chevron-forward"
+					size={theme.sizes.iconSm}
+					color={theme.colors.textMuted}
+				/>
+			</Pressable>
 		);
 	},
 );
-
 interface ActivityOverviewCardProps {
 	alerts: Alert[];
 	overviewStats: OverviewStats;
@@ -437,12 +417,13 @@ const ActivityOverviewCardComponent: React.FC<ActivityOverviewCardProps> =
 				marginHorizontal="md"
 				marginBottom="lg"
 				padding="md"
-				style={[localStyles.cardShadow, { shadowColor: theme.colors.shadow }]}
+				elevation="medium"
+				style={localStyles.activityCard}
 			>
-				<Text variant="lg" weight="semibold" marginBottom="sm">
+				<Text variant="lg" weight="semibold" marginBottom="md">
 					Activity & Alerts
 				</Text>
-				<Box row marginBottom="sm" paddingVertical="xs">
+				<Box row marginBottom="md">
 					<Box flex={1} marginRight="sm">
 						<Text
 							variant="sm"
@@ -468,7 +449,7 @@ const ActivityOverviewCardComponent: React.FC<ActivityOverviewCardProps> =
 						</Text>
 					</Box>
 				</Box>
-				{hasAlerts && (
+				{hasAlerts ? (
 					<Box marginTop="xs">
 						{alerts.map((alert, index) => (
 							<Box
@@ -486,8 +467,7 @@ const ActivityOverviewCardComponent: React.FC<ActivityOverviewCardProps> =
 							</Box>
 						))}
 					</Box>
-				)}
-				{!hasAlerts && (
+				) : (
 					<Box row alignCenter paddingVertical="sm" marginTop="xs">
 						<Ionicons
 							name="checkmark-circle-outline"
@@ -503,7 +483,6 @@ const ActivityOverviewCardComponent: React.FC<ActivityOverviewCardProps> =
 			</AnimatedBox>
 		);
 	});
-
 interface QuickActionButtonProps {
 	label: string;
 	icon: string;
@@ -512,37 +491,133 @@ interface QuickActionButtonProps {
 }
 const QuickActionButton: React.FC<QuickActionButtonProps> = React.memo(
 	({ label, icon, action, theme }) => (
-		<ScaleOnPress onPress={action} style={localStyles.quickActionContainer}>
-			<Box
-				style={[
-					localStyles.quickActionButton,
-					{
-						borderRadius: theme.radius.lg,
-						shadowColor: theme.colors.shadow,
-						minHeight: theme.sizes.buttonLg * 2.1,
-					},
-				]}
-				bg="card"
-			>
+		<Pressable
+			onPress={() => {
+				Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+				action();
+			}}
+			style={({ pressed }) => [
+				localStyles.quickActionContainer,
+				pressed && { opacity: 0.7 },
+			]}
+			android_ripple={{ color: theme.colors.overlay, borderless: false }}
+		>
+			<Box style={localStyles.quickActionIconCircle} bg="primaryLight">
 				<Ionicons
 					name={`${icon}-outline` as any}
-					size={theme.sizes.iconLg}
+					size={theme.sizes.iconMd}
 					color={theme.colors.primary}
 				/>
-				<Text
-					center
-					variant="sm"
-					marginTop="sm"
-					color="primary"
-					weight="medium"
-				>
-					{label}
-				</Text>
 			</Box>
-		</ScaleOnPress>
+			<Text
+				center
+				variant="xs"
+				marginTop="xs"
+				color="textSecondary"
+				weight="medium"
+				numberOfLines={1}
+			>
+				{label}
+			</Text>
+		</Pressable>
 	),
 );
-
+interface TodaysPrepSectionProps {
+	theme: AppTheme;
+	prepData: MealPrepSummary[];
+	renderPrepItem: ({ item }: { item: MealPrepSummary }) => React.ReactElement;
+	keyExtractorPrepItem: (item: MealPrepSummary) => string;
+}
+const TodaysPrepSection: React.FC<TodaysPrepSectionProps> = ({
+	theme,
+	prepData,
+	renderPrepItem,
+	keyExtractorPrepItem,
+}) => (
+	<>
+		<AnimatedText
+			entering={FadeInUp.delay(250).duration(400).springify().damping(15)}
+			variant="lg"
+			weight="semibold"
+			marginHorizontal="md"
+			marginBottom="sm"
+		>
+			Today's Prep
+		</AnimatedText>
+		<AnimatedView
+			entering={FadeInUp.delay(300).duration(400).springify().damping(15)}
+		>
+			<FlatList<MealPrepSummary>
+				horizontal
+				data={prepData}
+				keyExtractor={keyExtractorPrepItem}
+				showsHorizontalScrollIndicator={false}
+				contentContainerStyle={[
+					localStyles.prepListContentContainer,
+					{
+						paddingHorizontal: theme.spacing.md,
+						paddingVertical: theme.spacing.sm,
+						gap: theme.spacing.sm,
+					},
+				]}
+				snapToInterval={PREP_CARD_WIDTH + theme.spacing.sm}
+				decelerationRate="fast"
+				renderItem={renderPrepItem}
+			/>
+		</AnimatedView>
+	</>
+);
+interface QuickAccessSectionProps {
+	theme: AppTheme;
+	handleViewSchedule: () => void;
+	handleManageClients: () => void;
+	handleManagePlans: () => void;
+}
+const QuickAccessSection: React.FC<QuickAccessSectionProps> = ({
+	theme,
+	handleViewSchedule,
+	handleManageClients,
+	handleManagePlans,
+}) => (
+	<>
+		<AnimatedText
+			entering={FadeInUp.delay(400).duration(400).springify().damping(15)}
+			variant="lg"
+			weight="semibold"
+			marginHorizontal="md"
+			marginBottom="md"
+		>
+			Quick Access
+		</AnimatedText>
+		<AnimatedBox
+			entering={FadeInUp.delay(450).duration(400).springify().damping(15)}
+			row
+			justifyContent="space-around"
+			alignItems="flex-start"
+			marginHorizontal="md"
+			marginBottom="xl"
+		>
+			<QuickActionButton
+				label="Full Schedule"
+				icon="calendar"
+				action={handleViewSchedule}
+				theme={theme}
+			/>
+			<QuickActionButton
+				label="Manage Clients"
+				icon="people"
+				action={handleManageClients}
+				theme={theme}
+			/>
+			<QuickActionButton
+				label="Meal Plans"
+				icon="restaurant"
+				action={handleManagePlans}
+				theme={theme}
+			/>
+		</AnimatedBox>
+	</>
+);
 const HomeScreen: React.FC = () => {
 	const theme = useTheme();
 	const insets = useSafeAreaInsets();
@@ -550,19 +625,16 @@ const HomeScreen: React.FC = () => {
 	const [selectedTab, setSelectedTab] = useState("Today");
 	const scrollY = useSharedValue(0);
 	const scrollRef = useRef<Animated.ScrollView>(null);
-
 	const tabItems = ["Today", "Week", "Month"];
 	const currentStats = useMemo(
 		() => getActivityStats(selectedTab),
 		[selectedTab],
 	);
-
 	const handleRefresh = useCallback(() => {
 		setRefreshing(true);
-
+		Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 		setTimeout(() => setRefreshing(false), 1200);
 	}, []);
-
 	const handleViewSchedule = useCallback((period?: string) => {
 		console.log("View Schedule", period || "Full");
 	}, []);
@@ -575,25 +647,23 @@ const HomeScreen: React.FC = () => {
 	const handleManagePlans = useCallback(() => {
 		console.log("Manage Plans");
 	}, []);
-
 	const scrollHandler = useAnimatedScrollHandler({
 		onScroll: (event) => {
 			scrollY.value = event.contentOffset.y;
 		},
 	});
-
 	const headerAnimatedStyle = useAnimatedStyle(() => {
 		const value = scrollY.value;
 		const borderOpacity = interpolate(
 			value,
-			[0, 15],
+			[0, 10],
 			[0, 1],
 			Extrapolation.CLAMP,
 		);
 		const shadowOpacity = interpolate(
 			value,
-			[0, 15],
-			[0, theme.isDark ? 0.4 : 0.06],
+			[0, 10],
+			[0, theme.isDark ? 0.2 : 0.05],
 			Extrapolation.CLAMP,
 		);
 		return {
@@ -603,17 +673,16 @@ const HomeScreen: React.FC = () => {
 			shadowColor: theme.colors.shadow,
 			shadowOffset: { width: 0, height: 2 },
 			shadowRadius: 3,
-			elevation: borderOpacity > 0 ? 4 : 0,
+			elevation: borderOpacity > 0 ? 2 : 0,
 		};
 	});
-
 	const Header = useCallback(
 		() => (
 			<Animated.View
 				style={[
 					localStyles.headerBase,
 					{
-						backgroundColor: theme.colors.card,
+						backgroundColor: theme.colors.background,
 						paddingTop: insets.top,
 						height: HEADER_HEIGHT + insets.top,
 						paddingHorizontal: theme.spacing.md,
@@ -625,13 +694,14 @@ const HomeScreen: React.FC = () => {
 				<View style={localStyles.headerContent}>
 					<View>
 						<Text
-							variant="sm"
+							variant="xs"
 							color="textSecondary"
-							style={{ textTransform: "uppercase" }}
+							weight="medium"
+							style={{ textTransform: "uppercase", letterSpacing: 0.5 }}
 						>
 							Dashboard
 						</Text>
-						<Text variant="lg" weight="semibold">
+						<Text variant="xl" weight="semibold">
 							{new Date().toLocaleDateString(undefined, {
 								weekday: "long",
 								month: "short",
@@ -639,22 +709,40 @@ const HomeScreen: React.FC = () => {
 							})}
 						</Text>
 					</View>
-					<TouchableOpacity
+					<Pressable
 						onPress={() => console.log("Settings")}
-						style={localStyles.iconButton}
+						style={({ pressed }) => [
+							localStyles.iconButton,
+							{ borderRadius: theme.radius.round },
+							pressed && { backgroundColor: theme.colors.overlay },
+						]}
+						android_ripple={{ color: theme.colors.overlay, borderless: true }}
 					>
 						<Ionicons
 							name="settings-outline"
 							size={theme.sizes.iconMd}
 							color={theme.colors.textSecondary}
 						/>
-					</TouchableOpacity>
+					</Pressable>
 				</View>
 			</Animated.View>
 		),
 		[insets.top, theme, headerAnimatedStyle],
 	);
-
+	const renderPrepItem = useCallback(
+		({ item }: { item: MealPrepSummary }) => (
+			<TodayPrepCard
+				summary={item}
+				theme={theme}
+				onPress={() => handleViewSchedule(item.period)}
+			/>
+		),
+		[theme, handleViewSchedule],
+	);
+	const keyExtractorPrepItem = useCallback(
+		(item: MealPrepSummary) => item.period,
+		[],
+	);
 	return (
 		<View
 			style={[
@@ -667,8 +755,8 @@ const HomeScreen: React.FC = () => {
 				ref={scrollRef}
 				showsVerticalScrollIndicator={false}
 				contentContainerStyle={{
-					paddingTop: HEADER_HEIGHT + insets.top,
-					paddingBottom: insets.bottom + theme.spacing.xl,
+					paddingTop: HEADER_HEIGHT + insets.top + theme.spacing.md,
+					paddingBottom: insets.bottom + theme.spacing.xxl,
 				}}
 				onScroll={scrollHandler}
 				scrollEventThrottle={16}
@@ -682,175 +770,114 @@ const HomeScreen: React.FC = () => {
 						progressViewOffset={HEADER_HEIGHT + insets.top + theme.spacing.sm}
 					/>
 				}
+				keyboardShouldPersistTaps="handled"
 			>
-				{/* --- Tabs --- */}
-				<Box marginHorizontal="md" marginBottom="md" marginTop="md">
-					<DashboardTabs
-						tabs={tabItems}
-						selectedTab={selectedTab}
-						onSelectTab={setSelectedTab}
-						theme={theme}
-					/>
-				</Box>
-
-				{/* --- Stats Grid (Re-animates on tab change via key + LinearTransition) --- */}
+				<DashboardTabs
+					tabs={tabItems}
+					selectedTab={selectedTab}
+					onSelectTab={setSelectedTab}
+					theme={theme}
+				/>
 				<StatsGridComponent
 					stats={currentStats}
 					theme={theme}
 					key={selectedTab}
 				/>
-
-				{/* --- Today's Prep Title --- */}
-				<AnimatedText
-					entering={FadeInUp.delay(250).duration(400).springify().damping(15)}
-					variant="xl"
-					weight="semibold"
-					marginHorizontal="md"
-					marginBottom="sm"
-				>
-					Today's Prep
-				</AnimatedText>
-
-				{/* --- Today's Prep ScrollView --- */}
-				<AnimatedScrollView
-					horizontal
-					showsHorizontalScrollIndicator={false}
-					contentContainerStyle={[
-						localStyles.prepScrollContainer,
-						{
-							paddingHorizontal: theme.spacing.md,
-							paddingVertical: theme.spacing.sm,
-							gap: theme.spacing.sm,
-						},
-					]}
-					snapToInterval={PREP_CARD_WIDTH + theme.spacing.sm}
-					decelerationRate="fast"
-					entering={FadeInUp.delay(300).duration(400).springify().damping(15)}
-				>
-					{TODAY_PREP_SUMMARY.map((summary) => (
-						<TodayPrepCard
-							key={summary.period}
-							summary={summary}
-							theme={theme}
-							onPress={() => handleViewSchedule(summary.period)}
-						/>
-					))}
-				</AnimatedScrollView>
-
-				{/* --- Activity Card (Uses fixed OVERVIEW_STATS) --- */}
+				<TodaysPrepSection
+					theme={theme}
+					prepData={TODAY_PREP_SUMMARY}
+					renderPrepItem={renderPrepItem}
+					keyExtractorPrepItem={keyExtractorPrepItem}
+				/>
 				<ActivityOverviewCardComponent
 					alerts={ALERTS}
 					overviewStats={OVERVIEW_STATS}
 					theme={theme}
 					onViewAlert={handleViewAlert}
 				/>
-
-				{/* --- Quick Access Title --- */}
-				<AnimatedText
-					entering={FadeInUp.delay(400).duration(400).springify().damping(15)}
-					variant="lg"
-					weight="semibold"
-					marginHorizontal="md"
-					marginBottom="sm"
-				>
-					Quick Access
-				</AnimatedText>
-
-				{/* --- Quick Access Buttons --- */}
-				<AnimatedBox
-					entering={FadeInUp.delay(450).duration(400).springify().damping(15)}
-					row
-					justifyContent="space-around"
-					marginHorizontal="sm"
-					marginBottom="xl"
-				>
-					<QuickActionButton
-						label="Full Schedule"
-						icon="calendar"
-						action={handleViewSchedule}
-						theme={theme}
-					/>
-					<QuickActionButton
-						label="Clients"
-						icon="people"
-						action={handleManageClients}
-						theme={theme}
-					/>
-					<QuickActionButton
-						label="Meal Plans"
-						icon="restaurant"
-						action={handleManagePlans}
-						theme={theme}
-					/>
-				</AnimatedBox>
+				<QuickAccessSection
+					theme={theme}
+					handleViewSchedule={handleViewSchedule}
+					handleManageClients={handleManageClients}
+					handleManagePlans={handleManagePlans}
+				/>
 			</AnimatedScrollView>
 		</View>
 	);
 };
-
 const localStyles = StyleSheet.create({
 	screenContainer: { flex: 1 },
-	headerBase: { position: "absolute", top: 0, left: 0, right: 0, zIndex: 100 },
+	headerBase: {
+		position: "absolute",
+		top: 0,
+		left: 0,
+		right: 0,
+		zIndex: 100,
+	},
 	headerContent: {
+		flex: 1,
 		flexDirection: "row",
 		alignItems: "center",
 		justifyContent: "space-between",
 	},
-	iconButton: { padding: 8 },
-	tabsContainer: { flexDirection: "row" },
+	iconButton: {
+		padding: 8,
+	},
+	tabsContainer: {
+		flexDirection: "row",
+	},
 	tab: {
 		flex: 1,
 		paddingVertical: 8,
 		paddingHorizontal: 12,
 		alignItems: "center",
+		justifyContent: "center",
 	},
 	selectedTab: {
 		shadowOffset: { width: 0, height: 1 },
-		shadowOpacity: 0.05,
-		shadowRadius: 2,
-		elevation: 1,
-	},
-	statCard: {
-		shadowOffset: { width: 0, height: 1 },
 		shadowOpacity: 0.1,
 		shadowRadius: 2,
-		elevation: 1,
+		elevation: 2,
 	},
-	statIcon: {
+	statCard: {},
+	statIconContainer: {
 		width: 32,
 		height: 32,
 		alignItems: "center",
 		justifyContent: "center",
 	},
-	prepScrollContainer: {},
-	prepCardContainer: { width: PREP_CARD_WIDTH },
+	prepListContentContainer: {},
+	prepCardContainer: {
+		width: PREP_CARD_WIDTH,
+	},
 	prepCard: {
 		padding: 16,
-		minHeight: 180,
+		minHeight: 170,
 		justifyContent: "space-between",
-		shadowOffset: { width: 0, height: 1 },
-		shadowOpacity: 0.1,
-		shadowRadius: 2,
-		elevation: 1,
 	},
-	prepListContainer: { marginTop: 4, flexGrow: 1 },
-	cardShadow: {
-		shadowOffset: { width: 0, height: 2 },
-		shadowOpacity: 0.1,
-		shadowRadius: 4,
-		elevation: 2,
+	prepListContainer: {
+		marginTop: 4,
+		flexGrow: 1,
 	},
-	quickActionContainer: { flex: 1, marginHorizontal: 4 },
-	quickActionButton: {
-		paddingVertical: 16,
+	activityCard: {},
+	alertRowContainer: {
+		flexDirection: "row",
+		alignItems: "center",
+		paddingVertical: 12,
+	},
+	quickActionContainer: {
+		flex: 1,
+		alignItems: "center",
+		maxWidth: 100,
 		paddingHorizontal: 4,
+	},
+	quickActionIconCircle: {
+		width: 56,
+		height: 56,
+		borderRadius: 28,
 		alignItems: "center",
 		justifyContent: "center",
-		shadowOffset: { width: 0, height: 1 },
-		shadowOpacity: 0.1,
-		shadowRadius: 2,
-		elevation: 1,
+		marginBottom: 8,
 	},
 });
-
 export default HomeScreen;
