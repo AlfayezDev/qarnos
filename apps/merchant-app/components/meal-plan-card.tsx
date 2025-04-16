@@ -13,6 +13,7 @@ interface MealPlanCardProps {
 	meals: string;
 	diet: string;
 	onPress: () => void;
+	featured?: boolean;
 }
 const MealPlanCard = ({
 	title,

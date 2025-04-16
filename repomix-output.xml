@@ -56,6 +56,20 @@ apps/
       _layout.tsx
       +not-found.tsx
     components/
+      layout/
+        index.ts
+        PageHeader.tsx
+        ScreenContainer.tsx
+        SearchOverlay.tsx
+        SectionHeader.tsx
+      ui/
+        Avatar.tsx
+        Badge.tsx
+        Box.tsx
+        Button.tsx
+        Card.tsx
+        index.ts
+        Text.tsx
       category-filters.tsx
       header.tsx
       meal-plan-card.tsx
@@ -65,10 +79,12 @@ apps/
     constants/
       Colors.ts
       Spacing.ts
+      theme.ts
       Typography.ts
     hooks/
       useColorScheme.ts
       useColorScheme.web.ts
+      useTheme.ts
       useThemeColor.ts
     .gitignore
 .gitignore
@@ -80,23 +96,1774 @@ pnpm-workspace.yaml
 <files>
 This section contains the contents of the repository's files.
 
-<file path="apps/merchant-app/app/(tabs)/(home)/index.tsx">
-import React, { useState, useRef, useEffect } from "react";
-import { View, ScrollView, Text, Animated } from "react-native";
-import { Screen } from "expo-router/build/views/Screen";
-import { useColorScheme } from "@/hooks/useColorScheme";
-import { QarnColors } from "@/constants/Colors";
-import { QarnSpacing } from "@/constants/Spacing";
+<file path="apps/merchant-app/components/layout/index.ts">
+export * from "./ScreenContainer";
+export * from "./SectionHeader";
+export * from "./PageHeader";
+export * from "./SearchOverlay";
+</file>
 
-// Import our components
-import HeaderSection from "@/components/header";
-import ProgressStatusCard from "@/components/progress-status-card";
-import TaskCard from "@/components/task-card";
+<file path="apps/merchant-app/components/layout/PageHeader.tsx">
+import React from "react";
+import { View, StyleSheet, TextInput, TouchableOpacity } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { ColorToken, useTheme } from "@/hooks/useTheme";
+import { Text } from "../ui/Text";
+
+interface PageHeaderProps {
+	title: string;
+	showSearch?: boolean;
+	searchPlaceholder?: string;
+	searchValue?: string;
+	onSearchChange?: (text: string) => void;
+	onSearchClear?: () => void;
+	rightIcon?: string;
+	onRightIconPress?: () => void;
+	backgroundColor?: ColorToken;
+}
+
+export const PageHeader: React.FC<PageHeaderProps> = ({
+	title,
+	showSearch = false,
+	searchPlaceholder = "Search...",
+	searchValue = "",
+	onSearchChange,
+	onSearchClear,
+	rightIcon,
+	onRightIconPress,
+	backgroundColor = "primary",
+}) => {
+	const theme = useTheme();
+
+	const styles = StyleSheet.create({
+		header: {
+			backgroundColor: theme.colors[backgroundColor],
+			paddingTop: theme.platform.topInset,
+			paddingBottom: showSearch ? theme.spacing.lg : theme.spacing.md,
+			paddingHorizontal: theme.spacing.md,
+		},
+		titleRow: {
+			flexDirection: "row",
+			justifyContent: "space-between",
+			alignItems: "center",
+			marginBottom: showSearch ? theme.spacing.md : 0,
+		},
+		title: {
+			color: "white",
+			fontSize: theme.typography.sizes.xl,
+			fontWeight: theme.typography.weights.bold,
+		},
+		searchContainer: {
+			backgroundColor: "rgba(255,255,255,0.15)",
+			borderRadius: theme.radius.md,
+			flexDirection: "row",
+			alignItems: "center",
+			paddingHorizontal: theme.spacing.md,
+			height: theme.sizes.inputHeight,
+		},
+		searchInput: {
+			flex: 1,
+			fontSize: theme.typography.sizes.md,
+			color: "#FFFFFF",
+			height: theme.sizes.inputHeight,
+		},
+		iconButton: {
+			padding: theme.spacing.xs,
+			height: theme.sizes.touchTarget,
+			width: theme.sizes.touchTarget,
+			alignItems: "center",
+			justifyContent: "center",
+		},
+	});
+
+	return (
+		<View style={styles.header}>
+			<View style={styles.titleRow}>
+				<Text style={styles.title}>{title}</Text>
+
+				{rightIcon && (
+					<TouchableOpacity
+						style={styles.iconButton}
+						onPress={onRightIconPress}
+						hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
+					>
+						<Ionicons
+							name={rightIcon as any}
+							size={theme.sizes.iconMd}
+							color="white"
+						/>
+					</TouchableOpacity>
+				)}
+			</View>
+
+			{showSearch && (
+				<View style={styles.searchContainer}>
+					<Ionicons
+						name="search"
+						size={theme.sizes.iconMd}
+						color="rgba(255,255,255,0.9)"
+						style={{ marginRight: theme.spacing.sm }}
+					/>
+
+					<TextInput
+						placeholder={searchPlaceholder}
+						placeholderTextColor="rgba(255,255,255,0.7)"
+						style={styles.searchInput}
+						value={searchValue}
+						onChangeText={onSearchChange}
+					/>
+
+					{searchValue && onSearchClear && (
+						<TouchableOpacity onPress={onSearchClear} style={styles.iconButton}>
+							<Ionicons
+								name="close-circle"
+								size={theme.sizes.iconMd}
+								color="rgba(255,255,255,0.9)"
+							/>
+						</TouchableOpacity>
+					)}
+				</View>
+			)}
+		</View>
+	);
+};
+</file>
+
+<file path="apps/merchant-app/components/layout/ScreenContainer.tsx">
+import { useTheme } from "@/hooks/useTheme";
+import { Screen } from "expo-router/build/views/Screen";
+import React from "react";
+import {
+	RefreshControlProps,
+	ScrollView,
+	StatusBar,
+	StyleSheet,
+	View,
+} from "react-native";
+import {
+	SafeAreaView,
+	useSafeAreaInsets,
+} from "react-native-safe-area-context";
+
+interface ScreenContainerProps {
+	children: React.ReactNode;
+	scrollable?: boolean;
+	screenOptions?: any;
+	header?: React.ReactNode;
+	padded?: boolean;
+	refreshControl?: React.ReactElement<RefreshControlProps>;
+	contentContainerStyle?: any;
+	bottomInset?: boolean;
+}
+
+export const ScreenContainer: React.FC<ScreenContainerProps> = ({
+	children,
+	scrollable = true,
+	screenOptions = { headerShown: false },
+	header,
+	padded = true,
+	refreshControl,
+	contentContainerStyle,
+	bottomInset = true,
+}) => {
+	const theme = useTheme();
+	const insets = useSafeAreaInsets();
+
+	const styles = StyleSheet.create({
+		container: {
+			flex: 1,
+			backgroundColor: theme.colors.background,
+		},
+		content: {
+			flex: 1,
+			paddingHorizontal: padded ? theme.spacing.screenPadding : 0,
+		},
+		scrollContent: {
+			flexGrow: 1,
+			paddingBottom: bottomInset
+				? insets.bottom || theme.spacing.xl
+				: theme.spacing.xl,
+		},
+	});
+
+	// We don't want to add SafeAreaView to the container when we have a custom header
+	// The header should handle its own safe area insets
+	const Container = header ? View : SafeAreaView;
+
+	return (
+		<>
+			<Screen options={screenOptions} />
+			<StatusBar
+				barStyle={theme.isDark ? "light-content" : "dark-content"}
+				backgroundColor={theme.colors.background}
+			/>
+			<Container style={styles.container}>
+				{header}
+
+				{scrollable ? (
+					<ScrollView
+						style={styles.content}
+						contentContainerStyle={[
+							styles.scrollContent,
+							contentContainerStyle,
+						]}
+						showsVerticalScrollIndicator={false}
+						refreshControl={refreshControl}
+					>
+						{children}
+					</ScrollView>
+				) : (
+					<View style={styles.content}>{children}</View>
+				)}
+			</Container>
+		</>
+	);
+};
+</file>
+
+<file path="apps/merchant-app/components/layout/SearchOverlay.tsx">
+import React, { useRef, useEffect, useState } from "react";
+import {
+	View,
+	TextInput,
+	TouchableOpacity,
+	StyleSheet,
+	Animated,
+	Keyboard,
+	FlatList,
+	StatusBar,
+	Platform,
+	Pressable,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useTheme } from "@/hooks/useTheme";
+import { Text } from "../ui";
+
+interface SearchResult {
+	id: string | number;
+	title: string;
+	subtitle?: string;
+	icon?: string;
+}
+
+interface SearchOverlayProps {
+	isVisible: boolean;
+	onClose: () => void;
+	placeholder?: string;
+	onSearch: (query: string) => void;
+	results?: SearchResult[];
+	onResultPress?: (item: SearchResult) => void;
+	recentSearches?: string[];
+	onClearRecents?: () => void;
+}
+
+export const SearchOverlay: React.FC<SearchOverlayProps> = ({
+	isVisible,
+	onClose,
+	placeholder = "Search...",
+	onSearch,
+	results = [],
+	onResultPress,
+	recentSearches = [],
+	onClearRecents,
+}) => {
+	const theme = useTheme();
+	const [searchValue, setSearchValue] = useState("");
+	const searchInputRef = useRef<TextInput>(null);
+
+	// Animation values
+	const translateY = useRef(new Animated.Value(0)).current;
+	const opacity = useRef(new Animated.Value(0)).current;
+
+	// Show/hide the overlay
+	useEffect(() => {
+		if (isVisible) {
+			// Reset search on open
+			setSearchValue("");
+
+			// Start animations
+			Animated.parallel([
+				Animated.timing(opacity, {
+					toValue: 1,
+					duration: 200,
+					useNativeDriver: true,
+				}),
+				Animated.spring(translateY, {
+					toValue: 1,
+					tension: 65,
+					friction: 11,
+					useNativeDriver: true,
+				}),
+			]).start(() => {
+				// Focus the input
+				if (searchInputRef.current) {
+					searchInputRef.current.focus();
+				}
+			});
+		} else {
+			// Hide animations
+			Animated.parallel([
+				Animated.timing(opacity, {
+					toValue: 0,
+					duration: 150,
+					useNativeDriver: true,
+				}),
+				Animated.timing(translateY, {
+					toValue: 0,
+					duration: 200,
+					useNativeDriver: true,
+				}),
+			]).start();
+
+			// Dismiss keyboard
+			Keyboard.dismiss();
+		}
+	}, [isVisible]);
+
+	// Handle search
+	const handleChangeText = (text: string) => {
+		setSearchValue(text);
+		onSearch(text);
+	};
+
+	// Handle result selection
+	const handleItemPress = (item: SearchResult) => {
+		onResultPress?.(item);
+		onClose();
+	};
+
+	// Handle recent search press
+	const handleRecentPress = (query: string) => {
+		setSearchValue(query);
+		onSearch(query);
+	};
+
+	// Create animation styles
+	const containerStyle = {
+		opacity: opacity,
+		transform: [
+			{
+				translateY: translateY.interpolate({
+					inputRange: [0, 1],
+					outputRange: [-50, 0],
+				}),
+			},
+		],
+	};
+
+	// If completely hidden, don't render
+	if (!isVisible) return null;
+
+	return (
+		<Animated.View
+			style={[
+				styles.container,
+				{ backgroundColor: theme.colors.background },
+				containerStyle,
+			]}
+		>
+			<StatusBar barStyle={theme.isDark ? "light-content" : "dark-content"} />
+
+			{/* Search Header */}
+			<View style={styles.header}>
+				<TouchableOpacity onPress={onClose} style={styles.backButton}>
+					<Ionicons name="arrow-back" size={24} color={theme.colors.text} />
+				</TouchableOpacity>
+
+				<View
+					style={[styles.searchBar, { backgroundColor: theme.colors.cardAlt }]}
+				>
+					<Ionicons
+						name="search"
+						size={20}
+						color={theme.colors.textSecondary}
+						style={{ marginRight: 8 }}
+					/>
+
+					<TextInput
+						ref={searchInputRef}
+						style={[styles.input, { color: theme.colors.text }]}
+						placeholder={placeholder}
+						placeholderTextColor={theme.colors.textSecondary}
+						value={searchValue}
+						onChangeText={handleChangeText}
+						returnKeyType="search"
+						autoCapitalize="none"
+					/>
+
+					{searchValue.length > 0 && (
+						<TouchableOpacity onPress={() => handleChangeText("")}>
+							<Ionicons
+								name="close-circle"
+								size={20}
+								color={theme.colors.textSecondary}
+							/>
+						</TouchableOpacity>
+					)}
+				</View>
+			</View>
+
+			{/* Results */}
+			{results.length > 0 ? (
+				<FlatList
+					data={results}
+					keyExtractor={(item) => item.id.toString()}
+					renderItem={({ item }) => (
+						<Pressable
+							style={({ pressed }) => [
+								styles.resultItem,
+								pressed && { backgroundColor: theme.colors.cardAlt },
+							]}
+							onPress={() => handleItemPress(item)}
+							android_ripple={{ color: theme.colors.cardAlt }}
+						>
+							{item.icon && (
+								<View
+									style={[
+										styles.resultIcon,
+										{ backgroundColor: theme.colors.primaryLight },
+									]}
+								>
+									<Ionicons
+										name={item.icon as any}
+										size={18}
+										color={theme.colors.primary}
+									/>
+								</View>
+							)}
+
+							<View style={styles.resultText}>
+								<Text style={{ fontSize: 16, color: theme.colors.text }}>
+									{item.title}
+								</Text>
+								{item.subtitle && (
+									<Text
+										style={{
+											fontSize: 14,
+											color: theme.colors.textSecondary,
+											marginTop: 2,
+										}}
+									>
+										{item.subtitle}
+									</Text>
+								)}
+							</View>
+						</Pressable>
+					)}
+					contentContainerStyle={styles.list}
+				/>
+			) : (
+				// Recent searches or empty state
+				<View style={styles.emptyContainer}>
+					{searchValue.length > 0 ? (
+						<View style={styles.noResults}>
+							<Ionicons
+								name="search"
+								size={32}
+								color={theme.colors.textSecondary}
+								style={{ marginBottom: 16 }}
+							/>
+							<Text style={{ color: theme.colors.textSecondary }}>
+								No results found for "{searchValue}"
+							</Text>
+						</View>
+					) : recentSearches.length > 0 ? (
+						<View style={styles.recentsContainer}>
+							<View style={styles.recentsHeader}>
+								<Text
+									style={{
+										fontSize: 14,
+										color: theme.colors.textSecondary,
+										fontWeight: "600",
+									}}
+								>
+									Recent Searches
+								</Text>
+
+								<TouchableOpacity onPress={onClearRecents}>
+									<Text style={{ fontSize: 14, color: theme.colors.primary }}>
+										Clear
+									</Text>
+								</TouchableOpacity>
+							</View>
+
+							{recentSearches.map((query, index) => (
+								<Pressable
+									key={`recent-searches-${index.toString()}`}
+									style={({ pressed }) => [
+										styles.recentItem,
+										pressed && { backgroundColor: theme.colors.cardAlt },
+									]}
+									onPress={() => handleRecentPress(query)}
+									android_ripple={{ color: theme.colors.cardAlt }}
+								>
+									<Ionicons
+										name="time-outline"
+										size={18}
+										color={theme.colors.textSecondary}
+										style={{ marginRight: 8 }}
+									/>
+									<Text style={{ fontSize: 15, color: theme.colors.text }}>
+										{query}
+									</Text>
+								</Pressable>
+							))}
+						</View>
+					) : null}
+				</View>
+			)}
+		</Animated.View>
+	);
+};
+
+const styles = StyleSheet.create({
+	container: {
+		position: "absolute",
+		top: 0,
+		left: 0,
+		right: 0,
+		bottom: 0,
+		zIndex: 1000,
+	},
+	header: {
+		flexDirection: "row",
+		alignItems: "center",
+		paddingTop: Platform.OS === "ios" ? 60 : 16,
+		paddingHorizontal: 16,
+		paddingBottom: 12,
+	},
+	backButton: {
+		padding: 8,
+		marginRight: 8,
+		borderRadius: 20,
+	},
+	searchBar: {
+		flex: 1,
+		flexDirection: "row",
+		alignItems: "center",
+		height: 44,
+		borderRadius: 10,
+		paddingHorizontal: 12,
+	},
+	input: {
+		flex: 1,
+		height: "100%",
+		fontSize: 16,
+		marginLeft: 4,
+	},
+	list: {
+		paddingBottom: 20,
+	},
+	resultItem: {
+		flexDirection: "row",
+		alignItems: "center",
+		padding: 16,
+		borderBottomWidth: StyleSheet.hairlineWidth,
+		borderBottomColor: "rgba(0,0,0,0.1)",
+	},
+	resultIcon: {
+		width: 36,
+		height: 36,
+		borderRadius: 18,
+		alignItems: "center",
+		justifyContent: "center",
+		marginRight: 16,
+	},
+	resultText: {
+		flex: 1,
+	},
+	emptyContainer: {
+		flex: 1,
+		padding: 16,
+	},
+	noResults: {
+		flex: 1,
+		justifyContent: "center",
+		alignItems: "center",
+	},
+	recentsContainer: {
+		paddingVertical: 8,
+	},
+	recentsHeader: {
+		flexDirection: "row",
+		justifyContent: "space-between",
+		alignItems: "center",
+		marginBottom: 8,
+		paddingHorizontal: 8,
+	},
+	recentItem: {
+		flexDirection: "row",
+		alignItems: "center",
+		paddingVertical: 14,
+		paddingHorizontal: 12,
+		borderRadius: 8,
+	},
+});
+
+export default SearchOverlay;
+</file>
+
+<file path="apps/merchant-app/components/layout/SectionHeader.tsx">
+import React from "react";
+import { View, StyleSheet, TouchableOpacity } from "react-native";
+import { SpacingToken, useTheme } from "@/hooks/useTheme";
+import { Text } from "../ui/Text";
+
+interface SectionHeaderProps {
+	title: string;
+	actionLabel?: string;
+	onActionPress?: () => void;
+	marginTop?: SpacingToken;
+	marginBottom?: SpacingToken;
+}
+
+export const SectionHeader: React.FC<SectionHeaderProps> = ({
+	title,
+	actionLabel,
+	onActionPress,
+	marginTop = "sm",
+	marginBottom = "sm",
+}) => {
+	const theme = useTheme();
+
+	const styles = StyleSheet.create({
+		container: {
+			flexDirection: "row",
+			justifyContent: "space-between",
+			alignItems: "center",
+			marginHorizontal: theme.spacing.md,
+			marginTop: theme.spacing[marginTop],
+			marginBottom: theme.spacing[marginBottom],
+		},
+		actionButton: {
+			padding: theme.spacing.sm,
+		},
+	});
+
+	return (
+		<View style={styles.container}>
+			<Text variant="lg" weight="semibold">
+				{title}
+			</Text>
+
+			{actionLabel && onActionPress && (
+				<TouchableOpacity style={styles.actionButton} onPress={onActionPress}>
+					<Text color="primary" weight="medium" variant="sm">
+						{actionLabel}
+					</Text>
+				</TouchableOpacity>
+			)}
+		</View>
+	);
+};
+</file>
+
+<file path="apps/merchant-app/components/ui/Avatar.tsx">
+import { ThemeTokens, useTheme } from "@/hooks/useTheme";
+import React from "react";
+import {
+	Image,
+	ImageSourcePropType,
+	StyleSheet,
+	View,
+	ViewProps,
+} from "react-native";
+import { Text } from "./Text";
+
+interface AvatarProps extends ViewProps {
+	size?: "sm" | "md" | "lg" | number;
+	source?: ImageSourcePropType;
+	text?: string;
+	color?: ThemeTokens["colors"];
+	backgroundColor?: ThemeTokens["colors"];
+}
+
+export const Avatar: React.FC<AvatarProps> = ({
+	size = "md",
+	source,
+	text,
+	color,
+	backgroundColor,
+	...props
+}) => {
+	const theme = useTheme();
+
+	const getSize = () => {
+		if (typeof size === "number") return size;
+		switch (size) {
+			case "sm":
+				return theme.sizes.avatarSm;
+			case "md":
+				return theme.sizes.avatarMd;
+			case "lg":
+				return theme.sizes.avatarLg;
+		}
+	};
+
+	const getFontSize = () => {
+		if (typeof size === "number") return size / 2;
+		switch (size) {
+			case "sm":
+				return theme.typography.sizes.sm;
+			case "md":
+				return theme.typography.sizes.lg;
+			case "lg":
+				return theme.typography.sizes.xxl;
+		}
+	};
+
+	const avatarSize = getSize();
+	const bgColor = backgroundColor
+		? theme.colors[backgroundColor]
+		: theme.colors.primaryLight;
+	const textColor = color ? theme.colors[color] : theme.colors.primary;
+
+	const styles = StyleSheet.create({
+		container: {
+			width: avatarSize,
+			height: avatarSize,
+			borderRadius: avatarSize / 2,
+			backgroundColor: bgColor,
+			alignItems: "center",
+			justifyContent: "center",
+			overflow: "hidden",
+		},
+		image: {
+			width: avatarSize,
+			height: avatarSize,
+		},
+	});
+
+	return (
+		<View style={styles.container} {...props}>
+			{source ? (
+				<Image source={source} style={styles.image} resizeMode="cover" />
+			) : (
+				<Text
+					weight="bold"
+					color={textColor}
+					style={{
+						fontSize: getFontSize(),
+					}}
+				>
+					{text ? text.charAt(0).toUpperCase() : "?"}
+				</Text>
+			)}
+		</View>
+	);
+};
+</file>
+
+<file path="apps/merchant-app/components/ui/Badge.tsx">
+import React from "react";
+import { View, StyleSheet, ViewProps } from "react-native";
+import { useTheme } from "@/hooks/useTheme";
+import { Text } from "./Text";
+
+interface BadgeProps extends ViewProps {
+	text: string;
+	variant?: "primary" | "success" | "warning" | "info" | "error";
+}
+
+export const Badge: React.FC<BadgeProps> = ({
+	text,
+	variant = "primary",
+	...props
+}) => {
+	const theme = useTheme();
+
+	const getBadgeColor = () => {
+		switch (variant) {
+			case "primary":
+				return theme.colors.primary;
+			case "success":
+				return theme.colors.success;
+			case "warning":
+				return theme.colors.warning;
+			case "info":
+				return theme.colors.info;
+			case "error":
+				return theme.colors.error;
+		}
+	};
+
+	const styles = StyleSheet.create({
+		badge: {
+			backgroundColor: getBadgeColor(),
+			paddingHorizontal: theme.spacing.sm,
+			paddingVertical: theme.spacing.xs / 2,
+			borderRadius: theme.radius.badge,
+			minWidth: 24,
+			alignItems: "center",
+		},
+	});
+
+	return (
+		<View style={[styles.badge, props.style]} {...props}>
+			<Text variant="xs" weight="medium" color="white">
+				{text}
+			</Text>
+		</View>
+	);
+};
+</file>
+
+<file path="apps/merchant-app/components/ui/Box.tsx">
+// apps/merchant-app/components/ui/Box.tsx
+import React from "react";
+import {
+	View,
+	ViewProps,
+	StyleSheet,
+	StyleProp,
+	ViewStyle,
+	DimensionValue,
+	FlexAlignType,
+	Pressable,
+	I18nManager,
+} from "react-native";
+import { useTheme } from "@/hooks/useTheme";
+import { SpacingToken, ColorToken, RadiusToken } from "@/hooks/useTheme";
+
+// Type for justifyContent property
+type JustifyContentType =
+	| "flex-start"
+	| "flex-end"
+	| "center"
+	| "space-between"
+	| "space-around"
+	| "space-evenly";
+
+interface BoxProps extends ViewProps {
+	flex?: number;
+	row?: boolean;
+	center?: boolean;
+	alignCenter?: boolean;
+	alignItems?: FlexAlignType;
+	justifyCenter?: boolean;
+	justifyContent?: JustifyContentType;
+	card?: boolean;
+	padding?: SpacingToken | number;
+	margin?: SpacingToken | number;
+	marginTop?: SpacingToken | number;
+	marginBottom?: SpacingToken | number;
+	marginLeft?: SpacingToken | number;
+	marginRight?: SpacingToken | number;
+	marginStart?: SpacingToken | number; // RTL aware
+	marginEnd?: SpacingToken | number; // RTL aware
+	marginHorizontal?: SpacingToken | number;
+	marginVertical?: SpacingToken | number;
+	paddingHorizontal?: SpacingToken | number;
+	paddingBottom?: SpacingToken | number;
+	paddingTop?: SpacingToken | number;
+	paddingVertical?: SpacingToken | number;
+	paddingLeft?: SpacingToken | number;
+	paddingRight?: SpacingToken | number;
+	paddingStart?: SpacingToken | number; // RTL aware
+	paddingEnd?: SpacingToken | number; // RTL aware
+	rounded?: RadiusToken | number;
+	width?: DimensionValue;
+	height?: DimensionValue;
+	borderWidth?: number;
+	borderColor?: ColorToken;
+	bg?: ColorToken | string;
+	elevation?: "none" | "small" | "medium" | "large";
+	style?: StyleProp<ViewStyle>;
+	onPress?: () => void;
+	activeOpacity?: number;
+}
+
+export const Box: React.FC<BoxProps> = ({
+	children,
+	flex,
+	row,
+	center,
+	alignCenter,
+	paddingTop,
+	alignItems,
+	paddingBottom,
+	justifyCenter,
+	justifyContent,
+	card,
+	padding,
+	margin,
+	marginTop,
+	marginBottom,
+	marginLeft,
+	marginRight,
+	marginStart,
+	marginEnd,
+	marginHorizontal,
+	marginVertical,
+	paddingHorizontal,
+	paddingVertical,
+	paddingLeft,
+	paddingRight,
+	paddingStart,
+	paddingEnd,
+	rounded,
+	width,
+	height,
+	borderWidth,
+	borderColor,
+	bg,
+	elevation,
+	style,
+	onPress,
+	activeOpacity = 0.7,
+	...props
+}) => {
+	const theme = useTheme();
+	const isRTL = I18nManager.isRTL;
+
+	// Determine alignment based on props
+	let finalAlignItems: FlexAlignType | undefined;
+	let finalJustifyContent: JustifyContentType | undefined;
+
+	// If center is true, center both axes
+	if (center) {
+		finalAlignItems = "center";
+		finalJustifyContent = "center";
+	} else {
+		// Otherwise use specified values
+		finalAlignItems = alignCenter ? "center" : alignItems;
+		finalJustifyContent = justifyCenter ? "center" : justifyContent;
+	}
+
+	const getSpacingValue = (
+		value: SpacingToken | number | undefined,
+	): number | undefined => {
+		if (value === undefined) return undefined;
+		return typeof value === "number" ? value : theme.spacing[value];
+	};
+
+	const getRadiusValue = (
+		value: RadiusToken | number | undefined,
+	): number | undefined => {
+		if (value === undefined) return undefined;
+		return typeof value === "number" ? value : theme.radius[value];
+	};
+
+	const getColorValue = (
+		color: ColorToken | string | undefined,
+	): string | undefined => {
+		if (color === undefined) return undefined;
+
+		// Check if it's a theme color key
+		if (typeof color === "string" && color in theme.colors) {
+			return theme.colors[color as ColorToken];
+		}
+
+		// Otherwise return the raw color value
+		return color;
+	};
+
+	const getElevation = (level?: "none" | "small" | "medium" | "large") => {
+		if (!level || level === "none") return {};
+		return theme.shadows[level]; // Access directly by elevation level
+	};
+
+	// Calculate RTL-aware margin values
+	const finalMarginLeft =
+		marginStart !== undefined
+			? isRTL
+				? undefined
+				: getSpacingValue(marginStart)
+			: getSpacingValue(marginLeft);
+
+	const finalMarginRight =
+		marginEnd !== undefined
+			? isRTL
+				? undefined
+				: getSpacingValue(marginEnd)
+			: getSpacingValue(marginRight);
+
+	const finalMarginStart =
+		marginStart !== undefined
+			? isRTL
+				? getSpacingValue(marginStart)
+				: undefined
+			: undefined;
+
+	const finalMarginEnd =
+		marginEnd !== undefined
+			? isRTL
+				? getSpacingValue(marginEnd)
+				: undefined
+			: undefined;
+
+	// Calculate RTL-aware padding values
+	const finalPaddingLeft =
+		paddingStart !== undefined
+			? isRTL
+				? undefined
+				: getSpacingValue(paddingStart)
+			: getSpacingValue(paddingLeft);
+
+	const finalPaddingRight =
+		paddingEnd !== undefined
+			? isRTL
+				? undefined
+				: getSpacingValue(paddingEnd)
+			: getSpacingValue(paddingRight);
+
+	const finalPaddingStart =
+		paddingStart !== undefined
+			? isRTL
+				? getSpacingValue(paddingStart)
+				: undefined
+			: undefined;
+
+	const finalPaddingEnd =
+		paddingEnd !== undefined
+			? isRTL
+				? getSpacingValue(paddingEnd)
+				: undefined
+			: undefined;
+
+	const styles = StyleSheet.create({
+		box: {
+			flex: flex,
+			flexDirection: row ? (isRTL ? "row-reverse" : "row") : "column",
+			alignItems: finalAlignItems,
+			justifyContent: finalJustifyContent,
+			padding: getSpacingValue(padding),
+			margin: getSpacingValue(margin),
+			marginTop: getSpacingValue(marginTop),
+			marginBottom: getSpacingValue(marginBottom),
+			paddingBottom: getSpacingValue(paddingBottom),
+			paddingTop: getSpacingValue(paddingBottom),
+			marginLeft: finalMarginLeft,
+			marginRight: finalMarginRight,
+			marginStart: finalMarginStart,
+			marginEnd: finalMarginEnd,
+			marginHorizontal: getSpacingValue(marginHorizontal),
+			marginVertical: getSpacingValue(marginVertical),
+			paddingHorizontal: getSpacingValue(paddingHorizontal),
+			paddingVertical: getSpacingValue(paddingVertical),
+			paddingLeft: finalPaddingLeft,
+			paddingRight: finalPaddingRight,
+			paddingStart: finalPaddingStart,
+			paddingEnd: finalPaddingEnd,
+			borderRadius: getRadiusValue(rounded),
+			width,
+			height,
+			borderWidth,
+			borderColor: getColorValue(borderColor),
+			backgroundColor: card ? theme.colors.card : getColorValue(bg),
+			...(card ? theme.shadows.small : {}),
+			...(elevation ? getElevation(elevation) : {}),
+		},
+	});
+
+	// If we have an onPress prop, use Pressable instead of View
+	if (onPress) {
+		return (
+			<Pressable
+				onPress={onPress}
+				style={({ pressed }) => [
+					styles.box,
+					{ opacity: pressed ? activeOpacity : 1 },
+					style,
+				]}
+				{...props}
+			>
+				{children}
+			</Pressable>
+		);
+	}
+
+	return (
+		<View style={[styles.box, style]} {...props}>
+			{children}
+		</View>
+	);
+};
+
+export default Box;
+</file>
+
+<file path="apps/merchant-app/components/ui/Button.tsx">
+import React from "react";
+import {
+	TouchableOpacity,
+	TouchableOpacityProps,
+	StyleSheet,
+	StyleProp,
+	ViewStyle,
+	ActivityIndicator,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useTheme } from "@/hooks/useTheme";
+import { Text } from "./Text";
+
+interface ButtonProps extends TouchableOpacityProps {
+	title: string;
+	variant?: "primary" | "secondary" | "outline" | "ghost";
+	size?: "sm" | "md" | "lg";
+	leftIcon?: string;
+	rightIcon?: string;
+	loading?: boolean;
+	rounded?: boolean;
+	fullWidth?: boolean;
+	style?: StyleProp<ViewStyle>;
+}
+
+export const Button: React.FC<ButtonProps> = ({
+	title,
+	variant = "primary",
+	size = "md",
+	leftIcon,
+	rightIcon,
+	loading = false,
+	rounded = false,
+	fullWidth = false,
+	style,
+	...props
+}) => {
+	const theme = useTheme();
+
+	const getVariantStyles = () => {
+		switch (variant) {
+			case "primary":
+				return {
+					backgroundColor: theme.colors.primary,
+					textColor: "white",
+				};
+			case "secondary":
+				return {
+					backgroundColor: theme.colors.cardAlt,
+					textColor: theme.colors.text,
+				};
+			case "outline":
+				return {
+					backgroundColor: "transparent",
+					borderWidth: 1,
+					borderColor: theme.colors.primary,
+					textColor: theme.colors.primary,
+				};
+			case "ghost":
+				return {
+					backgroundColor: "transparent",
+					textColor: theme.colors.primary,
+				};
+		}
+	};
+
+	const getSizeStyles = () => {
+		switch (size) {
+			case "sm":
+				return {
+					height: theme.sizes.buttonSm,
+					paddingHorizontal: theme.spacing.md,
+					fontSize: "sm" as const,
+				};
+			case "md":
+				return {
+					height: theme.sizes.buttonMd,
+					paddingHorizontal: theme.spacing.md,
+					fontSize: "md" as const,
+				};
+			case "lg":
+				return {
+					height: theme.sizes.buttonLg,
+					paddingHorizontal: theme.spacing.lg,
+					fontSize: "md" as const,
+				};
+		}
+	};
+
+	const variantStyle = getVariantStyles();
+	const sizeStyle = getSizeStyles();
+
+	const styles = StyleSheet.create({
+		button: {
+			height: sizeStyle.height,
+			paddingHorizontal: sizeStyle.paddingHorizontal,
+			borderRadius: rounded ? theme.radius.round : theme.radius.button,
+			backgroundColor: variantStyle.backgroundColor,
+			borderWidth: variantStyle.borderWidth || 0,
+			borderColor: variantStyle.borderColor,
+			flexDirection: "row",
+			alignItems: "center",
+			justifyContent: "center",
+			width: fullWidth ? "100%" : undefined,
+		},
+		icon: {
+			marginRight: leftIcon && title ? theme.spacing.xs : 0,
+			marginLeft: rightIcon && title ? theme.spacing.xs : 0,
+		},
+	});
+
+	return (
+		<TouchableOpacity
+			style={[styles.button, style]}
+			activeOpacity={0.7}
+			disabled={loading || props.disabled}
+			{...props}
+		>
+			{loading ? (
+				<ActivityIndicator color={variantStyle.textColor} size="small" />
+			) : (
+				<>
+					{leftIcon && (
+						<Ionicons
+							name={leftIcon as any}
+							size={theme.sizes.iconSm}
+							color={variantStyle.textColor}
+							style={styles.icon}
+						/>
+					)}
+					<Text
+						variant={sizeStyle.fontSize}
+						weight="semibold"
+						color={variantStyle.textColor}
+					>
+						{title}
+					</Text>
+					{rightIcon && (
+						<Ionicons
+							name={rightIcon as any}
+							size={theme.sizes.iconSm}
+							color={variantStyle.textColor}
+							style={styles.icon}
+						/>
+					)}
+				</>
+			)}
+		</TouchableOpacity>
+	);
+};
+</file>
+
+<file path="apps/merchant-app/components/ui/Card.tsx">
+import React from "react";
+import {
+	TouchableOpacity,
+	StyleSheet,
+	TouchableOpacityProps,
+	StyleProp,
+	ViewStyle,
+} from "react-native";
+import { RadiusToken, SpacingToken, useTheme } from "@/hooks/useTheme";
+
+interface CardProps extends TouchableOpacityProps {
+	elevation?: "none" | "small" | "medium" | "large";
+	padding?: SpacingToken | number;
+	rounded?: RadiusToken;
+	style?: StyleProp<ViewStyle>;
+}
+
+export const Card: React.FC<CardProps> = ({
+	children,
+	elevation = "small",
+	padding = "md",
+	rounded = "card",
+	style,
+	...props
+}) => {
+	const theme = useTheme();
+
+	const getElevation = () => {
+		if (elevation === "none") return {};
+		return theme.shadows[elevation];
+	};
+
+	const getPadding = () => {
+		return typeof padding === "number" ? padding : theme.spacing[padding];
+	};
+
+	const styles = StyleSheet.create({
+		card: {
+			backgroundColor: theme.colors.card,
+			borderRadius: theme.radius[rounded],
+			padding: getPadding(),
+			...getElevation(),
+		},
+	});
+
+	return (
+		<TouchableOpacity
+			activeOpacity={props.onPress ? 0.7 : 1}
+			style={[styles.card, style]}
+			{...props}
+		>
+			{children}
+		</TouchableOpacity>
+	);
+};
+</file>
+
+<file path="apps/merchant-app/components/ui/index.ts">
+export * from "./Box";
+export * from "./Text";
+export * from "./Button";
+export * from "./Avatar";
+export * from "./Card";
+export * from "./Badge";
+</file>
+
+<file path="apps/merchant-app/components/ui/Text.tsx">
+import React from "react";
+import {
+	Text as RNText,
+	TextProps as RNTextProps,
+	StyleSheet,
+	StyleProp,
+	TextStyle,
+	I18nManager,
+} from "react-native";
+import {
+	ColorToken,
+	FontSizeVariant,
+	FontWeightVariant,
+	SpacingToken,
+	useTheme,
+} from "@/hooks/useTheme";
+
+interface TextProps extends RNTextProps {
+	variant?: FontSizeVariant;
+	weight?: FontWeightVariant;
+	color?: ColorToken | string;
+	center?: boolean;
+	muted?: boolean;
+	marginBottom?: SpacingToken | number;
+	marginTop?: SpacingToken | number;
+	marginLeft?: SpacingToken | number;
+	marginRight?: SpacingToken | number;
+	marginStart?: SpacingToken | number; // RTL aware
+	marginEnd?: SpacingToken | number; // RTL aware
+	marginHorizontal?: SpacingToken | number; // Added for meals screen
+	margin?: SpacingToken | number;
+	style?: StyleProp<TextStyle>;
+}
+
+export const Text: React.FC<TextProps> = ({
+	children,
+	variant = "md",
+	weight = "regular",
+	color,
+	center,
+	muted,
+	marginBottom,
+	marginTop,
+	marginLeft,
+	marginRight,
+	marginStart,
+	marginEnd,
+	marginHorizontal,
+	margin,
+	style,
+	...props
+}) => {
+	const theme = useTheme();
+	const isRTL = I18nManager.isRTL;
+
+	const getSpacingValue = (
+		value: SpacingToken | number | undefined,
+	): number | undefined => {
+		if (value === undefined) return undefined;
+		return typeof value === "number" ? value : theme.spacing[value];
+	};
+
+	const getColorValue = (
+		colorProp: ColorToken | string | undefined,
+	): string => {
+		if (colorProp === undefined) {
+			return muted ? theme.colors.textSecondary : theme.colors.text;
+		}
+
+		// Check if it's a theme color key
+		if (typeof colorProp === "string" && colorProp in theme.colors) {
+			return theme.colors[colorProp as ColorToken];
+		}
+
+		// Otherwise return the raw color value
+		return colorProp;
+	};
+
+	// Calculate proper RTL-aware margin values
+	const finalMarginLeft =
+		marginStart !== undefined
+			? isRTL
+				? undefined
+				: getSpacingValue(marginStart)
+			: getSpacingValue(marginLeft);
+
+	const finalMarginRight =
+		marginEnd !== undefined
+			? isRTL
+				? undefined
+				: getSpacingValue(marginEnd)
+			: getSpacingValue(marginRight);
+
+	const finalMarginStart =
+		marginStart !== undefined
+			? isRTL
+				? getSpacingValue(marginStart)
+				: undefined
+			: undefined;
+
+	const finalMarginEnd =
+		marginEnd !== undefined
+			? isRTL
+				? getSpacingValue(marginEnd)
+				: undefined
+			: undefined;
+
+	const styles = StyleSheet.create({
+		text: {
+			fontSize: theme.typography.sizes[variant],
+			fontWeight: theme.typography.weights[weight],
+			color: getColorValue(color),
+			textAlign: center ? "center" : undefined,
+			marginBottom: getSpacingValue(marginBottom),
+			marginTop: getSpacingValue(marginTop),
+			marginLeft: finalMarginLeft,
+			marginRight: finalMarginRight,
+			marginStart: finalMarginStart,
+			marginEnd: finalMarginEnd,
+			marginHorizontal: getSpacingValue(marginHorizontal),
+			margin: getSpacingValue(margin),
+		},
+	});
+
+	return (
+		<RNText style={[styles.text, style]} {...props}>
+			{children}
+		</RNText>
+	);
+};
+
+export default Text;
+</file>
+
+<file path="apps/merchant-app/constants/theme.ts">
+import { Platform } from "react-native";
+
+const colorPalette = {
+	green: {
+		50: "#E5F6ED",
+		100: "#CCEDE0",
+		500: "#22C55E",
+		700: "#15803D",
+	},
+
+	neutral: {
+		0: "#FFFFFF",
+		50: "#F8FAF8",
+		100: "#F3F4F6",
+		200: "#E5E7EB",
+		300: "#9CA3AF",
+		400: "#8E8E93",
+		500: "#6B7280",
+		600: "#636366",
+		700: "#38383A",
+		800: "#2C2C2E",
+		900: "#1C1C1E",
+		950: "#0C0C0C",
+		1000: "#000000",
+	},
+
+	status: {
+		success: "#22C55E",
+		warning: "#FFD60A",
+		info: "#3B82F6",
+		error: "#EF4444",
+	},
+};
+
+export const theme = {
+	colors: {
+		light: {
+			primary: colorPalette.green[500],
+			primaryDark: colorPalette.green[700],
+			primaryLight: colorPalette.green[50],
+
+			background: colorPalette.neutral[50],
+			card: colorPalette.neutral[0],
+			cardAlt: colorPalette.neutral[100],
+
+			text: colorPalette.neutral[1000],
+			textSecondary: colorPalette.neutral[500],
+			textMuted: colorPalette.neutral[300],
+
+			success: colorPalette.status.success,
+			warning: colorPalette.status.warning,
+			info: colorPalette.status.info,
+			error: colorPalette.status.error,
+
+			divider: colorPalette.neutral[200],
+			overlay: "rgba(0,0,0,0.4)",
+			shadow: "rgba(0,0,0,0.1)",
+
+			tabBar: colorPalette.neutral[0],
+			tabIconDefault: colorPalette.neutral[300],
+			tabIconSelected: colorPalette.green[500],
+		},
+		dark: {
+			primary: colorPalette.green[500],
+			primaryDark: colorPalette.green[700],
+			primaryLight: colorPalette.neutral[800],
+
+			background: colorPalette.neutral[950],
+			card: colorPalette.neutral[900],
+			cardAlt: colorPalette.neutral[800],
+
+			text: colorPalette.neutral[50],
+			textSecondary: colorPalette.neutral[400],
+			textMuted: colorPalette.neutral[600],
+
+			success: colorPalette.status.success,
+			warning: colorPalette.status.warning,
+			info: colorPalette.status.info,
+			error: colorPalette.status.error,
+
+			divider: colorPalette.neutral[700],
+			overlay: "rgba(0,0,0,0.6)",
+			shadow: "rgba(0,0,0,0.3)",
+
+			tabBar: colorPalette.neutral[900],
+			tabIconDefault: colorPalette.neutral[400],
+			tabIconSelected: colorPalette.green[500],
+		},
+	},
+
+	spacing: {
+		xs: 4,
+		sm: 8,
+		md: 16,
+		lg: 24,
+		xl: 32,
+		xxl: 48,
+
+		screenPadding: 16,
+		cardPadding: 16,
+		itemSpacing: 12,
+		sectionSpacing: 24,
+	},
+
+	radius: {
+		xs: 4,
+		sm: 8,
+		md: 12,
+		lg: 16,
+		xl: 24,
+		round: 999,
+
+		button: 12,
+		card: 16,
+		input: 12,
+		badge: 12,
+	},
+
+	sizes: {
+		touchTarget: 44,
+		smallTouchTarget: 36,
+
+		iconXs: 16,
+		iconSm: 20,
+		iconMd: 24,
+		iconLg: 32,
+
+		buttonSm: 36,
+		buttonMd: 44,
+		buttonLg: 52,
+
+		inputHeight: 48,
+
+		headerHeight: 56,
+		tabBarHeight: 49,
+
+		avatarSm: 32,
+		avatarMd: 44,
+		avatarLg: 64,
+	},
+
+	typography: {
+		sizes: {
+			xs: 12,
+			sm: 14,
+			md: 16,
+			lg: 18,
+			xl: 20,
+			xxl: 24,
+			xxxl: 30,
+		},
+
+		weights: {
+			regular: "400",
+			medium: "500",
+			semibold: "600",
+			bold: "700",
+			extrabold: "800",
+		} as const,
+
+		lineHeights: {
+			tight: 1.2,
+			normal: 1.5,
+			loose: 1.8,
+		},
+	},
+
+	shadows: {
+		light: {
+			small: {
+				shadowColor: "#000",
+				shadowOffset: { width: 0, height: 1 },
+				shadowOpacity: 0.1,
+				shadowRadius: 2,
+				elevation: 1,
+			},
+			medium: {
+				shadowColor: "#000",
+				shadowOffset: { width: 0, height: 2 },
+				shadowOpacity: 0.1,
+				shadowRadius: 4,
+				elevation: 2,
+			},
+			large: {
+				shadowColor: "#000",
+				shadowOffset: { width: 0, height: 4 },
+				shadowOpacity: 0.1,
+				shadowRadius: 8,
+				elevation: 4,
+			},
+		},
+		dark: {
+			small: {
+				shadowColor: "#000",
+				shadowOffset: { width: 0, height: 1 },
+				shadowOpacity: 0.3,
+				shadowRadius: 2,
+				elevation: 1,
+			},
+			medium: {
+				shadowColor: "#000",
+				shadowOffset: { width: 0, height: 2 },
+				shadowOpacity: 0.4,
+				shadowRadius: 4,
+				elevation: 2,
+			},
+			large: {
+				shadowColor: "#000",
+				shadowOffset: { width: 0, height: 4 },
+				shadowOpacity: 0.5,
+				shadowRadius: 8,
+				elevation: 4,
+			},
+		},
+	},
+
+	platform: {
+		// Use exact iOS status bar height for iPhone with notch (44pt)
+		topInset: Platform.OS === "ios" ? 44 : 16,
+		bottomInset: Platform.OS === "ios" ? 34 : 16,
+		isIOS: Platform.OS === "ios",
+	},
+};
+
+export type ThemeColors = typeof theme.colors.light;
+export type ThemeMode = "light" | "dark";
+
+export const getThemedValue = (mode: ThemeMode) => theme.colors[mode];
+
+export const spacing = theme.spacing;
+export const radius = theme.radius;
+export const sizes = theme.sizes;
+export const typography = theme.typography;
+export const shadows = theme.shadows;
+</file>
+
+<file path="apps/merchant-app/hooks/useTheme.ts">
+// apps/merchant-app/hooks/useTheme.ts
+import { useColorScheme } from "react-native";
+import { theme, ThemeMode } from "@/constants/theme";
+
+/**
+ * A custom hook that provides access to the current theme
+ *
+ * @returns An object containing:
+ * - colors: Current theme colors based on device color scheme
+ * - isDark: Boolean indicating if dark mode is active
+ * - mode: Current theme mode ('light' or 'dark')
+ * - spacing: Theme spacing values
+ * - radius: Theme border radius values
+ * - sizes: Theme sizing values
+ * - typography: Theme typography values
+ * - shadows: Theme shadow values for current mode
+ */
+export const useTheme = () => {
+	const colorScheme = useColorScheme() || "light";
+	const isDark = colorScheme === "dark";
+	const mode: ThemeMode = isDark ? "dark" : "light";
+
+	return {
+		colors: theme.colors[mode],
+		isDark,
+		mode,
+		spacing: theme.spacing,
+		radius: theme.radius,
+		sizes: theme.sizes,
+		typography: theme.typography,
+		shadows: theme.shadows[mode],
+		platform: theme.platform,
+	};
+};
+
+// Export type for component props
+export type Theme = ReturnType<typeof useTheme>;
+
+// Export token types derived from the Theme object
+export type SpacingToken = keyof Theme["spacing"];
+export type RadiusToken = keyof Theme["radius"];
+export type ColorToken = keyof Theme["colors"];
+
+// Consolidated token types
+export type ThemeTokens = {
+	spacing: SpacingToken;
+	radius: RadiusToken;
+	colors: ColorToken;
+};
+
+export type FontSizeVariant = "xs" | "sm" | "md" | "lg" | "xl" | "xxl" | "xxxl";
+export type FontWeightVariant =
+	| "regular"
+	| "medium"
+	| "semibold"
+	| "bold"
+	| "extrabold";
+</file>
+
+<file path="apps/merchant-app/app/(tabs)/(home)/index.tsx">
+import React, { useState, useRef, useEffect, useCallback } from "react";
+
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+	Animated,
+	RefreshControl,
+	I18nManager,
+	Platform,
+	LayoutAnimation,
+	UIManager,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
+
+import { useTheme } from "@/hooks/useTheme";
+import { Box, Text } from "@/components/ui";
 import CategoryFilters from "@/components/category-filters";
 import MealPlanCard from "@/components/meal-plan-card";
 import RestaurantCard from "@/components/restaurant-card";
+import TaskCard from "@/components/task-card";
 
-// Types for our data
+if (
+	Platform.OS === "android" &&
+	UIManager.setLayoutAnimationEnabledExperimental
+) {
+	UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
 interface Task {
 	id: number;
 	title: string;
@@ -205,217 +1972,552 @@ const RESTAURANTS: Restaurant[] = [
 ];
 
 const HomeScreen: React.FC = () => {
-	const colorScheme = useColorScheme();
-	const isDark = colorScheme === "dark";
-	const tokens = QarnColors[isDark ? "dark" : "light"];
-
+	const theme = useTheme();
+	const isRTL = I18nManager.isRTL;
 	const [selectedType, setSelectedType] = useState<string>("All");
+	const [refreshing, setRefreshing] = useState(false);
+	const insets = useSafeAreaInsets(); // Get safe area insets
+
+	// Animation values
 	const progressAnim = useRef(new Animated.Value(0)).current;
-	const opacityAnim = useRef(new Animated.Value(0)).current;
+	const fadeAnim = useRef(new Animated.Value(0)).current;
+	const translateY = useRef(new Animated.Value(30)).current;
+	const scrollY = useRef(new Animated.Value(0)).current;
 
-	useEffect(() => {
-		// Animate progress
-		Animated.timing(progressAnim, {
-			toValue: 5 / 6, // 5 of 6 tasks completed
-			duration: 1000,
-			useNativeDriver: false,
-		}).start();
+	// Run animations when component mounts or when screen is focused
+	const animateElements = useCallback(() => {
+		// Reset animation values
+		fadeAnim.setValue(0);
+		progressAnim.setValue(0);
+		translateY.setValue(30);
 
-		// Fade in card
-		Animated.timing(opacityAnim, {
-			toValue: 1,
-			duration: 800,
-			useNativeDriver: true,
-		}).start();
+		// Configure layout animation for smoother transitions
+		LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+
+		// Run animations in sequence
+		Animated.parallel([
+			// Fade in content
+			Animated.timing(fadeAnim, {
+				toValue: 1,
+				duration: 600,
+				useNativeDriver: true,
+			}),
+			// Slide up content
+			Animated.timing(translateY, {
+				toValue: 0,
+				duration: 600,
+				useNativeDriver: true,
+			}),
+		]).start();
+
+		// Animate progress bar with a slight delay
+		setTimeout(() => {
+			Animated.spring(progressAnim, {
+				toValue: 5 / 6, // 5 of 6 tasks completed
+				friction: 8,
+				tension: 40,
+				useNativeDriver: false,
+			}).start();
+		}, 300);
 	}, []);
 
-	const handleAnalytics = (): void => {
-		console.log("Analytics pressed");
-	};
+	// Initial animation
+	useEffect(() => {
+		animateElements();
+	}, []);
 
-	const handleFinishSetup = (): void => {
-		console.log("Finish setup pressed");
-	};
+	// Run animations when screen is focused
+	useFocusEffect(
+		useCallback(() => {
+			if (fadeAnim._value === 0) {
+				animateElements();
+			}
+			return () => {};
+		}, [animateElements]),
+	);
 
-	const handleTaskPress = (taskId: number): void => {
-		console.log(`Task ${taskId} pressed`);
-	};
+	// Handle pull-to-refresh
+	const handleRefresh = useCallback(() => {
+		setRefreshing(true);
 
-	const handleRestaurantPress = (restaurantId: number): void => {
-		console.log(`Restaurant ${restaurantId} pressed`);
-	};
+		// Simulate data fetch
+		setTimeout(() => {
+			setRefreshing(false);
+			animateElements();
+		}, 1500);
+	}, [animateElements]);
 
-	const handleMealPlanPress = (mealPlanId: number): void => {
-		console.log(`Meal plan ${mealPlanId} pressed`);
-	};
+	// Event handlers
+	const handleAnalytics = () => console.log("Analytics pressed");
+	const handleFinishSetup = () => console.log("Finish setup pressed");
+	const handleTaskPress = (id: number) => console.log(`Task ${id} pressed`);
+	const handleMealPlanPress = (id: number) =>
+		console.log(`Meal plan ${id} pressed`);
+	const handleRestaurantPress = (id: number) =>
+		console.log(`Restaurant ${id} pressed`);
+	const handleViewAllMealPlans = () => console.log("View all meal plans");
+	const handleSearch = () => console.log("Search pressed");
+	const handleNotifications = () => console.log("Notifications pressed");
 
-	return (
-		<>
-			<Screen options={{ headerShown: false }} />
-			<View style={{ flex: 1, backgroundColor: tokens.background }}>
-				{/* Header with Search */}
-				<HeaderSection
-					restaurantName="Green Kitchen"
-					restaurantLogo="https://example.com/logo.png" // Optional, will use first letter if not provided
-					onLogoPress={() => console.log("Logo pressed")}
-					onNotificationPress={() => console.log("Notifications pressed")}
-				/>
-				<ScrollView
-					contentContainerStyle={{ paddingVertical: 30 }}
-					showsVerticalScrollIndicator={false}
+	// Handle scroll for header effects
+	const handleScroll = Animated.event(
+		[{ nativeEvent: { contentOffset: { y: scrollY } } }],
+		{ useNativeDriver: true },
+	);
+
+	// Header properties based on scroll position
+	const headerTranslate = scrollY.interpolate({
+		inputRange: [0, 100],
+		outputRange: [0, -8],
+		extrapolate: "clamp",
+	});
+
+	const headerShadowOpacity = scrollY.interpolate({
+		inputRange: [0, 40],
+		outputRange: [0, 0.2],
+		extrapolate: "clamp",
+	});
+
+	// Header Component
+	const Header = () => (
+		<Animated.View
+			style={{
+				backgroundColor: theme.colors.primary,
+				transform: [{ translateY: headerTranslate }],
+				shadowOpacity: headerShadowOpacity,
+				shadowColor: "#000",
+				shadowOffset: { width: 0, height: 2 },
+				shadowRadius: 3,
+				elevation: scrollY._value > 20 ? 4 : 0,
+				zIndex: 10,
+				// Use safe area insets for top padding
+				paddingTop: insets.top,
+			}}
+		>
+			{/* Top bar with logo and notifications */}
+			<Box
+				row
+				justifyContent="space-between"
+				alignItems="center"
+				paddingVertical={8}
+				paddingHorizontal="md"
+				style={{ flexDirection: isRTL ? "row-reverse" : "row" }}
+			>
+				<Box
+					row
+					alignItems="center"
+					style={{ flexDirection: isRTL ? "row-reverse" : "row" }}
 				>
-					{/* Progress Status Card */}
-					<Animated.View style={{ opacity: opacityAnim }}>
-						<ProgressStatusCard
-							restaurantName="Green Kitchen"
-							completedTasks={5}
-							totalTasks={6}
-							onAnalytics={handleAnalytics}
-							onFinish={handleFinishSetup}
-							progressAnim={progressAnim}
+					<Box
+						bg="rgba(255,255,255,0.2)"
+						width={theme.sizes.avatarMd}
+						height={theme.sizes.avatarMd}
+						rounded="md"
+						center
+						marginRight={isRTL ? 0 : "sm"}
+						marginLeft={isRTL ? "sm" : 0}
+						onPress={() => console.log("Logo pressed")}
+					>
+						<Text weight="bold" variant="lg" color="white">
+							G
+						</Text>
+					</Box>
+
+					<Text weight="bold" variant="lg" color="white">
+						Green Kitchen
+					</Text>
+				</Box>
+
+				<Box
+					width={theme.sizes.touchTarget}
+					height={theme.sizes.touchTarget}
+					rounded="round"
+					bg="rgba(255,255,255,0.2)"
+					center
+					onPress={handleNotifications}
+				>
+					<Ionicons
+						name="notifications-outline"
+						size={theme.sizes.iconMd}
+						color="white"
+					/>
+					<Box
+						width={8}
+						height={8}
+						rounded="round"
+						bg="warning"
+						style={{
+							position: "absolute",
+							top: 10,
+							right: 10,
+						}}
+					/>
+				</Box>
+			</Box>
+
+			{/* Search bar */}
+			<Box
+				paddingHorizontal="md"
+				paddingBottom="xl"
+				style={{
+					borderBottomLeftRadius: theme.radius.xl,
+					borderBottomRightRadius: theme.radius.xl,
+				}}
+			>
+				<Box
+					bg="rgba(255,255,255,0.15)"
+					rounded="md"
+					row
+					alignItems="center"
+					paddingHorizontal="md"
+					height={theme.sizes.inputHeight}
+					onPress={handleSearch}
+					style={{ flexDirection: isRTL ? "row-reverse" : "row" }}
+				>
+					<Ionicons
+						name="search"
+						size={theme.sizes.iconMd}
+						color="rgba(255,255,255,0.9)"
+						style={{
+							marginRight: isRTL ? 0 : theme.spacing.sm,
+							marginLeft: isRTL ? theme.spacing.sm : 0,
+						}}
+					/>
+
+					<Text variant="md" color="rgba(255,255,255,0.7)" style={{ flex: 1 }}>
+						Search meal plans or restaurants
+					</Text>
+				</Box>
+			</Box>
+		</Animated.View>
+	);
+
+	// Progress Card Component
+	const ProgressCard = () => (
+		<Animated.View
+			style={{
+				opacity: fadeAnim,
+				transform: [{ translateY }],
+				marginHorizontal: theme.spacing.md,
+				marginTop: -20,
+				marginBottom: theme.spacing.md,
+			}}
+		>
+			<Box card elevation="large" padding="md" rounded="lg">
+				<Box row alignItems="center" justifyContent="space-between">
+					<Box>
+						<Text variant="lg" weight="bold" marginBottom={4}>
+							Green Kitchen
+						</Text>
+						<Text variant="sm" color="textSecondary">
+							5 of 6 tasks completed
+						</Text>
+					</Box>
+
+					<Animated.View
+						style={{
+							width: theme.sizes.avatarMd + 6,
+							height: theme.sizes.avatarMd + 6,
+							borderRadius: (theme.sizes.avatarMd + 6) / 2,
+							backgroundColor: theme.colors.primaryLight,
+							alignItems: "center",
+							justifyContent: "center",
+							transform: [
+								{
+									scale: fadeAnim.interpolate({
+										inputRange: [0, 1],
+										outputRange: [0.8, 1],
+									}),
+								},
+							],
+						}}
+					>
+						<Text variant="lg" weight="bold" color="primary">
+							83%
+						</Text>
+					</Animated.View>
+				</Box>
+
+				<Box
+					height={6}
+					bg="primaryLight"
+					marginTop="md"
+					marginBottom="lg"
+					rounded="xs"
+					style={{ overflow: "hidden" }}
+				>
+					<Animated.View
+						style={{
+							width: progressAnim.interpolate({
+								inputRange: [0, 1],
+								outputRange: ["0%", "100%"],
+							}),
+							height: "100%",
+							backgroundColor: theme.colors.primary,
+							borderRadius: theme.radius.xs,
+						}}
+					/>
+				</Box>
+
+				<Box
+					row
+					justifyContent="space-between"
+					style={{ flexDirection: isRTL ? "row-reverse" : "row" }}
+				>
+					<Box
+						bg="cardAlt"
+						height={theme.sizes.buttonMd}
+						paddingHorizontal="md"
+						rounded="button"
+						row
+						alignItems="center"
+						justifyContent="center"
+						style={{
+							minWidth: 120,
+							flexDirection: isRTL ? "row-reverse" : "row",
+						}}
+						onPress={handleAnalytics}
+					>
+						<Ionicons
+							name="stats-chart"
+							size={theme.sizes.iconSm}
+							color={theme.colors.text}
+							style={{
+								marginRight: isRTL ? 0 : theme.spacing.xs,
+								marginLeft: isRTL ? theme.spacing.xs : 0,
+							}}
+						/>
+						<Text variant="sm" weight="medium">
+							Analytics
+						</Text>
+					</Box>
+
+					<Box
+						bg="primary"
+						height={theme.sizes.buttonMd}
+						paddingHorizontal="md"
+						rounded="button"
+						row
+						alignItems="center"
+						justifyContent="center"
+						style={{
+							minWidth: 130,
+							flexDirection: isRTL ? "row-reverse" : "row",
+						}}
+						onPress={handleFinishSetup}
+					>
+						<Text
+							variant="sm"
+							weight="semibold"
+							color="white"
+							marginRight={isRTL ? 0 : "xs"}
+							marginLeft={isRTL ? "xs" : 0}
+						>
+							Finish Setup
+						</Text>
+						<Ionicons
+							name={isRTL ? "arrow-back" : "arrow-forward"}
+							size={theme.sizes.iconSm}
+							color="white"
+						/>
+					</Box>
+				</Box>
+			</Box>
+		</Animated.View>
+	);
+
+	// Tasks Section Component
+	const TasksSection = () => (
+		<Box marginTop="md" marginHorizontal="md">
+			<Text variant="lg" weight="semibold" marginBottom="sm">
+				Complete Your Setup
+			</Text>
+
+			<Box
+				style={{
+					flexDirection: "row",
+					flexWrap: "wrap",
+					justifyContent: "space-between",
+				}}
+			>
+				{TASKS.map((task, index) => (
+					<Animated.View
+						key={task.id}
+						style={{
+							width: "48.5%",
+							marginBottom: theme.spacing.sm,
+							opacity: fadeAnim,
+							transform: [
+								{
+									translateY: fadeAnim.interpolate({
+										inputRange: [0, 1],
+										outputRange: [40 + index * 10, 0],
+									}),
+								},
+							],
+						}}
+					>
+						<TaskCard
+							title={task.title}
+							details={task.details}
+							completed={task.completed}
+							icon={task.icon}
+							onPress={() => handleTaskPress(task.id)}
 						/>
 					</Animated.View>
+				))}
+			</Box>
+		</Box>
+	);
 
-					{/* Tasks Section */}
-					<View
-						style={{
-							marginTop: QarnSpacing.sm,
-							marginHorizontal: QarnSpacing.md,
-						}}
-					>
-						<Text
-							style={{
-								fontSize: 17,
-								fontWeight: "600",
-								color: tokens.text,
-								marginBottom: QarnSpacing.sm,
-							}}
-						>
-							Complete Your Setup
-						</Text>
+	// Meal Plans Section Component
+	const MealPlansSection = () => (
+		<Box marginTop="lg">
+			<Box
+				row
+				alignItems="center"
+				justifyContent="space-between"
+				marginHorizontal="md"
+				marginBottom="sm"
+				style={{ flexDirection: isRTL ? "row-reverse" : "row" }}
+			>
+				<Text variant="lg" weight="semibold">
+					Your Meal Plans
+				</Text>
 
-						<View
-							style={{
-								flexDirection: "row",
-								flexWrap: "wrap",
-								justifyContent: "space-between",
-							}}
-						>
-							{TASKS.map((task) => (
-								<View
-									key={task.id}
-									style={{ width: "48.5%", marginBottom: QarnSpacing.sm }}
-								>
-									<TaskCard
-										title={task.title}
-										details={task.details}
-										completed={task.completed}
-										icon={task.icon}
-										onPress={() => handleTaskPress(task.id)}
-									/>
-								</View>
-							))}
-						</View>
-					</View>
+				<Box
+					onPress={handleViewAllMealPlans}
+					paddingVertical="xs"
+					paddingHorizontal="sm"
+				>
+					<Text color="primary" weight="medium" variant="sm">
+						View All
+					</Text>
+				</Box>
+			</Box>
 
-					{/* Meal Plans Section */}
-					<View
-						style={{ marginTop: QarnSpacing.sm, marginBottom: QarnSpacing.sm }}
-					>
-						<View
-							style={{
-								marginHorizontal: QarnSpacing.md,
-								flexDirection: "row",
-								justifyContent: "space-between",
-								alignItems: "center",
-							}}
-						>
-							<Text
-								style={{
-									fontSize: 17,
-									fontWeight: "600",
-									color: tokens.text,
-								}}
-							>
-								Your Meal Plans
-							</Text>
-							<Text
-								style={{
-									color: tokens.primary,
-									fontWeight: "500",
-									fontSize: 14,
-									padding: QarnSpacing.sm,
-								}}
-							>
-								View All
-							</Text>
-						</View>
+			{/* Category Filters */}
+			<Animated.View
+				style={{
+					opacity: fadeAnim,
+					transform: [{ translateY }],
+				}}
+			>
+				<CategoryFilters
+					categories={MEAL_TYPES}
+					selectedCategory={selectedType}
+					onSelectCategory={setSelectedType}
+				/>
+			</Animated.View>
 
-						{/* Category Filters */}
-						<CategoryFilters
-							categories={MEAL_TYPES}
-							selectedCategory={selectedType}
-							onSelectCategory={setSelectedType}
+			{/* Meal Plan Cards */}
+			<Animated.ScrollView
+				horizontal
+				showsHorizontalScrollIndicator={false}
+				contentContainerStyle={{
+					paddingLeft: theme.spacing.md,
+					paddingRight: theme.spacing.md,
+					paddingBottom: theme.spacing.sm,
+				}}
+				snapToInterval={260 + theme.spacing.md}
+				decelerationRate={Platform.OS === "ios" ? "fast" : 0.85}
+				style={{
+					opacity: fadeAnim,
+					transform: [
+						{
+							translateX: fadeAnim.interpolate({
+								inputRange: [0, 1],
+								outputRange: [isRTL ? -50 : 50, 0],
+							}),
+						},
+					],
+				}}
+			>
+				{MEAL_PLANS.filter(
+					(plan) => selectedType === "All" || plan.diet === selectedType,
+				).map((plan) => (
+					<Box key={plan.id}>
+						<MealPlanCard
+							title={plan.title}
+							price={plan.price}
+							calories={plan.calories}
+							image={plan.image}
+							meals={plan.meals}
+							diet={plan.diet}
+							onPress={() => handleMealPlanPress(plan.id)}
 						/>
+					</Box>
+				))}
+			</Animated.ScrollView>
+		</Box>
+	);
 
-						{/* Meal Plan Cards */}
-						<ScrollView
-							horizontal
-							showsHorizontalScrollIndicator={false}
-							contentContainerStyle={{
-								paddingLeft: QarnSpacing.md,
-								paddingBottom: QarnSpacing.sm,
-							}}
-							snapToInterval={260 + QarnSpacing.md}
-							decelerationRate="fast"
-						>
-							{MEAL_PLANS.filter(
-								(plan) => selectedType === "All" || plan.diet === selectedType,
-							).map((plan) => (
-								<MealPlanCard
-									key={plan.id}
-									title={plan.title}
-									price={plan.price}
-									calories={plan.calories}
-									image={plan.image}
-									meals={plan.meals}
-									diet={plan.diet}
-									onPress={() => handleMealPlanPress(plan.id)}
-								/>
-							))}
-						</ScrollView>
-					</View>
+	// Restaurants Section Component
+	const RestaurantsSection = () => (
+		<Box marginTop="lg" marginHorizontal="md" marginBottom="xl">
+			<Text variant="lg" weight="semibold" marginBottom="sm">
+				Active Restaurants
+			</Text>
 
-					{/* Restaurants Section */}
-					<View
-						style={{
-							marginTop: QarnSpacing.sm,
-							marginHorizontal: QarnSpacing.md,
-						}}
-					>
-						<Text
-							style={{
-								fontSize: 17,
-								fontWeight: "600",
-								color: tokens.text,
-								marginBottom: QarnSpacing.sm,
-							}}
-						>
-							Active Restaurants
-						</Text>
+			{RESTAURANTS.map((restaurant, index) => (
+				<Animated.View
+					key={restaurant.id}
+					style={{
+						opacity: fadeAnim,
+						transform: [
+							{
+								translateY: fadeAnim.interpolate({
+									inputRange: [0, 1],
+									outputRange: [30 + index * 15, 0],
+								}),
+							},
+						],
+					}}
+				>
+					<RestaurantCard
+						name={restaurant.name}
+						items={restaurant.items}
+						onPress={() => handleRestaurantPress(restaurant.id)}
+					/>
+				</Animated.View>
+			))}
+		</Box>
+	);
 
-						{RESTAURANTS.map((restaurant) => (
-							<RestaurantCard
-								key={restaurant.id}
-								name={restaurant.name}
-								items={restaurant.items}
-								onPress={() => handleRestaurantPress(restaurant.id)}
-							/>
-						))}
-					</View>
-				</ScrollView>
-			</View>
-		</>
+	return (
+		<Box flex={1} bg="background">
+			<Header />
+
+			<Animated.ScrollView
+				showsVerticalScrollIndicator={false}
+				contentContainerStyle={{ paddingBottom: theme.spacing.xl }}
+				onScroll={handleScroll}
+				scrollEventThrottle={16}
+				refreshControl={
+					<RefreshControl
+						refreshing={refreshing}
+						onRefresh={handleRefresh}
+						tintColor={theme.colors.primary}
+						colors={[theme.colors.primary]}
+						progressBackgroundColor={
+							theme.isDark ? theme.colors.card : undefined
+						}
+					/>
+				}
+			>
+				{/* Progress Status Card */}
+				<ProgressCard />
+
+				{/* Tasks Section */}
+				<TasksSection />
+
+				{/* Meal Plans Section */}
+				<MealPlansSection />
+
+				{/* Restaurants Section */}
+				<RestaurantsSection />
+			</Animated.ScrollView>
+		</Box>
 	);
 };
 
@@ -493,23 +2595,25 @@ export default function TabLayout(): React.ReactElement {
 </file>
 
 <file path="apps/merchant-app/app/(tabs)/meals.tsx">
-import React, { useState } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import {
-	View,
-	Text,
 	ScrollView,
-	TouchableOpacity,
-	TextInput,
+	I18nManager,
+	Animated,
+	RefreshControl,
 	Platform,
 } from "react-native";
-import { Screen } from "expo-router/build/views/Screen";
 import { Ionicons } from "@expo/vector-icons";
-import { useColorScheme } from "@/hooks/useColorScheme";
-import { QarnColors } from "@/constants/Colors";
-import { QarnSpacing, QarnRadius, QarnSizes } from "@/constants/Spacing";
-import { QarnTypography, QarnShadows } from "@/constants/Typography";
+import { useFocusEffect } from "@react-navigation/native";
+
+// Import our components
+import { useTheme } from "@/hooks/useTheme";
+import { Box, Text } from "@/components/ui";
+import { ScreenContainer } from "@/components/layout";
+import SearchOverlay from "@/components/layout/SearchOverlay";
 import CategoryFilters from "@/components/category-filters";
 import MealPlanCard from "@/components/meal-plan-card";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 // Types for meal plan data
 interface MealPlan {
@@ -524,14 +2628,72 @@ interface MealPlan {
 	description?: string;
 }
 
-const MealsScreen: React.FC = () => {
-	const colorScheme = useColorScheme();
-	const isDark = colorScheme === "dark";
-	const tokens = QarnColors[isDark ? "dark" : "light"];
-	const shadows = QarnShadows[isDark ? "dark" : "light"];
+interface SearchResult {
+	id: string | number;
+	title: string;
+	subtitle?: string;
+	icon?: string;
+}
 
+const MealsScreen: React.FC = () => {
+	const theme = useTheme();
+	const isRTL = I18nManager.isRTL;
+	const insets = useSafeAreaInsets();
+	// State
 	const [selectedType, setSelectedType] = useState<string>("All");
-	const [searchQuery, setSearchQuery] = useState<string>("");
+	const [isSearchVisible, setIsSearchVisible] = useState(false);
+	const [_, setSearchQuery] = useState<string>("");
+	const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+	const [recentSearches, setRecentSearches] = useState<string[]>([
+		"keto meals",
+		"vegan options",
+		"low calorie",
+	]);
+	const [refreshing, setRefreshing] = useState(false);
+
+	// Animation refs
+	const fadeAnim = useRef(new Animated.Value(0)).current;
+	const translateY = useRef(new Animated.Value(20)).current;
+
+	// Reset search when screen re-focuses
+	useFocusEffect(
+		useCallback(() => {
+			setIsSearchVisible(false);
+			animateElements();
+			return () => {};
+		}, []),
+	);
+
+	// Animation function
+	const animateElements = () => {
+		// Reset animation values
+		fadeAnim.setValue(0);
+		translateY.setValue(20);
+
+		// Run animations
+		Animated.parallel([
+			Animated.timing(fadeAnim, {
+				toValue: 1,
+				duration: 600,
+				useNativeDriver: true,
+			}),
+			Animated.timing(translateY, {
+				toValue: 0,
+				duration: 600,
+				useNativeDriver: true,
+			}),
+		]).start();
+	};
+
+	// Handle refresh
+	const handleRefresh = () => {
+		setRefreshing(true);
+		// Simulate API call
+		setTimeout(() => {
+			setRefreshing(false);
+			animateElements();
+		}, 1500);
+	};
 
 	// Sample meal plan categories
 	const MEAL_TYPES: string[] = [
@@ -609,6 +2771,7 @@ const MealsScreen: React.FC = () => {
 		},
 	];
 
+	// Handler functions
 	const handleMealPlanPress = (mealPlanId: number) => {
 		console.log(`Meal plan ${mealPlanId} pressed`);
 	};
@@ -617,422 +2780,324 @@ const MealsScreen: React.FC = () => {
 		console.log("Add new meal plan");
 	};
 
+	const handleSearch = useCallback(
+		(query: string) => {
+			setSearchQuery(query);
+
+			if (!query.trim()) {
+				setSearchResults([]);
+				return;
+			}
+
+			// Filter meal plans based on search query
+			const results = MEAL_PLANS.filter(
+				(plan) =>
+					plan.title.toLowerCase().includes(query.toLowerCase()) ||
+					plan.diet.toLowerCase().includes(query.toLowerCase()) ||
+					plan.description?.toLowerCase().includes(query.toLowerCase()),
+			).map((plan) => ({
+				id: plan.id,
+				title: plan.title,
+				subtitle: `${plan.diet} • ${plan.calories} cal • ${plan.meals} meals`,
+				icon: plan.image,
+			}));
+
+			setSearchResults(results);
+
+			// Save to recent searches when query has results
+			if (
+				query.trim() &&
+				results.length > 0 &&
+				!recentSearches.includes(query)
+			) {
+				setRecentSearches((prev) => [query, ...prev.slice(0, 4)]);
+			}
+		},
+		[MEAL_PLANS, recentSearches],
+	);
+
+	const handleSearchResultPress = (result: SearchResult) => {
+		// Find and handle the corresponding meal plan
+		const plan = MEAL_PLANS.find((p) => p.id === result.id);
+		if (plan) {
+			handleMealPlanPress(plan.id);
+			setIsSearchVisible(false);
+		}
+	};
+
 	const filteredMealPlans = MEAL_PLANS.filter(
-		(plan) =>
-			(selectedType === "All" || plan.diet === selectedType) &&
-			(!searchQuery ||
-				plan.title.toLowerCase().includes(searchQuery.toLowerCase())),
+		(plan) => selectedType === "All" || plan.diet === selectedType,
 	);
 
 	const featuredMealPlans = filteredMealPlans.filter((plan) => plan.featured);
 	const regularMealPlans = filteredMealPlans.filter((plan) => !plan.featured);
 
+	const Header = () => (
+		<Box bg="primary">
+			<Box
+				row
+				justifyContent="space-between"
+				alignItems="center"
+				paddingTop={insets.top} // Use safe area inset for top padding
+				paddingBottom="md"
+				paddingHorizontal="md"
+			>
+				<Text variant="xl" weight="bold" color="white">
+					Meal Plans
+				</Text>
+			</Box>
+
+			{/* Search Bar Button */}
+			<Box
+				bg="rgba(255,255,255,0.15)"
+				rounded="md"
+				row={!isRTL}
+				style={{
+					flexDirection: isRTL ? "row-reverse" : "row",
+					alignItems: "center",
+					height: theme.sizes.inputHeight,
+					marginHorizontal: theme.spacing.md,
+					marginBottom: theme.spacing.lg,
+				}}
+				onPress={() => setIsSearchVisible(true)}
+				activeOpacity={0.8}
+			>
+				<Box paddingHorizontal="md">
+					<Ionicons name="search" size={22} color="rgba(255,255,255,0.9)" />
+				</Box>
+
+				<Text color="rgba(255,255,255,0.7)" style={{ fontSize: 16 }}>
+					Search meal plans
+				</Text>
+			</Box>
+		</Box>
+	);
+
+	// Stats Card component
+	const StatsCard = () => (
+		<Animated.View
+			style={{
+				opacity: fadeAnim,
+				transform: [{ translateY }],
+				marginHorizontal: theme.spacing.md,
+				marginVertical: theme.spacing.sm,
+			}}
+		>
+			<Box card rounded="lg" elevation="medium" padding={0}>
+				<Box row>
+					<Box
+						flex={1}
+						paddingVertical="md"
+						alignCenter
+						style={{
+							borderRightWidth: 1,
+							borderRightColor: theme.colors.divider,
+						}}
+					>
+						<Text variant="lg" weight="bold" color="primary" marginBottom={4}>
+							{filteredMealPlans.length}
+						</Text>
+						<Text variant="sm" color="textSecondary">
+							Active Plans
+						</Text>
+					</Box>
+
+					<Box
+						flex={1}
+						paddingVertical="md"
+						alignItems="center"
+						style={{
+							borderRightWidth: 1,
+							borderRightColor: theme.colors.divider,
+						}}
+					>
+						<Text variant="lg" weight="bold" color="info" marginBottom={4}>
+							12
+						</Text>
+						<Text variant="sm" color="textSecondary">
+							Subscribers
+						</Text>
+					</Box>
+
+					<Box flex={1} paddingVertical="md" alignItems="center">
+						<Text variant="lg" weight="bold" color="success" marginBottom={4}>
+							$968
+						</Text>
+						<Text variant="sm" color="textSecondary">
+							Monthly
+						</Text>
+					</Box>
+				</Box>
+			</Box>
+		</Animated.View>
+	);
+
+	// Floating Action Button
+	const AddButton = () => (
+		<Box
+			style={{
+				position: "absolute",
+				bottom: theme.spacing.xl,
+				right: isRTL ? undefined : theme.spacing.lg,
+				left: isRTL ? theme.spacing.lg : undefined,
+				backgroundColor: theme.colors.primary,
+				height: 56,
+				width: 56,
+				borderRadius: 28,
+				alignItems: "center",
+				justifyContent: "center",
+				elevation: 4,
+				shadowColor: "#000",
+				shadowOffset: { width: 0, height: 2 },
+				shadowOpacity: 0.2,
+				shadowRadius: 3.5,
+			}}
+			onPress={handleAddMealPlan}
+		>
+			<Ionicons name="add" size={28} color="white" />
+		</Box>
+	);
+
+	// Featured Plans Section
+	const FeaturedPlansSection = () =>
+		featuredMealPlans.length > 0 ? (
+			<Animated.View
+				style={{
+					opacity: fadeAnim,
+					transform: [{ translateY }],
+					marginTop: theme.spacing.sm,
+				}}
+			>
+				<Text
+					variant="lg"
+					weight="semibold"
+					margin="md"
+					marginTop="sm"
+					marginBottom="sm"
+				>
+					Featured Plans
+				</Text>
+
+				{featuredMealPlans.map((plan) => (
+					<Box key={plan.id} marginHorizontal="md" marginBottom="md">
+						<MealPlanCard
+							title={plan.title}
+							price={plan.price}
+							calories={plan.calories}
+							image={plan.image}
+							meals={plan.meals}
+							diet={plan.diet}
+							onPress={() => handleMealPlanPress(plan.id)}
+							featured={true}
+						/>
+					</Box>
+				))}
+			</Animated.View>
+		) : null;
+
+	// Regular Plans Section
+	const RegularPlansSection = () => (
+		<Animated.View
+			style={{
+				opacity: fadeAnim,
+				transform: [{ translateY }],
+			}}
+		>
+			<Text
+				variant="lg"
+				weight="semibold"
+				margin="md"
+				marginTop="md"
+				marginBottom="sm"
+			>
+				All Meal Plans
+			</Text>
+
+			<ScrollView
+				horizontal
+				showsHorizontalScrollIndicator={false}
+				contentContainerStyle={{
+					paddingLeft: theme.spacing.md,
+					paddingRight: theme.spacing.md,
+					paddingBottom: theme.spacing.sm,
+				}}
+				snapToInterval={260 + theme.spacing.md}
+				decelerationRate={Platform.OS === "ios" ? "fast" : 0.85}
+			>
+				{regularMealPlans.map((plan) => (
+					<Box key={plan.id} marginBottom="sm" marginRight="sm">
+						<MealPlanCard
+							title={plan.title}
+							price={plan.price}
+							calories={plan.calories}
+							image={plan.image}
+							meals={plan.meals}
+							diet={plan.diet}
+							onPress={() => handleMealPlanPress(plan.id)}
+						/>
+					</Box>
+				))}
+			</ScrollView>
+		</Animated.View>
+	);
+
 	return (
 		<>
-			<Screen options={{ headerShown: false }} />
-			<View style={{ flex: 1, backgroundColor: tokens.background }}>
-				{/* Header */}
-				<View
-					style={{
-						backgroundColor: tokens.primary,
-						paddingTop: Platform.OS === "ios" ? 50 : 16,
-						paddingBottom: QarnSpacing.lg,
-						paddingHorizontal: QarnSpacing.md,
-					}}
-				>
-					<View
-						style={{
-							marginBottom: QarnSpacing.md,
-						}}
-					>
-						<Text
-							style={{
-								color: "white",
-								fontWeight: QarnTypography.weights.bold,
-								fontSize: QarnTypography.sizes.xl,
-							}}
-						>
-							Meal Plans
-						</Text>
-					</View>
-
-					{/* Search Bar */}
-					<TouchableOpacity
-						style={{
-							backgroundColor: "rgba(255,255,255,0.15)",
-							borderRadius: QarnRadius.md,
-							flexDirection: "row",
-							alignItems: "center",
-							paddingHorizontal: QarnSpacing.md,
-							height: QarnSizes.inputHeight,
-						}}
-						activeOpacity={0.8}
-					>
-						<Ionicons
-							name="search"
-							size={QarnSizes.iconMd}
-							color="rgba(255,255,255,0.9)"
-							style={{ marginRight: QarnSpacing.sm }}
-						/>
-						<TextInput
-							placeholder="Search meal plans"
-							placeholderTextColor="rgba(255,255,255,0.7)"
-							style={{
-								flex: 1,
-								fontSize: QarnTypography.sizes.md,
-								color: "#FFFFFF",
-								height: QarnSizes.inputHeight,
-							}}
-							value={searchQuery}
-							onChangeText={setSearchQuery}
-						/>
-						{searchQuery ? (
-							<TouchableOpacity
-								onPress={() => setSearchQuery("")}
-								style={{
-									padding: QarnSpacing.xs,
-									height: QarnSizes.touchTarget,
-									width: QarnSizes.touchTarget,
-									alignItems: "center",
-									justifyContent: "center",
-								}}
-							>
-								<Ionicons
-									name="close-circle"
-									size={QarnSizes.iconMd}
-									color="rgba(255,255,255,0.9)"
-								/>
-							</TouchableOpacity>
-						) : null}
-					</TouchableOpacity>
-				</View>
-
-				{/* Content */}
-				<ScrollView
+			<ScreenContainer header={<Header />} scrollable={false} padded={false}>
+				<Animated.ScrollView
 					style={{ flex: 1 }}
-					contentContainerStyle={{ paddingBottom: QarnSpacing.xl }}
+					contentContainerStyle={{ paddingBottom: theme.spacing.xl + 40 }}
 					showsVerticalScrollIndicator={false}
+					refreshControl={
+						<RefreshControl
+							refreshing={refreshing}
+							onRefresh={handleRefresh}
+							tintColor={theme.colors.primary}
+							colors={[theme.colors.primary]}
+							progressBackgroundColor={
+								theme.isDark ? theme.colors.card : undefined
+							}
+						/>
+					}
 				>
 					{/* Category Filters */}
-					<CategoryFilters
-						categories={MEAL_TYPES}
-						selectedCategory={selectedType}
-						onSelectCategory={setSelectedType}
-					/>
+					<Animated.View
+						style={{
+							opacity: fadeAnim,
+							transform: [{ translateY: translateY }],
+						}}
+					>
+						<CategoryFilters
+							categories={MEAL_TYPES}
+							selectedCategory={selectedType}
+							onSelectCategory={setSelectedType}
+						/>
+					</Animated.View>
 
 					{/* Stats Bar */}
-					<View
-						style={{
-							flexDirection: "row",
-							backgroundColor: tokens.card,
-							margin: QarnSpacing.md,
-							borderRadius: QarnRadius.lg,
-							overflow: "hidden",
-							...shadows.medium,
-						}}
-					>
-						<View
-							style={{
-								flex: 1,
-								paddingVertical: QarnSpacing.md,
-								alignItems: "center",
-								borderRightWidth: 1,
-								borderRightColor: tokens.divider,
-							}}
-						>
-							<Text
-								style={{
-									fontSize: QarnTypography.sizes.lg,
-									fontWeight: QarnTypography.weights.bold,
-									color: tokens.primary,
-									marginBottom: 4,
-								}}
-							>
-								{filteredMealPlans.length}
-							</Text>
-							<Text
-								style={{
-									fontSize: QarnTypography.sizes.sm,
-									color: tokens.textSecondary,
-								}}
-							>
-								Active Plans
-							</Text>
-						</View>
-
-						<View
-							style={{
-								flex: 1,
-								paddingVertical: QarnSpacing.md,
-								alignItems: "center",
-								borderRightWidth: 1,
-								borderRightColor: tokens.divider,
-							}}
-						>
-							<Text
-								style={{
-									fontSize: QarnTypography.sizes.lg,
-									fontWeight: QarnTypography.weights.bold,
-									color: tokens.info,
-									marginBottom: 4,
-								}}
-							>
-								12
-							</Text>
-							<Text
-								style={{
-									fontSize: QarnTypography.sizes.sm,
-									color: tokens.textSecondary,
-								}}
-							>
-								Subscribers
-							</Text>
-						</View>
-
-						<View
-							style={{
-								flex: 1,
-								paddingVertical: QarnSpacing.md,
-								alignItems: "center",
-							}}
-						>
-							<Text
-								style={{
-									fontSize: QarnTypography.sizes.lg,
-									fontWeight: QarnTypography.weights.bold,
-									color: tokens.success,
-									marginBottom: 4,
-								}}
-							>
-								$968
-							</Text>
-							<Text
-								style={{
-									fontSize: QarnTypography.sizes.sm,
-									color: tokens.textSecondary,
-								}}
-							>
-								Monthly
-							</Text>
-						</View>
-					</View>
+					<StatsCard />
 
 					{/* Featured Plans */}
-					{featuredMealPlans.length > 0 && (
-						<View style={{ marginTop: QarnSpacing.sm }}>
-							<Text
-								style={{
-									fontSize: QarnTypography.sizes.lg,
-									fontWeight: QarnTypography.weights.semibold,
-									color: tokens.text,
-									marginHorizontal: QarnSpacing.md,
-									marginBottom: QarnSpacing.sm,
-								}}
-							>
-								Featured Plans
-							</Text>
-
-							{featuredMealPlans.map((plan) => (
-								<View
-									key={plan.id}
-									style={{
-										marginHorizontal: QarnSpacing.md,
-										marginBottom: QarnSpacing.md,
-									}}
-								>
-									{/* Using a custom style for featured plans - horizontal layout */}
-									<TouchableOpacity
-										style={{
-											flexDirection: "row",
-											backgroundColor: tokens.card,
-											borderRadius: QarnRadius.lg,
-											overflow: "hidden",
-											...shadows.medium,
-										}}
-										onPress={() => handleMealPlanPress(plan.id)}
-										activeOpacity={0.7}
-									>
-										<View
-											style={{
-												width: 120,
-												backgroundColor: isDark ? tokens.cardAlt : "#EFEFEF",
-												justifyContent: "center",
-												alignItems: "center",
-											}}
-										>
-											<Ionicons
-												name={plan.image as any}
-												size={QarnSizes.iconLg}
-												color={tokens.primary}
-											/>
-										</View>
-
-										<View
-											style={{
-												flex: 1,
-												padding: QarnSpacing.md,
-												justifyContent: "center",
-											}}
-										>
-											<View
-												style={{
-													flexDirection: "row",
-													justifyContent: "space-between",
-													alignItems: "center",
-													marginBottom: 4,
-												}}
-											>
-												<Text
-													style={{
-														fontSize: QarnTypography.sizes.md,
-														fontWeight: QarnTypography.weights.semibold,
-														color: tokens.text,
-													}}
-												>
-													{plan.title}
-												</Text>
-
-												<Text
-													style={{
-														fontSize: QarnTypography.sizes.md,
-														fontWeight: QarnTypography.weights.bold,
-														color: tokens.primary,
-													}}
-												>
-													${plan.price}
-												</Text>
-											</View>
-
-											<Text
-												style={{
-													fontSize: QarnTypography.sizes.sm,
-													color: tokens.textSecondary,
-													marginBottom: QarnSpacing.sm,
-												}}
-											>
-												{plan.description}
-											</Text>
-
-											<View style={{ flexDirection: "row" }}>
-												<View
-													style={{
-														flexDirection: "row",
-														alignItems: "center",
-														marginEnd: QarnSpacing.md,
-													}}
-												>
-													<Ionicons
-														name="flame-outline"
-														size={QarnSizes.iconXs}
-														color={tokens.textSecondary}
-													/>
-													<Text
-														style={{
-															fontSize: QarnTypography.sizes.xs,
-															color: tokens.textSecondary,
-															marginLeft: 4,
-														}}
-													>
-														{plan.calories} cal
-													</Text>
-												</View>
-
-												<View
-													style={{
-														flexDirection: "row",
-														alignItems: "center",
-													}}
-												>
-													<Ionicons
-														name="restaurant-outline"
-														size={QarnSizes.iconXs}
-														color={tokens.textSecondary}
-													/>
-													<Text
-														style={{
-															fontSize: QarnTypography.sizes.xs,
-															color: tokens.textSecondary,
-															marginLeft: 4,
-														}}
-													>
-														{plan.meals} meals
-													</Text>
-												</View>
-											</View>
-										</View>
-									</TouchableOpacity>
-								</View>
-							))}
-						</View>
-					)}
+					<FeaturedPlansSection />
 
 					{/* All Meal Plans Grid */}
-					<Text
-						style={{
-							fontSize: QarnTypography.sizes.lg,
-							fontWeight: QarnTypography.weights.semibold,
-							color: tokens.text,
-							marginHorizontal: QarnSpacing.md,
-							marginTop: QarnSpacing.md,
-							marginBottom: QarnSpacing.sm,
-						}}
-					>
-						All Meal Plans
-					</Text>
+					<RegularPlansSection />
+				</Animated.ScrollView>
 
-					<ScrollView
-						horizontal
-						showsHorizontalScrollIndicator={false}
-						contentContainerStyle={{
-							paddingLeft: QarnSpacing.md,
-							paddingBottom: QarnSpacing.sm,
-						}}
-						snapToInterval={260 + QarnSpacing.md}
-						decelerationRate="fast"
-					>
-						{regularMealPlans.map((plan) => (
-							<View
-								key={plan.id}
-								style={{
-									marginBottom: QarnSpacing.sm,
-								}}
-							>
-								<MealPlanCard
-									title={plan.title}
-									price={plan.price}
-									calories={plan.calories}
-									image={plan.image}
-									meals={plan.meals}
-									diet={plan.diet}
-									onPress={() => handleMealPlanPress(plan.id)}
-								/>
-							</View>
-						))}
-					</ScrollView>
-				</ScrollView>
+				<AddButton />
+			</ScreenContainer>
 
-				<TouchableOpacity
-					style={{
-						position: "absolute",
-						bottom: QarnSpacing.xl,
-						end: QarnSpacing.lg,
-						backgroundColor: tokens.primary,
-						height: 60,
-						width: 60,
-						borderRadius: 30,
-						alignItems: "center",
-						justifyContent: "center",
-						elevation: 5,
-						shadowColor: "#000",
-						shadowOffset: { width: 0, height: 2 },
-						shadowOpacity: 0.25,
-						shadowRadius: 3.84,
-					}}
-					onPress={handleAddMealPlan}
-				>
-					<Ionicons name="add" size={32} color="white" />
-				</TouchableOpacity>
-			</View>
+			{/* Search Overlay */}
+			<SearchOverlay
+				isVisible={isSearchVisible}
+				onClose={() => setIsSearchVisible(false)}
+				placeholder="Search meal plans"
+				onSearch={handleSearch}
+				results={searchResults}
+				onResultPress={handleSearchResultPress}
+				recentSearches={recentSearches}
+				onClearRecents={() => setRecentSearches([])}
+			/>
 		</>
 	);
 };
@@ -1041,23 +3106,14 @@ export default MealsScreen;
 </file>
 
 <file path="apps/merchant-app/app/(tabs)/profile.tsx">
-import { QarnColors } from "@/constants/Colors";
-import { QarnRadius, QarnSizes, QarnSpacing } from "@/constants/Spacing";
-import { QarnShadows, QarnTypography } from "@/constants/Typography";
-import { useColorScheme } from "@/hooks/useColorScheme";
+import React, { useState, useRef, useEffect } from "react";
+import { Switch, Animated, Pressable, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Screen } from "expo-router/build/views/Screen";
-import React, { useState } from "react";
-import {
-	Platform,
-	ScrollView,
-	Switch,
-	Text,
-	TouchableOpacity,
-	View,
-} from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 
-// Define types for our profile data
+import { useTheme } from "@/hooks/useTheme";
+import { Box, Text, Badge } from "@/components/ui";
+
 interface ProfileSetting {
 	id: string;
 	title: string;
@@ -1076,14 +3132,51 @@ interface ProfileSection {
 }
 
 const ProfileScreen: React.FC = () => {
-	const colorScheme = useColorScheme();
-	const isDark = colorScheme === "dark";
-	const tokens = QarnColors[isDark ? "dark" : "light"];
-	const shadows = QarnShadows[isDark ? "dark" : "light"];
+	const theme = useTheme();
 
 	// Profile data
 	const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-	const [darkModeEnabled, setDarkModeEnabled] = useState(isDark);
+	const [darkModeEnabled, setDarkModeEnabled] = useState(theme.isDark);
+
+	// Animation values
+	const fadeAnim = useRef(new Animated.Value(0)).current;
+	const scrollY = useRef(new Animated.Value(0)).current;
+	const headerTranslate = scrollY.interpolate({
+		inputRange: [0, 100],
+		outputRange: [0, -25],
+		extrapolate: "clamp",
+	});
+
+	// Run animations when component mounts
+	useEffect(() => {
+		animateElements();
+	}, []);
+
+	// Reset animations when tab is focused
+	useFocusEffect(
+		React.useCallback(() => {
+			animateElements();
+			return () => {};
+		}, []),
+	);
+
+	const animateElements = () => {
+		// Reset animation values
+		fadeAnim.setValue(0);
+
+		// Animate content fade in
+		Animated.timing(fadeAnim, {
+			toValue: 1,
+			duration: 600,
+			useNativeDriver: true,
+		}).start();
+	};
+
+	// Handle scroll events for header parallax
+	const handleScroll = Animated.event(
+		[{ nativeEvent: { contentOffset: { y: scrollY } } }],
+		{ useNativeDriver: true },
+	);
 
 	// Sample profile sections
 	const profileSections: ProfileSection[] = [
@@ -1185,271 +3278,274 @@ const ProfileScreen: React.FC = () => {
 		},
 	];
 
-	const renderRightElement = (item: ProfileSetting) => {
-		switch (item.rightElement) {
-			case "arrow":
-				return (
-					<Ionicons
-						name="chevron-forward"
-						size={QarnSizes.iconMd}
-						color={tokens.textSecondary}
-					/>
-				);
-			case "switch":
-				return (
-					<Switch
-						value={item.switchValue}
-						onValueChange={(value) => item.onToggle?.(value)}
-						trackColor={{ false: tokens.cardAlt, true: tokens.primary }}
-						thumbColor="white"
-					/>
-				);
-			case "badge":
-				return (
-					<View
-						style={{
-							backgroundColor: tokens.primary,
-							paddingHorizontal: QarnSpacing.sm,
-							paddingVertical: QarnSpacing.xs / 2,
-							borderRadius: QarnRadius.round,
-							minWidth: 24,
-							alignItems: "center",
-						}}
-					>
-						<Text
-							style={{
-								color: "white",
-								fontSize: QarnTypography.sizes.xs,
-								fontWeight: QarnTypography.weights.medium,
-							}}
-						>
-							{item.badgeText}
-						</Text>
-					</View>
-				);
-			default:
-				return null;
-		}
-	};
+	// Profile Header Component with parallax effect
+	const ProfileHeader = () => {
+		const scaleAnim = scrollY.interpolate({
+			inputRange: [-100, 0, 100],
+			outputRange: [1.2, 1, 0.9],
+			extrapolate: "clamp",
+		});
 
-	const renderProfileItem = (item: ProfileSetting) => {
-		const isLogout = item.id === "logout";
+		const opacityAnim = scrollY.interpolate({
+			inputRange: [0, 60, 120],
+			outputRange: [1, 0.8, 0.6],
+			extrapolate: "clamp",
+		});
 
 		return (
-			<TouchableOpacity
-				key={item.id}
+			<Animated.View
 				style={{
-					flexDirection: "row",
+					backgroundColor: theme.colors.primary,
+					paddingTop: theme.platform.topInset,
+					paddingBottom: theme.spacing.xl,
 					alignItems: "center",
-					backgroundColor: tokens.card,
-					paddingVertical: QarnSpacing.md,
-					paddingHorizontal: QarnSpacing.md,
-					marginBottom: 1,
-					borderRadius: item.id === "logout" ? QarnRadius.md : undefined,
-					...shadows.small,
+					transform: [{ translateY: headerTranslate }],
+					opacity: opacityAnim,
 				}}
-				onPress={item.onPress}
-				activeOpacity={0.7}
 			>
-				<View
+				{/* Avatar - scales on pull down */}
+				<Animated.View
 					style={{
-						width: QarnSizes.avatarSm,
-						height: QarnSizes.avatarSm,
-						borderRadius: QarnSizes.avatarSm / 2,
-						backgroundColor: isLogout
-							? `${tokens.error}20`
-							: tokens.primaryLight,
+						transform: [{ scale: scaleAnim }],
+						width: theme.sizes.avatarLg + 20,
+						height: theme.sizes.avatarLg + 20,
+						borderRadius: (theme.sizes.avatarLg + 20) / 2,
+						backgroundColor: "rgba(255,255,255,0.2)",
 						alignItems: "center",
 						justifyContent: "center",
-						marginRight: QarnSpacing.md,
+						marginBottom: theme.spacing.md,
 					}}
 				>
-					<Ionicons
-						name={item.icon as any}
-						size={QarnSizes.iconSm}
-						color={isLogout ? tokens.error : tokens.primary}
-					/>
-				</View>
-
-				<View style={{ flex: 1 }}>
 					<Text
+						color="white"
 						style={{
-							fontSize: QarnTypography.sizes.md,
-							fontWeight: isLogout
-								? QarnTypography.weights.semibold
-								: QarnTypography.weights.medium,
-							color: isLogout ? tokens.error : tokens.text,
+							fontSize: theme.typography.sizes.xxxl,
+							fontWeight: theme.typography.weights.bold,
 						}}
 					>
-						{item.title}
+						G
 					</Text>
+				</Animated.View>
 
-					{item.subtitle && (
-						<Text
-							style={{
-								fontSize: QarnTypography.sizes.sm,
-								color: tokens.textSecondary,
-								marginTop: 2,
+				{/* Name and Email */}
+				<Text variant="xl" weight="bold" color="white" marginBottom="xs">
+					Green Kitchen
+				</Text>
+
+				<Text variant="md" color="rgba(255,255,255,0.8)">
+					contact@greenkitchen.com
+				</Text>
+
+				{/* Edit Profile Button */}
+				<Pressable
+					style={({ pressed }) => ({
+						flexDirection: "row",
+						backgroundColor: "rgba(255,255,255,0.2)",
+						paddingHorizontal: theme.spacing.md,
+						paddingVertical: theme.spacing.sm,
+						borderRadius: theme.radius.round,
+						alignItems: "center",
+						marginTop: theme.spacing.md,
+						opacity: pressed ? 0.8 : 1,
+					})}
+					onPress={() => console.log("Edit profile")}
+					android_ripple={{ color: "rgba(255,255,255,0.2)" }}
+				>
+					<Ionicons name="pencil" size={theme.sizes.iconSm} color="white" />
+					<Text color="white" weight="medium" marginLeft="xs">
+						Edit Profile
+					</Text>
+				</Pressable>
+			</Animated.View>
+		);
+	};
+
+	// Setting Item Component with animation
+	const SettingItem = ({
+		item,
+	}: {
+		item: ProfileSetting;
+	}) => {
+		const isLogout = item.id === "logout";
+
+		const itemTranslateY = fadeAnim.interpolate({
+			inputRange: [0, 1],
+			outputRange: [30, 0],
+		});
+
+		const renderRightElement = () => {
+			switch (item.rightElement) {
+				case "arrow":
+					return (
+						<Ionicons
+							name="chevron-forward"
+							size={theme.sizes.iconMd}
+							color={theme.colors.textSecondary}
+						/>
+					);
+				case "switch":
+					return (
+						<Switch
+							value={item.switchValue}
+							onValueChange={(value) => item.onToggle?.(value)}
+							trackColor={{
+								false: theme.colors.cardAlt,
+								true: theme.colors.primary,
 							}}
-						>
-							{item.subtitle}
-						</Text>
-					)}
-				</View>
+							thumbColor="white"
+						/>
+					);
+				case "badge":
+					return <Badge text={item.badgeText || ""} variant="primary" />;
+				default:
+					return null;
+			}
+		};
 
-				{renderRightElement(item)}
-			</TouchableOpacity>
+		return (
+			<Animated.View
+				style={{
+					opacity: fadeAnim,
+					transform: [{ translateY: itemTranslateY }],
+				}}
+			>
+				<Pressable
+					style={({ pressed }) => [
+						{
+							backgroundColor: theme.colors.card,
+							paddingVertical: theme.spacing.md,
+							paddingHorizontal: theme.spacing.md,
+							marginBottom: 1,
+							borderRadius: isLogout ? theme.radius.md : undefined,
+							opacity: pressed ? 0.9 : 1,
+						},
+						theme.shadows.small,
+					]}
+					onPress={item.onPress}
+					android_ripple={{
+						color: isLogout ? `${theme.colors.error}20` : theme.colors.cardAlt,
+					}}
+				>
+					<Box row alignCenter>
+						<Box
+							width={theme.sizes.avatarSm}
+							height={theme.sizes.avatarSm}
+							rounded="round"
+							bg={isLogout ? `${theme.colors.error}20` : "primaryLight"}
+							center
+							marginRight="md"
+						>
+							<Ionicons
+								name={item.icon as any}
+								size={theme.sizes.iconSm}
+								color={isLogout ? theme.colors.error : theme.colors.primary}
+							/>
+						</Box>
+
+						<Box flex={1}>
+							<Text
+								variant="md"
+								weight={isLogout ? "semibold" : "medium"}
+								color={isLogout ? "error" : "text"}
+							>
+								{item.title}
+							</Text>
+
+							{item.subtitle && (
+								<Text variant="sm" color="textSecondary" marginTop={2}>
+									{item.subtitle}
+								</Text>
+							)}
+						</Box>
+
+						{renderRightElement()}
+					</Box>
+				</Pressable>
+			</Animated.View>
 		);
 	};
 
 	return (
-		<>
-			<Screen options={{ headerShown: false }} />
-			<View
+		<View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+			<ProfileHeader />
+
+			<Animated.ScrollView
 				style={{
-					flex: 1,
-					backgroundColor: tokens.background,
+					marginTop: -theme.radius.xl,
+					borderTopLeftRadius: theme.radius.xl,
+					borderTopRightRadius: theme.radius.xl,
+					backgroundColor: theme.colors.background,
+					paddingTop: theme.spacing.md,
 				}}
+				contentContainerStyle={{
+					paddingBottom: theme.spacing.xl + 20,
+					paddingHorizontal: theme.spacing.md,
+				}}
+				showsVerticalScrollIndicator={false}
+				onScroll={handleScroll}
+				scrollEventThrottle={16}
+				bounces={true}
 			>
-				{/* Profile Header */}
-				<View
-					style={{
-						backgroundColor: tokens.primary,
-						paddingTop: Platform.OS === "ios" ? 60 : 30,
-						paddingBottom: QarnSpacing.xl,
-						alignItems: "center",
-					}}
-				>
-					{/* Avatar */}
-					<View
+				{profileSections.map((section, sectionIndex) => (
+					<Animated.View
+						key={sectionIndex.toString()}
 						style={{
-							width: QarnSizes.avatarLg + 20,
-							height: QarnSizes.avatarLg + 20,
-							borderRadius: (QarnSizes.avatarLg + 20) / 2,
-							backgroundColor: "rgba(255,255,255,0.2)",
-							alignItems: "center",
-							justifyContent: "center",
-							marginBottom: QarnSpacing.md,
+							marginBottom: theme.spacing.lg,
+							opacity: fadeAnim,
+							transform: [
+								{
+									translateY: fadeAnim.interpolate({
+										inputRange: [0, 1],
+										outputRange: [20, 0],
+									}),
+								},
+							],
 						}}
 					>
-						<Text
-							style={{
-								color: "white",
-								fontSize: QarnTypography.sizes.xxxl,
-								fontWeight: QarnTypography.weights.bold,
-							}}
-						>
-							G
-						</Text>
-					</View>
-
-					{/* Name and Email */}
-					<Text
-						style={{
-							fontSize: QarnTypography.sizes.xl,
-							fontWeight: QarnTypography.weights.bold,
-							color: "white",
-							marginBottom: QarnSpacing.xs,
-						}}
-					>
-						Green Kitchen
-					</Text>
-
-					<Text
-						style={{
-							fontSize: QarnTypography.sizes.md,
-							color: "rgba(255,255,255,0.8)",
-						}}
-					>
-						contact@greenkitchen.com
-					</Text>
-
-					{/* Edit Profile Button */}
-					<TouchableOpacity
-						style={{
-							flexDirection: "row",
-							backgroundColor: "rgba(255,255,255,0.2)",
-							paddingHorizontal: QarnSpacing.md,
-							paddingVertical: QarnSpacing.sm,
-							borderRadius: QarnRadius.round,
-							alignItems: "center",
-							marginTop: QarnSpacing.md,
-						}}
-						onPress={() => console.log("Edit profile")}
-					>
-						<Ionicons name="pencil" size={QarnSizes.iconSm} color="white" />
-						<Text
-							style={{
-								color: "white",
-								marginLeft: QarnSpacing.xs,
-								fontWeight: QarnTypography.weights.medium,
-							}}
-						>
-							Edit Profile
-						</Text>
-					</TouchableOpacity>
-				</View>
-
-				{/* Profile Content */}
-				<ScrollView
-					style={{
-						flex: 1,
-						marginTop: -QarnRadius.xl,
-						borderTopLeftRadius: QarnRadius.xl,
-						borderTopRightRadius: QarnRadius.xl,
-						backgroundColor: tokens.background,
-						paddingTop: QarnSpacing.md,
-					}}
-					contentContainerStyle={{
-						paddingBottom: QarnSpacing.xl,
-						paddingHorizontal: QarnSpacing.md,
-					}}
-					showsVerticalScrollIndicator={false}
-				>
-					{profileSections.map((section, index) => (
-						<View
-							key={index.toString()}
-							style={{ marginBottom: QarnSpacing.lg }}
-						>
-							{section.title && (
-								<Text
-									style={{
-										fontSize: QarnTypography.sizes.md,
-										fontWeight: QarnTypography.weights.semibold,
-										color: tokens.text,
-										marginBottom: QarnSpacing.sm,
-										marginLeft: QarnSpacing.xs,
-									}}
-								>
-									{section.title}
-								</Text>
-							)}
-
-							<View
-								style={{
-									borderRadius: QarnRadius.md,
-									overflow: "hidden",
-								}}
+						{section.title && (
+							<Text
+								variant="md"
+								weight="semibold"
+								marginBottom="sm"
+								marginLeft="xs"
 							>
-								{section.data.map((item) => renderProfileItem(item))}
-							</View>
-						</View>
-					))}
+								{section.title}
+							</Text>
+						)}
 
-					{/* App Version */}
-					<Text
-						style={{
-							textAlign: "center",
-							color: tokens.textSecondary,
-							fontSize: QarnTypography.sizes.sm,
-							marginTop: QarnSpacing.md,
-						}}
-					>
+						<Box
+							style={{
+								borderRadius: theme.radius.md,
+								overflow: "hidden",
+							}}
+						>
+							{section.data.map((item) => (
+								<SettingItem key={item.id} item={item} />
+							))}
+						</Box>
+					</Animated.View>
+				))}
+
+				{/* App Version */}
+				<Animated.View
+					style={{
+						opacity: fadeAnim,
+						transform: [
+							{
+								translateY: fadeAnim.interpolate({
+									inputRange: [0, 1],
+									outputRange: [10, 0],
+								}),
+							},
+						],
+					}}
+				>
+					<Text variant="sm" color="textSecondary" center marginTop="md">
 						Version 1.0.0
 					</Text>
-				</ScrollView>
-			</View>
-		</>
+				</Animated.View>
+			</Animated.ScrollView>
+		</View>
 	);
 };
 
@@ -1457,44 +3553,51 @@ export default ProfileScreen;
 </file>
 
 <file path="apps/merchant-app/app/_layout.tsx">
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
+import {
+	DarkTheme,
+	DefaultTheme,
+	ThemeProvider,
+} from "@react-navigation/native";
+import { useFonts } from "expo-font";
+import { Stack } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
+import { useEffect } from "react";
+import "react-native-reanimated";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { useColorScheme } from "@/hooks/useColorScheme";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
+	const colorScheme = useColorScheme();
+	const [loaded] = useFonts({
+		SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
+	});
 
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
+	useEffect(() => {
+		if (loaded) {
+			SplashScreen.hideAsync();
+		}
+	}, [loaded]);
 
-  if (!loaded) {
-    return null;
-  }
+	if (!loaded) {
+		return null;
+	}
 
-  return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
-  );
+	return (
+		<SafeAreaProvider>
+			<ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+				<Stack>
+					<Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+					<Stack.Screen name="+not-found" />
+				</Stack>
+				<StatusBar style="auto" />
+			</ThemeProvider>
+		</SafeAreaProvider>
+	);
 }
 </file>
 
@@ -1806,6 +3909,7 @@ interface MealPlanCardProps {
 	meals: string;
 	diet: string;
 	onPress: () => void;
+	featured?: boolean;
 }
 const MealPlanCard = ({
 	title,
