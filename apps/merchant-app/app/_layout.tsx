@@ -9,7 +9,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useTheme } from "@/hooks/useTheme";
 SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
-	const { isDark, navTheme } = useTheme();
+	const { isDark, navTheme, colors } = useTheme();
 	const [loaded, error] = useFonts({
 		SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
 	});
@@ -31,6 +31,9 @@ export default function RootLayout() {
 					screenOptions={{
 						headerShown: false, // Default to no header
 						animation: "slide_from_right", // More native animation
+						contentStyle: {
+							backgroundColor: colors.background,
+						},
 					}}
 				>
 					<Stack.Screen name="index" />
