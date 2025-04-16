@@ -1,35 +1,31 @@
 This file is a merged representation of a subset of the codebase, containing files not matching ignore patterns, combined into a single document by Repomix.
 The content has been processed where comments have been removed, empty lines have been removed.
 
-<file_summary>
-This section contains a summary of this file.
+# File Summary
 
-<purpose>
+## Purpose
 This file contains a packed representation of the entire repository's contents.
 It is designed to be easily consumable by AI systems for analysis, code review,
 or other automated processes.
-</purpose>
 
-<file_format>
+## File Format
 The content is organized as follows:
 1. This summary section
 2. Repository information
 3. Directory structure
-4. Repository files, each consisting of:
-  - File path as an attribute
-  - Full contents of the file
-</file_format>
+4. Multiple file entries, each consisting of:
+  a. A header with the file path (## File: path/to/file)
+  b. The full contents of the file in a code block
 
-<usage_guidelines>
+## Usage Guidelines
 - This file should be treated as read-only. Any changes should be made to the
   original repository files, not this packed version.
 - When processing this file, use the file path to distinguish
   between different files in the repository.
 - Be aware that this file may contain sensitive information. Handle it with
   the same level of security as you would the original repository.
-</usage_guidelines>
 
-<notes>
+## Notes
 - Some files may have been excluded based on .gitignore rules and Repomix's configuration
 - Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
 - Files matching these patterns are excluded: **/*.log, tmp/, **/Illustrations/**, **/*.json, **/Localization.ts, **/SVGS/**, **/generated/**
@@ -38,15 +34,11 @@ The content is organized as follows:
 - Code comments have been removed from supported file types
 - Empty lines have been removed from all files
 - Files are sorted by Git change count (files with more changes are at the bottom)
-</notes>
 
-<additional_info>
+## Additional Info
 
-</additional_info>
-
-</file_summary>
-
-<directory_structure>
+# Directory Structure
+```
 apps/
   merchant-app/
     app/
@@ -88,17 +80,27 @@ apps/
 .npmrc
 .nvimrc
 pnpm-workspace.yaml
-</directory_structure>
+```
 
-<files>
-This section contains the contents of the repository's files.
+# Files
 
-<file path="apps/merchant-app/app/index.tsx">
-import React, { useState, useCallback, useRef, useEffect } from "react";
+## File: apps/merchant-app/app/+not-found.tsx
+```typescript
+import { Stack } from "expo-router";
+export default function NotFoundScreen() {
+	return (
+		<>
+			<Stack.Screen options={{ title: "Oops!" }} />
+		</>
+	);
+}
+```
+
+## File: apps/merchant-app/app/index.tsx
+```typescript
+import React, { useState, useCallback, useRef } from "react";
 import {
 	RefreshControl,
-	I18nManager,
-	Platform,
 	View,
 	ScrollView,
 	TouchableOpacity,
@@ -115,11 +117,10 @@ import Animated, {
 	interpolate,
 	Extrapolation,
 	withTiming,
-	Easing,
 	withSpring,
 	FadeIn,
 } from "react-native-reanimated";
-import { useTheme, ColorToken } from "@/hooks/useTheme";
+import { useTheme } from "@/hooks/useTheme";
 import { Box, Text, Badge } from "@/components/ui";
 interface MealCount {
 	name: string;
@@ -137,10 +138,6 @@ interface Alert {
 	title: string;
 	icon: string;
 	timestamp?: string;
-}
-interface ActivityStats {
-	activeSubscriptions: number;
-	newThisWeek: number;
 }
 const TODAY_PREP_SUMMARY: MealPrepSummary[] = [
 	{
@@ -172,7 +169,7 @@ const TODAY_PREP_SUMMARY: MealPrepSummary[] = [
 		],
 	},
 ];
-const ACTIVITY_STATS: ActivityStats = {
+const ACTIVITY_STATS = {
 	activeSubscriptions: 52,
 	newThisWeek: 3,
 };
@@ -185,18 +182,18 @@ const ALERTS: Alert[] = [
 		timestamp: "3h ago",
 	},
 	{
-		id: 3,
-		type: "error",
-		title: "Delivery issue Order #12345",
-		icon: "car-sport-outline",
-		timestamp: "Yesterday",
-	},
-	{
 		id: 2,
 		type: "warning",
 		title: "Low inventory: Quinoa",
 		icon: "cube-outline",
 		timestamp: "1h ago",
+	},
+	{
+		id: 3,
+		type: "error",
+		title: "Delivery issue Order #12345",
+		icon: "car-sport-outline",
+		timestamp: "Yesterday",
 	},
 ];
 const HEADER_HEIGHT = 65;
@@ -204,9 +201,9 @@ const MAX_MEALS_TO_SHOW = 3;
 const PREP_CARD_WIDTH = 180;
 const HomeScreen: React.FC = () => {
 	const theme = useTheme();
-	const isRTL = I18nManager.isRTL;
 	const insets = useSafeAreaInsets();
 	const [refreshing, setRefreshing] = useState(false);
+	const [selectedTab, setSelectedTab] = useState("Today");
 	const scrollY = useSharedValue(0);
 	const isLoaded = useSharedValue(0);
 	const scrollRef = useRef<Animated.ScrollView>(null);
@@ -222,7 +219,6 @@ const HomeScreen: React.FC = () => {
 			const timer = setTimeout(() => {
 				isLoaded.value = withTiming(1, {
 					duration: 400,
-					easing: Easing.out(Easing.quad),
 				});
 			}, 100);
 			return () => clearTimeout(timer);
@@ -276,26 +272,40 @@ const HomeScreen: React.FC = () => {
 	}));
 	const Header = () => (
 		<Animated.View
-			style={[styles.headerBase(insets.top, theme), headerAnimatedStyle]}
+			style={[
+				styles.headerBase,
+				{
+					backgroundColor: theme.colors.card,
+					paddingTop: insets.top,
+					height: HEADER_HEIGHT + insets.top,
+				},
+				headerAnimatedStyle,
+			]}
 		>
-			<View>
-				<Text variant="sm" color="textSecondary">
-					Dashboard
-				</Text>
-				<Text variant="lg" weight="semibold">
-					{getDayString()}
-				</Text>
+			<View style={styles.headerContent}>
+				<View>
+					<Text
+						variant="sm"
+						color="textSecondary"
+						style={{ textTransform: "uppercase" }}
+					>
+						Dashboard
+					</Text>
+					<Text variant="lg" weight="semibold">
+						{getDayString()}
+					</Text>
+				</View>
+				<TouchableOpacity
+					onPress={() => console.log("Settings")}
+					style={styles.iconButton}
+				>
+					<Ionicons
+						name="settings-outline"
+						size={theme.sizes.iconMd}
+						color={theme.colors.textSecondary}
+					/>
+				</TouchableOpacity>
 			</View>
-			<TouchableOpacity
-				onPress={() => console.log("Settings")}
-				style={styles.iconButton(theme)}
-			>
-				<Ionicons
-					name="settings-outline"
-					size={theme.sizes.iconMd}
-					color={theme.colors.textSecondary}
-				/>
-			</TouchableOpacity>
 		</Animated.View>
 	);
 	const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -331,13 +341,93 @@ const HomeScreen: React.FC = () => {
 			</AnimatedPressable>
 		);
 	};
+	const Tabs = () => {
+		const tabs = ["Today", "Week", "Month"];
+		return (
+			<Box
+				style={styles.tabsContainer}
+				bg="backgroundAlt"
+				rounded="xl"
+				padding="xs"
+			>
+				{tabs.map((tab) => (
+					<TouchableOpacity
+						key={tab}
+						style={[
+							styles.tab,
+							tab === selectedTab && [
+								styles.selectedTab,
+								{ backgroundColor: theme.colors.card },
+							],
+						]}
+						onPress={() => setSelectedTab(tab)}
+						activeOpacity={0.7}
+					>
+						<Text
+							variant="sm"
+							weight={tab === selectedTab ? "semibold" : "medium"}
+							color={tab === selectedTab ? "primary" : "textSecondary"}
+						>
+							{tab}
+						</Text>
+					</TouchableOpacity>
+				))}
+			</Box>
+		);
+	};
+	const StatsGrid = () => {
+		const stats = [
+			{
+				title: "Active Subs",
+				value: ACTIVITY_STATS.activeSubscriptions,
+				icon: "people-outline",
+			},
+			{
+				title: "New This Week",
+				value: `+${ACTIVITY_STATS.newThisWeek}`,
+				icon: "add-circle-outline",
+			},
+		];
+		return (
+			<Box row marginHorizontal="md" marginBottom="lg">
+				{stats.map((stat) => (
+					<Box
+						key={stat.title}
+						flex={1}
+						marginRight={stat.title === "Active Subs" ? "sm" : undefined}
+					>
+						<Box bg="card" padding="md" rounded="lg" style={styles.statCard}>
+							<Box row alignCenter marginBottom="sm">
+								<Box style={styles.statIcon} bg="primaryLight" marginRight="sm">
+									<Ionicons
+										name={stat.icon as any}
+										size={theme.sizes.iconSm}
+										color={theme.colors.primary}
+									/>
+								</Box>
+								<Text variant="sm" color="textSecondary">
+									{stat.title}
+								</Text>
+							</Box>
+							<Text variant="xl" weight="bold">
+								{stat.value}
+							</Text>
+						</Box>
+					</Box>
+				))}
+			</Box>
+		);
+	};
 	const TodayPrepCard = ({ summary }: { summary: MealPrepSummary }) => {
 		const periodIcons = {
 			Breakfast: "cafe-outline",
 			Lunch: "restaurant-outline",
 			Dinner: "fast-food-outline",
 		};
-		const periodColors: Record<"Breakfast" | "Lunch" | "Dinner", ColorToken> = {
+		const periodColors: Record<
+			"Breakfast" | "Lunch" | "Dinner",
+			"info" | "primary" | "error"
+		> = {
 			Breakfast: "info",
 			Lunch: "primary",
 			Dinner: "error",
@@ -345,14 +435,9 @@ const HomeScreen: React.FC = () => {
 		return (
 			<ScaleOnPress
 				onPress={() => handleViewSchedule(summary.period)}
-				style={styles.prepCardContainer(theme)}
+				style={styles.prepCardContainer}
 			>
-				<Box
-					style={[
-						styles.prepCard(theme),
-						{ backgroundColor: theme.colors.card },
-					]}
-				>
+				<Box style={[styles.prepCard, { backgroundColor: theme.colors.card }]}>
 					<Box row alignCenter marginBottom="sm">
 						<Ionicons
 							name={periodIcons[summary.period] as any}
@@ -397,7 +482,6 @@ const HomeScreen: React.FC = () => {
 						row
 						justifyContent="space-between"
 						alignItems="flex-end"
-						marginTop="auto"
 						paddingTop="sm"
 					>
 						<Badge
@@ -406,7 +490,7 @@ const HomeScreen: React.FC = () => {
 						/>
 						{summary.mealsToPrep.length > MAX_MEALS_TO_SHOW && (
 							<Text variant="xs" color="textMuted">
-								+ {summary.mealsToPrep.length - MAX_MEALS_TO_SHOW} other
+								+ {summary.mealsToPrep.length - MAX_MEALS_TO_SHOW} more
 							</Text>
 						)}
 					</Box>
@@ -414,38 +498,38 @@ const HomeScreen: React.FC = () => {
 			</ScaleOnPress>
 		);
 	};
+	const AlertRow = ({ alert }: { alert: Alert }) => {
+		const iconColor = theme.colors[alert.type];
+		return (
+			<ScaleOnPress onPress={() => handleViewAlert(alert.id)}>
+				<Box row alignCenter paddingVertical="sm">
+					<Ionicons
+						name={alert.icon as any}
+						size={theme.sizes.iconSm}
+						color={iconColor}
+						style={{ marginRight: theme.spacing.sm }}
+					/>
+					<Box flex={1}>
+						<Text variant="sm" numberOfLines={1}>
+							{alert.title}
+						</Text>
+						{alert.timestamp && (
+							<Text variant="xs" color="textMuted" marginTop={2}>
+								{alert.timestamp}
+							</Text>
+						)}
+					</Box>
+					<Ionicons
+						name="chevron-forward"
+						size={theme.sizes.iconSm}
+						color={theme.colors.textMuted}
+					/>
+				</Box>
+			</ScaleOnPress>
+		);
+	};
 	const ActivityOverviewCard = () => {
 		const hasAlerts = ALERTS.length > 0;
-		const AlertRow = ({ alert }: { alert: Alert }) => {
-			const iconColor = theme.colors[alert.type];
-			return (
-				<ScaleOnPress onPress={() => handleViewAlert(alert.id)}>
-					<Box row alignCenter paddingVertical="sm">
-						<Ionicons
-							name={alert.icon as any}
-							size={theme.sizes.iconSm}
-							color={iconColor}
-							style={{ marginRight: theme.spacing.sm }}
-						/>
-						<Box flex={1}>
-							<Text variant="sm" numberOfLines={1}>
-								{alert.title}
-							</Text>
-							{alert.timestamp && (
-								<Text variant="xs" color="textMuted" marginTop={2}>
-									{alert.timestamp}
-								</Text>
-							)}
-						</Box>
-						<Ionicons
-							name="chevron-forward"
-							size={theme.sizes.iconSm}
-							color={theme.colors.textMuted}
-						/>
-					</Box>
-				</ScaleOnPress>
-			);
-		};
 		return (
 			<Box
 				bg="card"
@@ -453,7 +537,7 @@ const HomeScreen: React.FC = () => {
 				marginHorizontal="md"
 				marginBottom="lg"
 				padding="md"
-				style={theme.shadows.medium}
+				style={styles.cardShadow}
 			>
 				<Text variant="lg" weight="semibold" marginBottom="sm">
 					Activity & Alerts
@@ -481,8 +565,10 @@ const HomeScreen: React.FC = () => {
 						{ALERTS.map((alert, index) => (
 							<Box
 								key={alert.id}
-								borderTopWidth={index > 0 ? StyleSheet.hairlineWidth : 0}
-								borderTopColor={theme.colors.divider}
+								style={{
+									borderTopColor: theme.colors.divider,
+									borderTopWidth: index > 0 ? StyleSheet.hairlineWidth : 0,
+								}}
 							>
 								<AlertRow alert={alert} />
 							</Box>
@@ -509,25 +595,24 @@ const HomeScreen: React.FC = () => {
 		label,
 		icon,
 		action,
-	}: { label: string; icon: string; action: () => void }) => (
-		<ScaleOnPress onPress={action} style={styles.quickActionContainer(theme)}>
-			<Box
-				style={[
-					styles.quickActionButton(theme),
-					{ backgroundColor: theme.colors.card },
-				]}
-			>
+	}: {
+		label: string;
+		icon: string;
+		action: () => void;
+	}) => (
+		<ScaleOnPress onPress={action} style={styles.quickActionContainer}>
+			<Box style={styles.quickActionButton} bg="card">
 				<Ionicons
 					name={`${icon}-outline` as any}
 					size={theme.sizes.iconLg}
 					color={theme.colors.primary}
 				/>
 				<Text
+					center
 					variant="sm"
-					marginTop={theme.spacing.sm}
+					marginTop="sm"
 					color="primary"
 					weight="medium"
-					textAlign="center"
 				>
 					{label}
 				</Text>
@@ -535,7 +620,12 @@ const HomeScreen: React.FC = () => {
 		</ScaleOnPress>
 	);
 	return (
-		<View style={[styles.screenContainer(theme)]}>
+		<View
+			style={[
+				styles.screenContainer,
+				{ backgroundColor: theme.colors.background },
+			]}
+		>
 			<Header />
 			<Animated.ScrollView
 				ref={scrollRef}
@@ -557,154 +647,175 @@ const HomeScreen: React.FC = () => {
 					/>
 				}
 			>
-				<Animated.View
-					style={contentContainerAnimatedStyle}
-					entering={FadeIn.duration(300).delay(50)}
-				>
-					<Text
-						variant="xl"
-						weight="semibold"
-						style={styles.sectionTitle(theme)}
-					>
-						Today's Prep
-					</Text>
-					<ScrollView
-						horizontal
-						showsHorizontalScrollIndicator={false}
-						contentContainerStyle={styles.prepScrollContainer(theme)}
-						snapToInterval={
-							PREP_CARD_WIDTH + styles.prepScrollContainer(theme).gap
-						}
-						decelerationRate="fast"
-					>
-						{TODAY_PREP_SUMMARY.map((summary) => (
-							<TodayPrepCard key={summary.period} summary={summary} />
-						))}
-					</ScrollView>
-					<ActivityOverviewCard />
-					<Text
-						variant="lg"
-						weight="semibold"
-						style={styles.sectionTitle(theme)}
-					>
-						Quick Access
-					</Text>
-					<Box
-						row
-						justifyContent="space-around"
-						marginHorizontal={theme.spacing.sm}
-						marginBottom="xl"
-					>
-						<QuickActionButton
-							label="Full Schedule"
-							icon="calendar"
-							action={() => handleViewSchedule()}
-						/>
-						<QuickActionButton
-							label="Clients"
-							icon="people"
-							action={handleManageClients}
-						/>
-						<QuickActionButton
-							label="Meal Plans"
-							icon="restaurant"
-							action={handleManagePlans}
-						/>
-					</Box>
+				<Animated.View entering={FadeIn.duration(300).delay(50)}>
+					<Animated.View style={contentContainerAnimatedStyle}>
+						<Box marginHorizontal="md" marginBottom="md" marginTop="md">
+							<Tabs />
+						</Box>
+						<StatsGrid />
+						<Text variant="xl" weight="semibold" style={styles.sectionTitle}>
+							Today's Prep
+						</Text>
+						<ScrollView
+							horizontal
+							showsHorizontalScrollIndicator={false}
+							contentContainerStyle={styles.prepScrollContainer}
+							snapToInterval={PREP_CARD_WIDTH + theme.spacing.sm}
+							decelerationRate="fast"
+						>
+							{TODAY_PREP_SUMMARY.map((summary) => (
+								<TodayPrepCard key={summary.period} summary={summary} />
+							))}
+						</ScrollView>
+						<ActivityOverviewCard />
+						<Text variant="lg" weight="semibold" style={styles.sectionTitle}>
+							Quick Access
+						</Text>
+						<Box
+							row
+							justifyContent="space-around"
+							marginHorizontal="sm"
+							marginBottom="xl"
+						>
+							<QuickActionButton
+								label="Full Schedule"
+								icon="calendar"
+								action={() => handleViewSchedule()}
+							/>
+							<QuickActionButton
+								label="Clients"
+								icon="people"
+								action={handleManageClients}
+							/>
+							<QuickActionButton
+								label="Meal Plans"
+								icon="restaurant"
+								action={handleManagePlans}
+							/>
+						</Box>
+					</Animated.View>
 				</Animated.View>
 			</Animated.ScrollView>
 		</View>
 	);
 };
-const styles = {
-	screenContainer: (theme: ReturnType<typeof useTheme>) => ({
+const styles = StyleSheet.create({
+	screenContainer: {
 		flex: 1,
-		backgroundColor: theme.colors.background,
-	}),
-	headerBase: (topInset: number, theme: ReturnType<typeof useTheme>) => ({
+	},
+	headerBase: {
 		position: "absolute",
 		top: 0,
 		left: 0,
 		right: 0,
 		zIndex: 100,
+		paddingHorizontal: 16,
+		paddingBottom: 8,
+	},
+	headerContent: {
 		flexDirection: "row",
 		alignItems: "center",
 		justifyContent: "space-between",
-		paddingHorizontal: theme.spacing.md,
-		paddingBottom: theme.spacing.sm,
-		paddingTop: topInset,
-		height: HEADER_HEIGHT + topInset,
-		backgroundColor: theme.colors.card,
-	}),
-	headerActions: (theme: ReturnType<typeof useTheme>) => ({
+	},
+	iconButton: {
+		padding: 8,
+	},
+	sectionTitle: {
+		marginHorizontal: 16,
+		marginTop: 16,
+		marginBottom: 8,
+	},
+	tabsContainer: {
 		flexDirection: "row",
+	},
+	tab: {
+		flex: 1,
+		paddingVertical: 8,
+		paddingHorizontal: 12,
 		alignItems: "center",
-	}),
-	iconButton: (theme: ReturnType<typeof useTheme>) => ({
-		padding: theme.spacing.sm,
-		marginLeft: theme.spacing.xs,
-	}),
-	sectionTitle: (theme: ReturnType<typeof useTheme>) => ({
-		marginHorizontal: theme.spacing.md,
-		marginTop: theme.spacing.md,
-		marginBottom: theme.spacing.sm,
-	}),
-	prepScrollContainer: (theme: ReturnType<typeof useTheme>) => ({
-		paddingHorizontal: theme.spacing.md,
-		paddingVertical: theme.spacing.sm,
-		gap: theme.spacing.sm,
-	}),
-	prepCardContainer: (theme: ReturnType<typeof useTheme>) => ({
+		borderRadius: 16,
+	},
+	selectedTab: {
+		shadowOffset: { width: 0, height: 1 },
+		shadowOpacity: 0.05,
+		shadowRadius: 2,
+		elevation: 1,
+	},
+	statCard: {
+		shadowOffset: { width: 0, height: 1 },
+		shadowOpacity: 0.1,
+		shadowRadius: 2,
+		elevation: 1,
+	},
+	statIcon: {
+		width: 32,
+		height: 32,
+		borderRadius: 8,
+		alignItems: "center",
+		justifyContent: "center",
+	},
+	prepScrollContainer: {
+		paddingHorizontal: 16,
+		paddingVertical: 8,
+		gap: 8,
+	},
+	prepCardContainer: {
 		width: PREP_CARD_WIDTH,
-		borderRadius: theme.radius.lg,
-	}),
-	prepCard: (theme: ReturnType<typeof useTheme>) => ({
-		padding: theme.spacing.md,
-		borderRadius: theme.radius.lg,
+		borderRadius: 16,
+	},
+	prepCard: {
+		padding: 16,
+		borderRadius: 16,
 		minHeight: 180,
 		justifyContent: "space-between",
-		...theme.shadows.medium,
-	}),
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 1 },
+		shadowOpacity: 0.1,
+		shadowRadius: 2,
+		elevation: 1,
+	},
 	prepListContainer: {
 		marginTop: 4,
 		flexGrow: 1,
 	},
-	quickActionContainer: (theme: ReturnType<typeof useTheme>) => ({
+	cardShadow: {
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.1,
+		shadowRadius: 4,
+		elevation: 2,
+	},
+	quickActionContainer: {
 		flex: 1,
-		marginHorizontal: theme.spacing.xs,
-	}),
-	quickActionButton: (theme: ReturnType<typeof useTheme>) => ({
-		paddingVertical: theme.spacing.md,
-		paddingHorizontal: theme.spacing.xs,
-		borderRadius: theme.radius.lg,
+		marginHorizontal: 4,
+	},
+	quickActionButton: {
+		paddingVertical: 16,
+		paddingHorizontal: 4,
+		borderRadius: 16,
 		alignItems: "center",
 		justifyContent: "center",
 		minHeight: 110,
-		...theme.shadows.small,
-	}),
-};
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 1 },
+		shadowOpacity: 0.1,
+		shadowRadius: 2,
+		elevation: 1,
+	},
+});
 export default HomeScreen;
-</file>
+```
 
-<file path="apps/merchant-app/app/+not-found.tsx">
-import { Stack } from "expo-router";
-export default function NotFoundScreen() {
-	return (
-		<>
-			<Stack.Screen options={{ title: "Oops!" }} />
-		</>
-	);
-}
-</file>
-
-<file path="apps/merchant-app/components/layout/index.ts">
+## File: apps/merchant-app/components/layout/index.ts
+```typescript
 export * from "./ScreenContainer";
 export * from "./SectionHeader";
 export * from "./PageHeader";
 export * from "./SearchOverlay";
-</file>
+```
 
-<file path="apps/merchant-app/components/layout/PageHeader.tsx">
+## File: apps/merchant-app/components/layout/PageHeader.tsx
+```typescript
 import React from "react";
 import { View, StyleSheet, TextInput, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -820,9 +931,10 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
 		</View>
 	);
 };
-</file>
+```
 
-<file path="apps/merchant-app/components/layout/ScreenContainer.tsx">
+## File: apps/merchant-app/components/layout/ScreenContainer.tsx
+```typescript
 import { useTheme } from "@/hooks/useTheme";
 import { Screen } from "expo-router/build/views/Screen";
 import React from "react";
@@ -904,9 +1016,10 @@ export const ScreenContainer: React.FC<ScreenContainerProps> = ({
 		</>
 	);
 };
-</file>
+```
 
-<file path="apps/merchant-app/components/layout/SectionHeader.tsx">
+## File: apps/merchant-app/components/layout/SectionHeader.tsx
+```typescript
 import React from "react";
 import { View, StyleSheet, TouchableOpacity } from "react-native";
 import { SpacingToken, useTheme } from "@/hooks/useTheme";
@@ -954,9 +1067,10 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
 		</View>
 	);
 };
-</file>
+```
 
-<file path="apps/merchant-app/components/ui/Avatar.tsx">
+## File: apps/merchant-app/components/ui/Avatar.tsx
+```typescript
 import { ThemeTokens, useTheme } from "@/hooks/useTheme";
 import React from "react";
 import {
@@ -1043,58 +1157,10 @@ export const Avatar: React.FC<AvatarProps> = ({
 		</View>
 	);
 };
-</file>
+```
 
-<file path="apps/merchant-app/components/ui/Badge.tsx">
-import React from "react";
-import { View, StyleSheet, ViewProps } from "react-native";
-import { useTheme } from "@/hooks/useTheme";
-import { Text } from "./Text";
-interface BadgeProps extends ViewProps {
-	text: string;
-	variant?: "primary" | "success" | "warning" | "info" | "error";
-}
-export const Badge: React.FC<BadgeProps> = ({
-	text,
-	variant = "primary",
-	...props
-}) => {
-	const theme = useTheme();
-	const getBadgeColor = () => {
-		switch (variant) {
-			case "primary":
-				return theme.colors.primary;
-			case "success":
-				return theme.colors.success;
-			case "warning":
-				return theme.colors.warning;
-			case "info":
-				return theme.colors.info;
-			case "error":
-				return theme.colors.error;
-		}
-	};
-	const styles = StyleSheet.create({
-		badge: {
-			backgroundColor: getBadgeColor(),
-			paddingHorizontal: theme.spacing.sm,
-			paddingVertical: theme.spacing.xs / 2,
-			borderRadius: theme.radius.badge,
-			minWidth: 24,
-			alignItems: "center",
-		},
-	});
-	return (
-		<View style={[styles.badge, props.style]} {...props}>
-			<Text variant="xs" weight="medium" color="white">
-				{text}
-			</Text>
-		</View>
-	);
-};
-</file>
-
-<file path="apps/merchant-app/components/ui/Box.tsx">
+## File: apps/merchant-app/components/ui/Box.tsx
+```typescript
 import React from "react";
 import {
 	View,
@@ -1334,9 +1400,10 @@ export const Box: React.FC<BoxProps> = ({
 	);
 };
 export default Box;
-</file>
+```
 
-<file path="apps/merchant-app/components/ui/Button.tsx">
+## File: apps/merchant-app/components/ui/Button.tsx
+```typescript
 import React from "react";
 import {
 	TouchableOpacity,
@@ -1480,9 +1547,10 @@ export const Button: React.FC<ButtonProps> = ({
 		</TouchableOpacity>
 	);
 };
-</file>
+```
 
-<file path="apps/merchant-app/components/ui/Card.tsx">
+## File: apps/merchant-app/components/ui/Card.tsx
+```typescript
 import React from "react";
 import {
 	TouchableOpacity,
@@ -1532,18 +1600,20 @@ export const Card: React.FC<CardProps> = ({
 		</TouchableOpacity>
 	);
 };
-</file>
+```
 
-<file path="apps/merchant-app/components/ui/index.ts">
+## File: apps/merchant-app/components/ui/index.ts
+```typescript
 export * from "./Box";
 export * from "./Text";
 export * from "./Button";
 export * from "./Avatar";
 export * from "./Card";
 export * from "./Badge";
-</file>
+```
 
-<file path="apps/merchant-app/components/ui/Text.tsx">
+## File: apps/merchant-app/components/ui/Text.tsx
+```typescript
 import React from "react";
 import {
 	Text as RNText,
@@ -1660,9 +1730,10 @@ export const Text: React.FC<TextProps> = ({
 	);
 };
 export default Text;
-</file>
+```
 
-<file path="apps/merchant-app/components/category-filters.tsx">
+## File: apps/merchant-app/components/category-filters.tsx
+```typescript
 import React from "react";
 import { ScrollView, TouchableOpacity, Text } from "react-native";
 import { useColorScheme } from "@/hooks/useColorScheme";
@@ -1731,9 +1802,10 @@ const CategoryFilters = ({
 	);
 };
 export default CategoryFilters;
-</file>
+```
 
-<file path="apps/merchant-app/components/progress-status-card.tsx">
+## File: apps/merchant-app/components/progress-status-card.tsx
+```typescript
 import React from "react";
 import { View, Text, TouchableOpacity, Animated } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -1912,9 +1984,10 @@ const ProgressStatusCard = ({
 	);
 };
 export default ProgressStatusCard;
-</file>
+```
 
-<file path="apps/merchant-app/components/restaurant-card.tsx">
+## File: apps/merchant-app/components/restaurant-card.tsx
+```typescript
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -2017,9 +2090,10 @@ const RestaurantCard = ({ name, items, onPress }: RestaurantCardProps) => {
 	);
 };
 export default RestaurantCard;
-</file>
+```
 
-<file path="apps/merchant-app/components/task-card.tsx">
+## File: apps/merchant-app/components/task-card.tsx
+```typescript
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -2143,9 +2217,10 @@ const TaskCard = ({
 	);
 };
 export default TaskCard;
-</file>
+```
 
-<file path="apps/merchant-app/constants/Colors.ts">
+## File: apps/merchant-app/constants/Colors.ts
+```typescript
 export const QarnColors = {
 	light: {
 		primary: "#22C55E",
@@ -2190,9 +2265,10 @@ export const QarnColors = {
 		tabIconSelected: "#22C55E",
 	},
 };
-</file>
+```
 
-<file path="apps/merchant-app/constants/Spacing.ts">
+## File: apps/merchant-app/constants/Spacing.ts
+```typescript
 export const QarnSpacing = {
 	xs: 4,
 	sm: 8,
@@ -2234,213 +2310,10 @@ export const QarnSizes = {
 	avatarMd: 44,
 	avatarLg: 64,
 };
-</file>
+```
 
-<file path="apps/merchant-app/constants/theme.ts">
-import { Platform } from "react-native";
-const colorPalette = {
-	primary: {
-		50: "#F0FDFA",
-		100: "#CCFBF1",
-		200: "#99F6E4",
-		300: "#5EEAD4",
-		400: "#2DD4BF",
-		500: "#14B8A6",
-		600: "#0D9488",
-		700: "#0F766E",
-		800: "#115E59",
-		900: "#134E4A",
-	},
-	neutral: {
-		0: "#FFFFFF",
-		50: "#F8FAFC",
-		100: "#F1F5F9",
-		200: "#E2E8F0",
-		300: "#CBD5E1",
-		400: "#94A3B8",
-		500: "#64748B",
-		600: "#475569",
-		700: "#334155",
-		800: "#1E293B",
-		900: "#0F172A",
-		950: "#0B111E",
-		1000: "#000000",
-	},
-	status: {
-		success: "#22C55E",
-		warning: "#F59E0B",
-		info: "#3B82F6",
-		error: "#EF4444",
-	},
-};
-const getPrimaryLightRgba = (hex: string, alpha: number): string => {
-	const r = parseInt(hex.slice(1, 3), 16);
-	const g = parseInt(hex.slice(3, 5), 16);
-	const b = parseInt(hex.slice(5, 7), 16);
-	return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-};
-export const theme = {
-	colors: {
-		light: {
-			primary: colorPalette.primary[600],
-			primaryDark: colorPalette.primary[700],
-			primaryLight: colorPalette.primary[50],
-			background: colorPalette.neutral[50],
-			card: colorPalette.neutral[0],
-			cardAlt: colorPalette.neutral[100],
-			text: colorPalette.neutral[900],
-			textSecondary: colorPalette.neutral[500],
-			textMuted: colorPalette.neutral[400],
-			success: colorPalette.status.success,
-			warning: colorPalette.status.warning,
-			info: colorPalette.status.info,
-			error: colorPalette.status.error,
-			divider: colorPalette.neutral[200],
-			overlay: "rgba(0,0,0,0.4)",
-			shadow: "rgba(0,0,0,0.1)",
-			tabBar: colorPalette.neutral[0],
-			tabIconDefault: colorPalette.neutral[400],
-			tabIconSelected: colorPalette.primary[600],
-		},
-		dark: {
-			primary: colorPalette.primary[500],
-			primaryDark: colorPalette.primary[600],
-			primaryLight: getPrimaryLightRgba(colorPalette.primary[500], 0.1),
-			background: colorPalette.neutral[900],
-			card: colorPalette.neutral[800],
-			cardAlt: colorPalette.neutral[700],
-			text: colorPalette.neutral[100],
-			textSecondary: colorPalette.neutral[400],
-			textMuted: colorPalette.neutral[500],
-			success: colorPalette.status.success,
-			warning: colorPalette.status.warning,
-			info: colorPalette.status.info,
-			error: colorPalette.status.error,
-			divider: colorPalette.neutral[600],
-			overlay: "rgba(0,0,0,0.7)",
-			shadow: "rgba(0,0,0,0.5)",
-			tabBar: colorPalette.neutral[800],
-			tabIconDefault: colorPalette.neutral[500],
-			tabIconSelected: colorPalette.primary[500],
-		},
-	},
-	spacing: {
-		xs: 4,
-		sm: 8,
-		md: 16,
-		lg: 24,
-		xl: 32,
-		xxl: 48,
-		screenPadding: 16,
-		cardPadding: 16,
-		itemSpacing: 12,
-		sectionSpacing: 24,
-	},
-	radius: {
-		xs: 4,
-		sm: 8,
-		md: 12,
-		lg: 16,
-		xl: 24,
-		round: 999,
-		button: 12,
-		card: 16,
-		input: 12,
-		badge: 12,
-	},
-	sizes: {
-		touchTarget: 44,
-		smallTouchTarget: 36,
-		iconXs: 16,
-		iconSm: 20,
-		iconMd: 24,
-		iconLg: 32,
-		buttonSm: 36,
-		buttonMd: 44,
-		buttonLg: 52,
-		inputHeight: 48,
-		headerHeight: 56,
-		tabBarHeight: 49,
-		avatarSm: 32,
-		avatarMd: 44,
-		avatarLg: 64,
-	},
-	typography: {
-		sizes: { xs: 12, sm: 14, md: 16, lg: 18, xl: 20, xxl: 24, xxxl: 30 },
-		weights: {
-			regular: "400",
-			medium: "500",
-			semibold: "600",
-			bold: "700",
-			extrabold: "800",
-		} as const,
-		lineHeights: { tight: 1.2, normal: 1.5, loose: 1.8 },
-	},
-	shadows: {
-		light: {
-			small: {
-				shadowColor: "#000",
-				shadowOffset: { width: 0, height: 1 },
-				shadowOpacity: 0.05,
-				shadowRadius: 2,
-				elevation: 1,
-			},
-			medium: {
-				shadowColor: "#000",
-				shadowOffset: { width: 0, height: 2 },
-				shadowOpacity: 0.07,
-				shadowRadius: 4,
-				elevation: 2,
-			},
-			large: {
-				shadowColor: "#000",
-				shadowOffset: { width: 0, height: 4 },
-				shadowOpacity: 0.1,
-				shadowRadius: 8,
-				elevation: 4,
-			},
-		},
-		dark: {
-			small: {
-				shadowColor: "#000",
-				shadowOffset: { width: 0, height: 1 },
-				shadowOpacity: 0.2,
-				shadowRadius: 2,
-				elevation: 1,
-			},
-			medium: {
-				shadowColor: "#000",
-				shadowOffset: { width: 0, height: 2 },
-				shadowOpacity: 0.3,
-				shadowRadius: 4,
-				elevation: 2,
-			},
-			large: {
-				shadowColor: "#000",
-				shadowOffset: { width: 0, height: 4 },
-				shadowOpacity: 0.4,
-				shadowRadius: 8,
-				elevation: 4,
-			},
-		},
-	},
-	platform: {
-		topInset: Platform.OS === "ios" ? 44 : 16,
-		bottomInset: Platform.OS === "ios" ? 34 : 16,
-		isIOS: Platform.OS === "ios",
-	},
-};
-export type ThemeColors = typeof theme.colors.light;
-export type ThemeMode = "light" | "dark";
-export const getThemedValue = (mode: ThemeMode) => theme.colors[mode];
-export const spacing = theme.spacing;
-export const radius = theme.radius;
-export const sizes = theme.sizes;
-export const typography = theme.typography;
-export const shadows = theme.shadows;
-</file>
-
-<file path="apps/merchant-app/constants/Typography.ts">
+## File: apps/merchant-app/constants/Typography.ts
+```typescript
 export const QarnTypography = {
 	sizes: {
 		xs: 12,
@@ -2512,13 +2385,15 @@ export const QarnShadows = {
 		},
 	},
 };
-</file>
+```
 
-<file path="apps/merchant-app/hooks/useColorScheme.ts">
+## File: apps/merchant-app/hooks/useColorScheme.ts
+```typescript
 export { useColorScheme } from 'react-native';
-</file>
+```
 
-<file path="apps/merchant-app/hooks/useColorScheme.web.ts">
+## File: apps/merchant-app/hooks/useColorScheme.web.ts
+```typescript
 import { useEffect, useState } from 'react';
 import { useColorScheme as useRNColorScheme } from 'react-native';
 export function useColorScheme() {
@@ -2532,9 +2407,10 @@ export function useColorScheme() {
   }
   return 'light';
 }
-</file>
+```
 
-<file path="apps/merchant-app/hooks/useTheme.ts">
+## File: apps/merchant-app/hooks/useTheme.ts
+```typescript
 import { useColorScheme } from "react-native";
 import { theme, ThemeMode } from "@/constants/theme";
 export const useTheme = () => {
@@ -2569,9 +2445,10 @@ export type FontWeightVariant =
 	| "semibold"
 	| "bold"
 	| "extrabold";
-</file>
+```
 
-<file path="apps/merchant-app/hooks/useThemeColor.ts">
+## File: apps/merchant-app/hooks/useThemeColor.ts
+```typescript
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 export function useThemeColor(
@@ -2586,22 +2463,25 @@ export function useThemeColor(
     return Colors[theme][colorName];
   }
 }
-</file>
+```
 
-<file path="apps/merchant-app/.gitignore">
+## File: apps/merchant-app/.gitignore
+```
 # @generated expo-cli sync-2b81b286409207a5da26e14c78851eb30d8ccbdb
 # The following patterns were generated by expo-cli
 
 expo-env.d.ts
 # @end expo-cli
-</file>
+```
 
-<file path=".npmrc">
+## File: .npmrc
+```
 node-linker=hoisted
 engine-strict=true
-</file>
+```
 
-<file path="apps/merchant-app/components/layout/SearchOverlay.tsx">
+## File: apps/merchant-app/components/layout/SearchOverlay.tsx
+```typescript
 import React, { useRef, useEffect, useState } from "react";
 import {
 	View,
@@ -2963,9 +2843,60 @@ const styles = StyleSheet.create({
 	},
 });
 export default SearchOverlay;
-</file>
+```
 
-<file path="apps/merchant-app/components/meal-plan-card.tsx">
+## File: apps/merchant-app/components/ui/Badge.tsx
+```typescript
+import React from "react";
+import { View, StyleSheet, ViewProps } from "react-native";
+import { useTheme } from "@/hooks/useTheme";
+import { Text } from "./Text";
+export interface BadgeProps extends ViewProps {
+	text: string;
+	variant?: "primary" | "success" | "warning" | "info" | "error";
+}
+export const Badge: React.FC<BadgeProps> = ({
+	text,
+	variant = "primary",
+	...props
+}) => {
+	const theme = useTheme();
+	const getBadgeColor = () => {
+		switch (variant) {
+			case "primary":
+				return theme.colors.primary;
+			case "success":
+				return theme.colors.success;
+			case "warning":
+				return theme.colors.warning;
+			case "info":
+				return theme.colors.info;
+			case "error":
+				return theme.colors.error;
+		}
+	};
+	const styles = StyleSheet.create({
+		badge: {
+			backgroundColor: getBadgeColor(),
+			paddingHorizontal: theme.spacing.sm,
+			paddingVertical: theme.spacing.xs / 2,
+			borderRadius: theme.radius.badge,
+			minWidth: 24,
+			alignItems: "center",
+		},
+	});
+	return (
+		<View style={[styles.badge, props.style]} {...props}>
+			<Text variant="xs" weight="medium" color="white">
+				{text}
+			</Text>
+		</View>
+	);
+};
+```
+
+## File: apps/merchant-app/components/meal-plan-card.tsx
+```typescript
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -3132,9 +3063,219 @@ const MealPlanCard = ({
 	);
 };
 export default MealPlanCard;
-</file>
+```
 
-<file path="apps/merchant-app/app/_layout.tsx">
+## File: apps/merchant-app/constants/theme.ts
+```typescript
+import { Platform } from "react-native";
+const colorPalette = {
+	primary: {
+		50: "#EBFFF9",
+		100: "#C3FFF0",
+		200: "#9BFFE6",
+		300: "#5FF6D8",
+		400: "#22E5C8",
+		500: "#0AC5AB",
+		600: "#09A98F",
+		700: "#07866F",
+		800: "#056952",
+		900: "#034C3A",
+	},
+	secondary: {
+		50: "#F2EFFF",
+		100: "#E4DFFF",
+		200: "#CABFFF",
+		300: "#A799FF",
+		400: "#8E7AFF",
+		500: "#7559FF",
+		600: "#6038FF",
+		700: "#4E1AFF",
+		800: "#3C00FB",
+		900: "#2F00C2",
+	},
+	neutral: {
+		0: "#FFFFFF",
+		50: "#F9FAFB",
+		100: "#F1F5F9",
+		200: "#E2E8F0",
+		300: "#CBD5E1",
+		400: "#94A3B8",
+		500: "#64748B",
+		600: "#475569",
+		700: "#334155",
+		800: "#1E293B",
+		900: "#0F172A",
+		950: "#020617",
+		1000: "#000000",
+	},
+};
+const getPrimaryLightRgba = (hex: string, alpha: number) => {
+	const r = Number.parseInt(hex.slice(1, 3), 16);
+	const g = Number.parseInt(hex.slice(3, 5), 16);
+	const b = Number.parseInt(hex.slice(5, 7), 16);
+	return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+export const theme = {
+	colors: {
+		light: {
+			primary: colorPalette.primary[500],
+			primaryDark: colorPalette.primary[600],
+			primaryLight: colorPalette.primary[50],
+			secondary: colorPalette.secondary[500],
+			secondaryLight: colorPalette.secondary[50],
+			background: colorPalette.neutral[50],
+			backgroundAlt: colorPalette.neutral[100],
+			card: colorPalette.neutral[0],
+			cardAlt: colorPalette.neutral[100],
+			text: colorPalette.neutral[900],
+			textSecondary: colorPalette.neutral[600],
+			textMuted: colorPalette.neutral[400],
+			success: colorPalette.primary[500],
+			warning: "#FFBE0B",
+			info: colorPalette.secondary[500],
+			error: "#FF5E5B",
+			divider: colorPalette.neutral[200],
+			overlay: "rgba(0,0,0,0.3)",
+			shadow: "rgba(15,23,42,0.08)",
+			tabBar: colorPalette.neutral[0],
+			tabIconDefault: colorPalette.neutral[400],
+			tabIconSelected: colorPalette.primary[500],
+		},
+		dark: {
+			primary: colorPalette.primary[400],
+			primaryDark: colorPalette.primary[500],
+			primaryLight: getPrimaryLightRgba(colorPalette.primary[400], 0.15),
+			secondary: colorPalette.secondary[400],
+			secondaryLight: getPrimaryLightRgba(colorPalette.secondary[400], 0.15),
+			background: "#0A0D14",
+			backgroundAlt: "#121827",
+			card: "#1A2236",
+			cardAlt: "#263147",
+			text: colorPalette.neutral[50],
+			textSecondary: colorPalette.neutral[300],
+			textMuted: colorPalette.neutral[500],
+			success: colorPalette.primary[400],
+			warning: "#FFBE0B",
+			info: colorPalette.secondary[400],
+			error: "#FF5E5B",
+			divider: "rgba(255, 255, 255, 0.1)",
+			overlay: "rgba(0,0,0,0.6)",
+			shadow: "rgba(0,0,0,0.5)",
+			tabBar: "#1A2236",
+			tabIconDefault: colorPalette.neutral[500],
+			tabIconSelected: colorPalette.primary[400],
+		},
+	},
+	spacing: {
+		xs: 4,
+		sm: 8,
+		md: 16,
+		lg: 24,
+		xl: 32,
+		xxl: 48,
+		screenPadding: 16,
+		cardPadding: 16,
+		itemSpacing: 12,
+		sectionSpacing: 24,
+	},
+	radius: {
+		xs: 4,
+		sm: 8,
+		md: 12,
+		lg: 16,
+		xl: 24,
+		round: 999,
+		button: 12,
+		card: 16,
+		input: 12,
+		badge: 12,
+	},
+	sizes: {
+		touchTarget: 44,
+		smallTouchTarget: 36,
+		iconXs: 16,
+		iconSm: 20,
+		iconMd: 24,
+		iconLg: 32,
+		buttonSm: 36,
+		buttonMd: 44,
+		buttonLg: 52,
+		inputHeight: 48,
+		headerHeight: 56,
+		tabBarHeight: 49,
+		avatarSm: 32,
+		avatarMd: 44,
+		avatarLg: 64,
+	},
+	typography: {
+		sizes: {
+			xs: 12,
+			sm: 14,
+			md: 16,
+			lg: 18,
+			xl: 20,
+			xxl: 24,
+			xxxl: 30,
+		},
+		weights: {
+			regular: "400",
+			medium: "500",
+			semibold: "600",
+			bold: "700",
+			extrabold: "800",
+		} as const,
+		lineHeights: {
+			tight: 1.2,
+			normal: 1.5,
+			loose: 1.8,
+		},
+	},
+	shadows: {
+		small: {
+			shadowColor: "#000",
+			shadowOffset: { width: 0, height: 1 },
+			shadowOpacity: 0.1,
+			shadowRadius: 2,
+			elevation: 1,
+		},
+		medium: {
+			shadowColor: "#000",
+			shadowOffset: { width: 0, height: 2 },
+			shadowOpacity: 0.1,
+			shadowRadius: 4,
+			elevation: 2,
+		},
+		large: {
+			shadowColor: "#000",
+			shadowOffset: { width: 0, height: 4 },
+			shadowOpacity: 0.1,
+			shadowRadius: 8,
+			elevation: 4,
+		},
+	},
+	platform: {
+		topInset: Platform.OS === "ios" ? 44 : 16,
+		bottomInset: Platform.OS === "ios" ? 34 : 16,
+		isIOS: Platform.OS === "ios",
+	},
+};
+export type ThemeColors = typeof theme.colors.light;
+export type ThemeMode = "light" | "dark";
+export const getThemedValue = (mode: ThemeMode) => theme.colors[mode];
+export const spacing = theme.spacing;
+export const radius = theme.radius;
+export const sizes = theme.sizes;
+export const typography = theme.typography;
+export const shadows = theme.shadows;
+```
+
+## File: .nvimrc
+```
+23.11.0
+```
+
+## File: apps/merchant-app/app/_layout.tsx
+```typescript
 import {
 	DarkTheme,
 	DefaultTheme,
@@ -3174,13 +3315,10 @@ export default function RootLayout() {
 		</SafeAreaProvider>
 	);
 }
-</file>
+```
 
-<file path=".nvimrc">
-23.11.0
-</file>
-
-<file path="pnpm-workspace.yaml">
+## File: pnpm-workspace.yaml
+```yaml
 packages:
   - apps/*
 catalog:
@@ -3200,9 +3338,10 @@ catalogs:
 nodeLinker: hoisted
 onlyBuiltDependencies:
   - '@biomejs/biome'
-</file>
+```
 
-<file path=".gitignore">
+## File: .gitignore
+```
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
@@ -3279,6 +3418,4 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .maestro/tests/
 messages.js
-</file>
-
-</files>
+```

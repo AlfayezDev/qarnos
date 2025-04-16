@@ -10,7 +10,6 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/hooks/useTheme";
 import { Text } from "./Text";
-
 interface ButtonProps extends TouchableOpacityProps {
 	title: string;
 	variant?: "primary" | "secondary" | "outline" | "ghost";
@@ -21,8 +20,8 @@ interface ButtonProps extends TouchableOpacityProps {
 	rounded?: boolean;
 	fullWidth?: boolean;
 	style?: StyleProp<ViewStyle>;
+	textColor?: string; // Allow overriding text color
 }
-
 export const Button: React.FC<ButtonProps> = ({
 	title,
 	variant = "primary",
@@ -33,37 +32,41 @@ export const Button: React.FC<ButtonProps> = ({
 	rounded = false,
 	fullWidth = false,
 	style,
+	textColor: textColorOverride,
 	...props
 }) => {
 	const theme = useTheme();
-
 	const getVariantStyles = () => {
 		switch (variant) {
 			case "primary":
 				return {
 					backgroundColor: theme.colors.primary,
-					textColor: "white",
+					textColorToken: theme.colors.background, // Assuming white/light bg for primary btn
 				};
 			case "secondary":
 				return {
 					backgroundColor: theme.colors.cardAlt,
-					textColor: theme.colors.text,
+					textColorToken: theme.colors.text,
 				};
 			case "outline":
 				return {
 					backgroundColor: "transparent",
 					borderWidth: 1,
 					borderColor: theme.colors.primary,
-					textColor: theme.colors.primary,
+					textColorToken: theme.colors.primary,
 				};
 			case "ghost":
 				return {
 					backgroundColor: "transparent",
-					textColor: theme.colors.primary,
+					textColorToken: theme.colors.primary,
+				};
+			default:
+				return {
+					backgroundColor: theme.colors.primary,
+					textColorToken: theme.colors.background,
 				};
 		}
 	};
-
 	const getSizeStyles = () => {
 		switch (size) {
 			case "sm":
@@ -71,25 +74,34 @@ export const Button: React.FC<ButtonProps> = ({
 					height: theme.sizes.buttonSm,
 					paddingHorizontal: theme.spacing.md,
 					fontSize: "sm" as const,
+					iconSize: theme.sizes.iconXs,
 				};
 			case "md":
 				return {
 					height: theme.sizes.buttonMd,
 					paddingHorizontal: theme.spacing.md,
 					fontSize: "md" as const,
+					iconSize: theme.sizes.iconSm,
 				};
 			case "lg":
 				return {
 					height: theme.sizes.buttonLg,
 					paddingHorizontal: theme.spacing.lg,
 					fontSize: "md" as const,
+					iconSize: theme.sizes.iconMd,
+				};
+			default:
+				return {
+					height: theme.sizes.buttonMd,
+					paddingHorizontal: theme.spacing.md,
+					fontSize: "md" as const,
+					iconSize: theme.sizes.iconSm,
 				};
 		}
 	};
-
 	const variantStyle = getVariantStyles();
 	const sizeStyle = getSizeStyles();
-
+	const finalTextColor = textColorOverride || variantStyle.textColorToken;
 	const styles = StyleSheet.create({
 		button: {
 			height: sizeStyle.height,
@@ -108,7 +120,6 @@ export const Button: React.FC<ButtonProps> = ({
 			marginLeft: rightIcon && title ? theme.spacing.xs : 0,
 		},
 	});
-
 	return (
 		<TouchableOpacity
 			style={[styles.button, style]}
@@ -117,29 +128,29 @@ export const Button: React.FC<ButtonProps> = ({
 			{...props}
 		>
 			{loading ? (
-				<ActivityIndicator color={variantStyle.textColor} size="small" />
+				<ActivityIndicator color={finalTextColor} size="small" />
 			) : (
 				<>
 					{leftIcon && (
 						<Ionicons
 							name={leftIcon as any}
-							size={theme.sizes.iconSm}
-							color={variantStyle.textColor}
+							size={sizeStyle.iconSize}
+							color={finalTextColor}
 							style={styles.icon}
 						/>
 					)}
 					<Text
 						variant={sizeStyle.fontSize}
 						weight="semibold"
-						color={variantStyle.textColor}
+						color={finalTextColor}
 					>
 						{title}
 					</Text>
 					{rightIcon && (
 						<Ionicons
 							name={rightIcon as any}
-							size={theme.sizes.iconSm}
-							color={variantStyle.textColor}
+							size={sizeStyle.iconSize}
+							color={finalTextColor}
 							style={styles.icon}
 						/>
 					)}

@@ -12,7 +12,6 @@ import {
 	SafeAreaView,
 	useSafeAreaInsets,
 } from "react-native-safe-area-context";
-
 interface ScreenContainerProps {
 	children: React.ReactNode;
 	scrollable?: boolean;
@@ -23,7 +22,6 @@ interface ScreenContainerProps {
 	contentContainerStyle?: any;
 	bottomInset?: boolean;
 }
-
 export const ScreenContainer: React.FC<ScreenContainerProps> = ({
 	children,
 	scrollable = true,
@@ -36,7 +34,6 @@ export const ScreenContainer: React.FC<ScreenContainerProps> = ({
 }) => {
 	const theme = useTheme();
 	const insets = useSafeAreaInsets();
-
 	const styles = StyleSheet.create({
 		container: {
 			flex: 1,
@@ -53,11 +50,7 @@ export const ScreenContainer: React.FC<ScreenContainerProps> = ({
 				: theme.spacing.xl,
 		},
 	});
-
-	// We don't want to add SafeAreaView to the container when we have a custom header
-	// The header should handle its own safe area insets
 	const Container = header ? View : SafeAreaView;
-
 	return (
 		<>
 			<Screen options={screenOptions} />
@@ -67,7 +60,6 @@ export const ScreenContainer: React.FC<ScreenContainerProps> = ({
 			/>
 			<Container style={styles.container}>
 				{header}
-
 				{scrollable ? (
 					<ScrollView
 						style={styles.content}
@@ -77,6 +69,7 @@ export const ScreenContainer: React.FC<ScreenContainerProps> = ({
 						]}
 						showsVerticalScrollIndicator={false}
 						refreshControl={refreshControl}
+						keyboardShouldPersistTaps="handled"
 					>
 						{children}
 					</ScrollView>

@@ -19,34 +19,14 @@ import Animated, {
 	withTiming,
 	withSpring,
 	Easing,
+	interpolate,
 } from "react-native-reanimated";
-
-function interpolate(
-	value: number,
-	inputRange: number[],
-	outputRange: number[],
-) {
-	"worklet";
-
-	if (value <= inputRange[0]) {
-		return outputRange[0];
-	}
-	if (value >= inputRange[1]) {
-		return outputRange[1];
-	}
-	return (
-		outputRange[0] +
-		((value - inputRange[0]) * (outputRange[1] - outputRange[0])) /
-			(inputRange[1] - inputRange[0])
-	);
-}
 interface SearchResult {
 	id: string | number;
 	title: string;
 	subtitle?: string;
 	icon?: string;
 }
-
 interface SearchOverlayProps {
 	isVisible: boolean;
 	onClose: () => void;
@@ -57,7 +37,6 @@ interface SearchOverlayProps {
 	recentSearches?: string[];
 	onClearRecents?: () => void;
 }
-
 export const SearchOverlay: React.FC<SearchOverlayProps> = ({
 	isVisible,
 	onClose,
@@ -71,164 +50,233 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({
 	const theme = useTheme();
 	const [searchValue, setSearchValue] = useState("");
 	const searchInputRef = useRef<TextInput>(null);
-
-	// Animation values
 	const translateY = useSharedValue(0);
 	const opacity = useSharedValue(0);
-
-	// Show/hide the overlay
 	useEffect(() => {
 		if (isVisible) {
-			// Reset search on open
 			setSearchValue("");
-
-			// Start animations
 			opacity.value = withTiming(1, { duration: 200 });
 			translateY.value = withSpring(1, {
 				damping: 11,
 				stiffness: 65,
+				overshootClamping: true,
 			});
-
-			// Focus the input
 			const timeoutId = setTimeout(() => {
-				if (searchInputRef.current) {
-					searchInputRef.current.focus();
-				}
+				searchInputRef.current?.focus();
 			}, 300);
-
 			return () => clearTimeout(timeoutId);
 		}
-		// Hide animations
 		opacity.value = withTiming(0, { duration: 150 });
 		translateY.value = withTiming(0, {
 			duration: 200,
 			easing: Easing.ease,
 		});
-
-		// Dismiss keyboard
 		Keyboard.dismiss();
-	}, [isVisible]);
-
-	// Handle search
+	}, [isVisible, opacity, translateY]);
 	const handleChangeText = (text: string) => {
 		setSearchValue(text);
 		onSearch(text);
 	};
-
-	// Handle result selection
 	const handleItemPress = (item: SearchResult) => {
 		onResultPress?.(item);
 		onClose();
 	};
-
-	// Handle recent search press
 	const handleRecentPress = (query: string) => {
 		setSearchValue(query);
 		onSearch(query);
+		searchInputRef.current?.focus(); // Keep focus after selecting recent
 	};
-
-	// Create animation styles
 	const containerStyle = useAnimatedStyle(() => {
 		const translateYValue = interpolate(translateY.value, [0, 1], [-50, 0]);
-
 		return {
 			opacity: opacity.value,
 			transform: [{ translateY: translateYValue }],
 		};
 	});
-
-	// If completely hidden, don't render
-	if (!isVisible) return null;
-
+	const styles = StyleSheet.create({
+		container: {
+			position: "absolute",
+			top: 0,
+			left: 0,
+			right: 0,
+			bottom: 0,
+			zIndex: 1000,
+			backgroundColor: theme.colors.background,
+		},
+		header: {
+			flexDirection: "row",
+			alignItems: "center",
+			paddingTop: theme.platform.topInset,
+			paddingHorizontal: theme.spacing.md,
+			paddingBottom: theme.spacing.sm,
+			borderBottomWidth: StyleSheet.hairlineWidth,
+			borderBottomColor: theme.colors.divider,
+		},
+		backButton: {
+			padding: theme.spacing.sm,
+			marginRight: theme.spacing.xs,
+			borderRadius: theme.radius.round,
+		},
+		searchBar: {
+			flex: 1,
+			flexDirection: "row",
+			alignItems: "center",
+			height: theme.sizes.buttonMd,
+			borderRadius: theme.radius.md,
+			paddingHorizontal: theme.spacing.sm,
+			backgroundColor: theme.colors.backgroundAlt,
+		},
+		searchIcon: {
+			marginRight: theme.spacing.sm,
+		},
+		input: {
+			flex: 1,
+			height: "100%",
+			fontSize: theme.typography.sizes.md,
+			color: theme.colors.text,
+			paddingLeft: theme.spacing.xs,
+		},
+		clearButton: {
+			padding: theme.spacing.xs,
+		},
+		list: {
+			paddingBottom: theme.spacing.lg,
+		},
+		resultItem: {
+			flexDirection: "row",
+			alignItems: "center",
+			paddingVertical: theme.spacing.md,
+			paddingHorizontal: theme.spacing.md,
+			borderBottomWidth: StyleSheet.hairlineWidth,
+			borderBottomColor: theme.colors.divider,
+		},
+		resultItemPressed: {
+			backgroundColor: theme.colors.backgroundAlt,
+		},
+		resultIconContainer: {
+			width: theme.sizes.avatarSm,
+			height: theme.sizes.avatarSm,
+			borderRadius: theme.radius.round,
+			alignItems: "center",
+			justifyContent: "center",
+			marginRight: theme.spacing.md,
+			backgroundColor: theme.colors.primaryLight,
+		},
+		resultTextContainer: {
+			flex: 1,
+		},
+		emptyContainer: {
+			flex: 1,
+			padding: theme.spacing.md,
+		},
+		noResults: {
+			flex: 1,
+			justifyContent: "center",
+			alignItems: "center",
+			paddingBottom: theme.spacing.xl, // Push up slightly
+		},
+		noResultsIcon: {
+			marginBottom: theme.spacing.md,
+		},
+		recentsContainer: {
+			paddingVertical: theme.spacing.sm,
+		},
+		recentsHeader: {
+			flexDirection: "row",
+			justifyContent: "space-between",
+			alignItems: "center",
+			marginBottom: theme.spacing.sm,
+			paddingHorizontal: theme.spacing.sm,
+		},
+		recentItem: {
+			flexDirection: "row",
+			alignItems: "center",
+			paddingVertical: theme.spacing.sm + 2, // Slightly more padding
+			paddingHorizontal: theme.spacing.md,
+			borderRadius: theme.radius.sm,
+		},
+		recentItemPressed: {
+			backgroundColor: theme.colors.backgroundAlt,
+		},
+		recentIcon: {
+			marginRight: theme.spacing.sm,
+		},
+	});
+	if (!isVisible && opacity.value === 0) return null; // Fully unmount when hidden
 	return (
-		<Animated.View
-			style={[
-				styles.container,
-				{ backgroundColor: theme.colors.background },
-				containerStyle,
-			]}
-		>
+		<Animated.View style={[styles.container, containerStyle]}>
 			<StatusBar barStyle={theme.isDark ? "light-content" : "dark-content"} />
-
-			{/* Search Header */}
 			<View style={styles.header}>
 				<TouchableOpacity onPress={onClose} style={styles.backButton}>
-					<Ionicons name="arrow-back" size={24} color={theme.colors.text} />
+					<Ionicons
+						name="arrow-back"
+						size={theme.sizes.iconMd}
+						color={theme.colors.text}
+					/>
 				</TouchableOpacity>
-
-				<View
-					style={[styles.searchBar, { backgroundColor: theme.colors.cardAlt }]}
-				>
+				<View style={styles.searchBar}>
 					<Ionicons
 						name="search"
-						size={20}
+						size={theme.sizes.iconSm}
 						color={theme.colors.textSecondary}
-						style={{ marginRight: 8 }}
+						style={styles.searchIcon}
 					/>
-
 					<TextInput
 						ref={searchInputRef}
-						style={[styles.input, { color: theme.colors.text }]}
+						style={styles.input}
 						placeholder={placeholder}
 						placeholderTextColor={theme.colors.textSecondary}
 						value={searchValue}
 						onChangeText={handleChangeText}
 						returnKeyType="search"
 						autoCapitalize="none"
+						autoCorrect={false}
+						clearButtonMode="while-editing"
 					/>
-
-					{searchValue.length > 0 && (
-						<TouchableOpacity onPress={() => handleChangeText("")}>
+					{searchValue.length > 0 && Platform.OS === "android" && (
+						<TouchableOpacity
+							onPress={() => handleChangeText("")}
+							style={styles.clearButton}
+						>
 							<Ionicons
 								name="close-circle"
-								size={20}
+								size={theme.sizes.iconSm}
 								color={theme.colors.textSecondary}
 							/>
 						</TouchableOpacity>
 					)}
 				</View>
 			</View>
-
-			{/* Results */}
 			{results.length > 0 ? (
 				<FlatList
 					data={results}
 					keyExtractor={(item) => item.id.toString()}
+					keyboardShouldPersistTaps="handled"
 					renderItem={({ item }) => (
 						<Pressable
 							style={({ pressed }) => [
 								styles.resultItem,
-								pressed && { backgroundColor: theme.colors.cardAlt },
+								pressed && styles.resultItemPressed,
 							]}
 							onPress={() => handleItemPress(item)}
-							android_ripple={{ color: theme.colors.cardAlt }}
+							android_ripple={{ color: theme.colors.overlay }}
 						>
 							{item.icon && (
-								<View
-									style={[
-										styles.resultIcon,
-										{ backgroundColor: theme.colors.primaryLight },
-									]}
-								>
+								<View style={styles.resultIconContainer}>
 									<Ionicons
 										name={item.icon as any}
-										size={18}
+										size={theme.sizes.iconSm - 2}
 										color={theme.colors.primary}
 									/>
 								</View>
 							)}
-
-							<View style={styles.resultText}>
-								<Text style={{ fontSize: 16, color: theme.colors.text }}>
-									{item.title}
-								</Text>
+							<View style={styles.resultTextContainer}>
+								<Text variant="md">{item.title}</Text>
 								{item.subtitle && (
 									<Text
-										style={{
-											fontSize: 14,
-											color: theme.colors.textSecondary,
-											marginTop: 2,
-										}}
+										variant="sm"
+										color="textSecondary"
+										marginTop={theme.spacing.xs / 2}
 									>
 										{item.subtitle}
 									</Text>
@@ -239,59 +287,50 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({
 					contentContainerStyle={styles.list}
 				/>
 			) : (
-				// Recent searches or empty state
 				<View style={styles.emptyContainer}>
 					{searchValue.length > 0 ? (
 						<View style={styles.noResults}>
 							<Ionicons
 								name="search"
-								size={32}
+								size={theme.sizes.iconLg}
 								color={theme.colors.textSecondary}
-								style={{ marginBottom: 16 }}
+								style={styles.noResultsIcon}
 							/>
-							<Text style={{ color: theme.colors.textSecondary }}>
+							<Text color="textSecondary" center>
 								No results found for "{searchValue}"
 							</Text>
 						</View>
 					) : recentSearches.length > 0 ? (
 						<View style={styles.recentsContainer}>
 							<View style={styles.recentsHeader}>
-								<Text
-									style={{
-										fontSize: 14,
-										color: theme.colors.textSecondary,
-										fontWeight: "600",
-									}}
-								>
+								<Text variant="sm" weight="semibold" color="textSecondary">
 									Recent Searches
 								</Text>
-
-								<TouchableOpacity onPress={onClearRecents}>
-									<Text style={{ fontSize: 14, color: theme.colors.primary }}>
-										Clear
-									</Text>
-								</TouchableOpacity>
+								{onClearRecents && (
+									<TouchableOpacity onPress={onClearRecents}>
+										<Text variant="sm" color="primary">
+											Clear
+										</Text>
+									</TouchableOpacity>
+								)}
 							</View>
-
 							{recentSearches.map((query, index) => (
 								<Pressable
-									key={`recent-searches-${index.toString()}`}
+									key={`recent-${index.toString()}`}
 									style={({ pressed }) => [
 										styles.recentItem,
-										pressed && { backgroundColor: theme.colors.cardAlt },
+										pressed && styles.recentItemPressed,
 									]}
 									onPress={() => handleRecentPress(query)}
-									android_ripple={{ color: theme.colors.cardAlt }}
+									android_ripple={{ color: theme.colors.overlay }}
 								>
 									<Ionicons
 										name="time-outline"
-										size={18}
+										size={theme.sizes.iconSm}
 										color={theme.colors.textSecondary}
-										style={{ marginRight: 8 }}
+										style={styles.recentIcon}
 									/>
-									<Text style={{ fontSize: 15, color: theme.colors.text }}>
-										{query}
-									</Text>
+									<Text variant="md">{query}</Text>
 								</Pressable>
 							))}
 						</View>
@@ -301,89 +340,4 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({
 		</Animated.View>
 	);
 };
-
-const styles = StyleSheet.create({
-	container: {
-		position: "absolute",
-		top: 0,
-		left: 0,
-		right: 0,
-		bottom: 0,
-		zIndex: 1000,
-	},
-	header: {
-		flexDirection: "row",
-		alignItems: "center",
-		paddingTop: Platform.OS === "ios" ? 60 : 16,
-		paddingHorizontal: 16,
-		paddingBottom: 12,
-	},
-	backButton: {
-		padding: 8,
-		marginRight: 8,
-		borderRadius: 20,
-	},
-	searchBar: {
-		flex: 1,
-		flexDirection: "row",
-		alignItems: "center",
-		height: 44,
-		borderRadius: 10,
-		paddingHorizontal: 12,
-	},
-	input: {
-		flex: 1,
-		height: "100%",
-		fontSize: 16,
-		marginLeft: 4,
-	},
-	list: {
-		paddingBottom: 20,
-	},
-	resultItem: {
-		flexDirection: "row",
-		alignItems: "center",
-		padding: 16,
-		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderBottomColor: "rgba(0,0,0,0.1)",
-	},
-	resultIcon: {
-		width: 36,
-		height: 36,
-		borderRadius: 18,
-		alignItems: "center",
-		justifyContent: "center",
-		marginRight: 16,
-	},
-	resultText: {
-		flex: 1,
-	},
-	emptyContainer: {
-		flex: 1,
-		padding: 16,
-	},
-	noResults: {
-		flex: 1,
-		justifyContent: "center",
-		alignItems: "center",
-	},
-	recentsContainer: {
-		paddingVertical: 8,
-	},
-	recentsHeader: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		alignItems: "center",
-		marginBottom: 8,
-		paddingHorizontal: 8,
-	},
-	recentItem: {
-		flexDirection: "row",
-		alignItems: "center",
-		paddingVertical: 14,
-		paddingHorizontal: 12,
-		borderRadius: 8,
-	},
-});
-
 export default SearchOverlay;

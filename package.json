@@ -14,7 +14,7 @@
 		"lint": "biome lint .",
 		"format": "biome format .",
 		"noly": "pnpm dlx nolyfill",
-		"repomix": "repomix --ignore \"**/*.log,tmp/,**/Illustrations/**,**/*.json,**/Localization.ts,**/SVGS/**,**/generated/**\" --remove-comments --remove-empty-lines"
+		"repomix": "repomix --ignore \"**/*.log,tmp/,**/Illustrations/**,**/*.json,**/Localization.ts,**/SVGS/**,**/generated/**\" --remove-comments --remove-empty-lines --style markdown"
 	},
 	"keywords": [],
 	"author": "",
