@@ -22,13 +22,13 @@ export const translations = {
 		settings: {
 			title: "Settings",
 			language: "Language",
-			theme: "Theme",
+			theme: "Appearance",
 			notifications: "Notifications",
 			about: "About",
 			logout: "Logout",
-			darkMode: "Dark Mode",
-			lightMode: "Light Mode",
-			systemTheme: "System Theme",
+			lightMode: "Light",
+			darkMode: "Dark",
+			systemTheme: "System",
 		},
 		dashboard: {
 			title: "Dashboard",
@@ -80,13 +80,13 @@ export const translations = {
 		settings: {
 			title: "الإعدادات",
 			language: "اللغة",
-			theme: "السمة",
+			theme: "المظهر",
 			notifications: "الإشعارات",
 			about: "حول",
 			logout: "تسجيل الخروج",
-			darkMode: "الوضع الداكن",
-			lightMode: "الوضع الفاتح",
-			systemTheme: "سمة النظام",
+			lightMode: "فاتح",
+			darkMode: "داكن",
+			systemTheme: "النظام",
 		},
 		dashboard: {
 			title: "لوحة التحكم",
@@ -116,5 +116,4 @@ export const translations = {
 		},
 	},
 };
-
 export type Language = keyof typeof translations;
