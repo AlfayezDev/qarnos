@@ -253,6 +253,11 @@ const HomeScreen: React.FC = () => {
 					paddingTop: HEADER_HEIGHT + insets.top + theme.spacing.md,
 					paddingBottom: insets.bottom + theme.spacing.xxl,
 				}}
+				getItemLayout={(_, index) => ({
+					length: PREP_CARD_WIDTH + theme.spacing.sm,
+					offset: (PREP_CARD_WIDTH + theme.spacing.sm) * index,
+					index,
+				})}
 				renderItem={() => renderHeader()}
 				onScroll={scrollHandler}
 				scrollEventThrottle={16}

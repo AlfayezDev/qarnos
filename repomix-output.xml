@@ -55,8 +55,8 @@ apps/
       index.tsx
     components/
       dashboard/
-        ActivityCard.tsx
         AlertRow.tsx
+        AlertsCard.tsx
         DashboardHeader.tsx
         PrepCard.tsx
         StatsGrid.tsx
@@ -93,6 +93,230 @@ pnpm-workspace.yaml
 
 <files>
 This section contains the contents of the repository's files.
+
+<file path="apps/merchant-app/components/dashboard/AlertsCard.tsx">
+import React from "react";
+import { StyleSheet, Pressable, View } from "react-native";
+import Animated, {
+	FadeInUp,
+	FadeOutDown,
+	useAnimatedStyle,
+	useSharedValue,
+	withTiming,
+} from "react-native-reanimated";
+import { Ionicons } from "@expo/vector-icons";
+import { AnimatedBox, Box, Text } from "@/components/ui";
+import { AppTheme } from "@/hooks/useTheme";
+import { Alert } from "@/types";
+interface AlertsCardProps {
+	alerts: Alert[];
+	theme: AppTheme;
+	onViewAlert: (id: string | number) => void;
+	onViewAllAlerts?: () => void;
+}
+export const AlertsCard: React.FC<AlertsCardProps> = React.memo(
+	({ alerts, theme, onViewAlert, onViewAllAlerts }) => {
+		const hasAlerts = alerts.length > 0;
+		return (
+			<AnimatedBox
+				entering={FadeInUp.delay(350).duration(400).springify().damping(15)}
+				exiting={FadeOutDown.duration(200)}
+				bg="card"
+				rounded="lg"
+				marginHorizontal="md"
+				marginBottom="lg"
+				elevation="small"
+				style={{ overflow: "hidden" }}
+			>
+				<Box
+					row
+					justifyContent="space-between"
+					alignItems="center"
+					marginBottom="md"
+					paddingHorizontal="md"
+					paddingTop="md"
+				>
+					<Text variant="lg" weight="semibold">
+						Alerts
+					</Text>
+					{hasAlerts && (
+						<Animated.View>
+							<Pressable
+								onPress={onViewAllAlerts}
+								style={({ pressed }) => [
+									{
+										paddingVertical: theme.spacing.xs,
+										paddingHorizontal: theme.spacing.sm,
+										borderRadius: theme.radius.sm,
+										backgroundColor: pressed
+											? theme.colors.primaryLight
+											: undefined,
+										transform: [{ scale: pressed ? 0.96 : 1 }],
+									},
+								]}
+							>
+								<Text variant="sm" color="primary" weight="medium">
+									View all
+								</Text>
+							</Pressable>
+						</Animated.View>
+					)}
+				</Box>
+				{hasAlerts ? (
+					<Box>
+						{alerts.map((alert, index) => (
+							<AlertItem
+								key={alert.id}
+								alert={alert}
+								theme={theme}
+								onPress={() => onViewAlert(alert.id)}
+								isLast={index === alerts.length - 1}
+							/>
+						))}
+					</Box>
+				) : (
+					<Box
+						alignCenter
+						paddingVertical="lg"
+						paddingHorizontal="md"
+						bg="backgroundAlt"
+						style={{
+							borderBottomLeftRadius: theme.radius.lg,
+							borderBottomRightRadius: theme.radius.lg,
+						}}
+					>
+						<Box
+							rounded="round"
+							bg="primaryLight"
+							padding="md"
+							marginBottom="md"
+							style={{
+								width: theme.sizes.avatarLg,
+								height: theme.sizes.avatarLg,
+								alignItems: "center",
+								justifyContent: "center",
+							}}
+						>
+							<Ionicons
+								name="checkmark-circle"
+								size={theme.sizes.iconMd}
+								color={theme.colors.primary}
+							/>
+						</Box>
+						<Text color="textSecondary" center>
+							You're all caught up!
+						</Text>
+						<Text color="textMuted" variant="sm" center marginTop="xs">
+							No pressing alerts at the moment
+						</Text>
+					</Box>
+				)}
+			</AnimatedBox>
+		);
+	},
+);
+interface AlertItemProps {
+	alert: Alert;
+	theme: AppTheme;
+	onPress: () => void;
+	isLast?: boolean;
+}
+const AlertItem: React.FC<AlertItemProps> = React.memo(
+	({ alert, theme, onPress, isLast = false }) => {
+		const iconColor = theme.colors[alert.type];
+		const pressed = useSharedValue(0);
+		const handlePressIn = () => {
+			pressed.value = withTiming(1, { duration: 100 });
+		};
+		const handlePressOut = () => {
+			pressed.value = withTiming(0, { duration: 200 });
+		};
+		const animatedStyle = useAnimatedStyle(() => {
+			return {
+				transform: [
+					{
+						scale: withTiming(pressed.value === 1 ? 0.98 : 1, {
+							duration: pressed.value === 1 ? 100 : 200,
+						}),
+					},
+				],
+				backgroundColor:
+					pressed.value === 1 ? theme.colors.backgroundAlt : "transparent",
+			};
+		});
+		return (
+			<Animated.View
+				style={[
+					{
+						borderBottomWidth: isLast ? 0 : StyleSheet.hairlineWidth,
+						borderBottomColor: theme.colors.divider,
+					},
+					animatedStyle,
+				]}
+			>
+				<Pressable
+					onPress={onPress}
+					onPressIn={handlePressIn}
+					onPressOut={handlePressOut}
+					style={{
+						flexDirection: "row",
+						alignItems: "center",
+						padding: theme.spacing.md,
+					}}
+					android_ripple={{ color: theme.colors.overlay }}
+				>
+					<View
+						style={{
+							width: theme.sizes.buttonSm,
+							height: theme.sizes.buttonSm,
+							borderRadius: theme.radius.round,
+							alignItems: "center",
+							justifyContent: "center",
+							backgroundColor: theme.colors.primaryLight,
+						}}
+					>
+						<Ionicons
+							name={alert.icon as any}
+							size={theme.sizes.iconSm}
+							color={iconColor}
+						/>
+					</View>
+					<Box flex={1} marginLeft="sm">
+						<Text variant="sm" weight="medium" numberOfLines={1}>
+							{alert.title}
+						</Text>
+						{alert.timestamp && (
+							<Text
+								variant="xs"
+								color="textMuted"
+								marginTop={theme.spacing.xs / 2}
+							>
+								{alert.timestamp}
+							</Text>
+						)}
+					</Box>
+					<Box
+						marginLeft="sm"
+						paddingVertical="xs"
+						paddingHorizontal="sm"
+						rounded="xs"
+						bg="backgroundAlt"
+					>
+						<Text
+							variant="xs"
+							weight="medium"
+							color={alert.type}
+							numberOfLines={1}
+						>
+							{alert.type.charAt(0).toUpperCase() + alert.type.slice(1)}
+						</Text>
+					</Box>
+				</Pressable>
+			</Animated.View>
+		);
+	},
+);
+</file>
 
 <file path="apps/merchant-app/components/dashboard/PrepCard.tsx">
 import React from "react";
@@ -602,179 +826,6 @@ const styles = StyleSheet.create({
 });
 </file>
 
-<file path="apps/merchant-app/components/dashboard/ActivityCard.tsx">
-import React from "react";
-import { StyleSheet } from "react-native";
-import Animated, { FadeInUp, FadeOutDown } from "react-native-reanimated";
-import { Ionicons } from "@expo/vector-icons";
-import { Box, Text } from "@/components/ui";
-import { AppTheme } from "@/hooks/useTheme";
-import { Alert, OverviewStats } from "@/types";
-import { AlertRow } from "./AlertRow";
-interface ActivityCardProps {
-	alerts: Alert[];
-	overviewStats: OverviewStats;
-	theme: AppTheme;
-	onViewAlert: (id: string | number) => void;
-}
-const AnimatedBox = Animated.createAnimatedComponent(Box);
-export const ActivityCard: React.FC<ActivityCardProps> = React.memo(
-	({ alerts, overviewStats, theme, onViewAlert }) => {
-		const hasAlerts = alerts.length > 0;
-		return (
-			<AnimatedBox
-				entering={FadeInUp.delay(350).duration(400).springify().damping(15)}
-				exiting={FadeOutDown.duration(200)}
-				bg="card"
-				rounded="lg"
-				marginHorizontal="md"
-				marginBottom="lg"
-				padding="md"
-				elevation="medium"
-				style={localStyles.activityCard}
-			>
-				<Text variant="lg" weight="semibold" marginBottom="md">
-					Activity & Alerts
-				</Text>
-				<Box row marginBottom="md">
-					<Box flex={1} marginRight="sm">
-						<Text
-							variant="sm"
-							color="textSecondary"
-							marginBottom={theme.spacing.xs / 2}
-						>
-							Active Subs
-						</Text>
-						<Text variant="xl" weight="bold">
-							{overviewStats.activeSubscriptions}
-						</Text>
-					</Box>
-					<Box flex={1} marginLeft="sm">
-						<Text
-							variant="sm"
-							color="textSecondary"
-							marginBottom={theme.spacing.xs / 2}
-						>
-							New This Week
-						</Text>
-						<Text variant="xl" weight="bold" color="success">
-							+{overviewStats.newThisWeek}
-						</Text>
-					</Box>
-				</Box>
-				{hasAlerts ? (
-					<Box marginTop="xs">
-						{alerts.map((alert, index) => (
-							<Box
-								key={alert.id}
-								style={{
-									borderTopColor: theme.colors.divider,
-									borderTopWidth: index > 0 ? StyleSheet.hairlineWidth : 0,
-									paddingVertical: theme.spacing.sm,
-								}}
-							>
-								<AlertRow
-									alert={alert}
-									theme={theme}
-									onPress={() => onViewAlert(alert.id)}
-								/>
-							</Box>
-						))}
-					</Box>
-				) : (
-					<Box row alignCenter paddingVertical="sm" marginTop="xs">
-						<Ionicons
-							name="checkmark-circle-outline"
-							size={theme.sizes.iconSm}
-							color={theme.colors.success}
-							style={{ marginRight: theme.spacing.sm }}
-						/>
-						<Text color="textSecondary" variant="sm">
-							No pressing alerts.
-						</Text>
-					</Box>
-				)}
-			</AnimatedBox>
-		);
-	},
-);
-const localStyles = StyleSheet.create({
-	activityCard: {},
-});
-</file>
-
-<file path="apps/merchant-app/components/dashboard/AlertRow.tsx">
-import React from "react";
-import { Pressable, StyleSheet } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { Box, Text } from "@/components/ui";
-import { AppTheme } from "@/hooks/useTheme";
-import { Alert } from "@/types";
-import { QarnSpacing } from "@/constants/Spacing";
-interface AlertRowProps {
-	alert: Alert;
-	theme: AppTheme;
-	onPress: () => void;
-}
-export const AlertRow: React.FC<AlertRowProps> = React.memo(
-	({ alert, theme, onPress }) => {
-		const iconColor = theme.colors[alert.type];
-		return (
-			<Pressable
-				onPress={onPress}
-				style={({ pressed }) => [
-					{
-						paddingHorizontal: theme.spacing.sm,
-						flexDirection: "row",
-						alignItems: "center",
-						paddingVertical: theme.spacing.md,
-						borderRadius: theme.radius.sm,
-					},
-					pressed && {
-						backgroundColor: theme.colors.backgroundAlt,
-					},
-				]}
-				android_ripple={{ color: theme.colors.overlay }}
-			>
-				<Ionicons
-					name={alert.icon as any}
-					size={theme.sizes.iconSm}
-					color={iconColor}
-					style={{ marginRight: theme.spacing.md }}
-				/>
-				<Box flex={1}>
-					<Text variant="sm" numberOfLines={1}>
-						{alert.title}
-					</Text>
-					{alert.timestamp && (
-						<Text
-							variant="xs"
-							color="textMuted"
-							marginTop={theme.spacing.xs / 2}
-						>
-							{alert.timestamp}
-						</Text>
-					)}
-				</Box>
-				<Ionicons
-					name="chevron-forward"
-					size={theme.sizes.iconSm}
-					color={theme.colors.textMuted}
-				/>
-			</Pressable>
-		);
-	},
-);
-const localStyles = StyleSheet.create({
-	alertRowContainer: {
-		paddingHorizontal: QarnSpacing.sm,
-		flexDirection: "row",
-		alignItems: "center",
-		paddingVertical: 12,
-	},
-});
-</file>
-
 <file path="apps/merchant-app/components/dashboard/DashboardHeader.tsx">
 import React from "react";
 import { View, Pressable, StyleSheet } from "react-native";
@@ -1048,250 +1099,6 @@ export const Avatar: React.FC<AvatarProps> = ({
 		</View>
 	);
 };
-</file>
-
-<file path="apps/merchant-app/components/ui/Box.tsx">
-import React from "react";
-import {
-	View,
-	ViewProps,
-	StyleSheet,
-	StyleProp,
-	ViewStyle,
-	DimensionValue,
-	FlexAlignType,
-	Pressable,
-	I18nManager,
-} from "react-native";
-import { useTheme } from "@/hooks/useTheme";
-import { SpacingToken, ColorToken, RadiusToken } from "@/hooks/useTheme";
-type JustifyContentType =
-	| "flex-start"
-	| "flex-end"
-	| "center"
-	| "space-between"
-	| "space-around"
-	| "space-evenly";
-interface BoxProps extends ViewProps {
-	flex?: number;
-	row?: boolean;
-	center?: boolean;
-	alignCenter?: boolean;
-	alignItems?: FlexAlignType;
-	justifyCenter?: boolean;
-	justifyContent?: JustifyContentType;
-	card?: boolean;
-	padding?: SpacingToken | number;
-	margin?: SpacingToken | number;
-	marginTop?: SpacingToken | number;
-	marginBottom?: SpacingToken | number;
-	marginLeft?: SpacingToken | number;
-	marginRight?: SpacingToken | number;
-	marginStart?: SpacingToken | number;
-	marginEnd?: SpacingToken | number;
-	marginHorizontal?: SpacingToken | number;
-	marginVertical?: SpacingToken | number;
-	paddingHorizontal?: SpacingToken | number;
-	paddingBottom?: SpacingToken | number;
-	paddingTop?: SpacingToken | number;
-	paddingVertical?: SpacingToken | number;
-	paddingLeft?: SpacingToken | number;
-	paddingRight?: SpacingToken | number;
-	paddingStart?: SpacingToken | number;
-	paddingEnd?: SpacingToken | number;
-	rounded?: RadiusToken | number;
-	width?: DimensionValue;
-	height?: DimensionValue;
-	borderWidth?: number;
-	borderColor?: ColorToken;
-	bg?: ColorToken | string;
-	elevation?: "none" | "small" | "medium" | "large";
-	style?: StyleProp<ViewStyle>;
-	onPress?: () => void;
-	activeOpacity?: number;
-}
-export const Box: React.FC<BoxProps> = ({
-	children,
-	flex,
-	row,
-	center,
-	alignCenter,
-	paddingTop,
-	alignItems,
-	paddingBottom,
-	justifyCenter,
-	justifyContent,
-	card,
-	padding,
-	margin,
-	marginTop,
-	marginBottom,
-	marginLeft,
-	marginRight,
-	marginStart,
-	marginEnd,
-	marginHorizontal,
-	marginVertical,
-	paddingHorizontal,
-	paddingVertical,
-	paddingLeft,
-	paddingRight,
-	paddingStart,
-	paddingEnd,
-	rounded,
-	width,
-	height,
-	borderWidth,
-	borderColor,
-	bg,
-	elevation,
-	style,
-	onPress,
-	activeOpacity = 0.7,
-	...props
-}) => {
-	const theme = useTheme();
-	const isRTL = I18nManager.isRTL;
-	let finalAlignItems: FlexAlignType | undefined;
-	let finalJustifyContent: JustifyContentType | undefined;
-	if (center) {
-		finalAlignItems = "center";
-		finalJustifyContent = "center";
-	} else {
-		finalAlignItems = alignCenter ? "center" : alignItems;
-		finalJustifyContent = justifyCenter ? "center" : justifyContent;
-	}
-	const getSpacingValue = (
-		value: SpacingToken | number | undefined,
-	): number | undefined => {
-		if (value === undefined) return undefined;
-		return typeof value === "number" ? value : theme.spacing[value];
-	};
-	const getRadiusValue = (
-		value: RadiusToken | number | undefined,
-	): number | undefined => {
-		if (value === undefined) return undefined;
-		return typeof value === "number" ? value : theme.radius[value];
-	};
-	const getColorValue = (
-		color: ColorToken | string | undefined,
-	): string | undefined => {
-		if (color === undefined) return undefined;
-		if (typeof color === "string" && color in theme.colors) {
-			return theme.colors[color as ColorToken];
-		}
-		return color;
-	};
-	const getElevation = (level?: "none" | "small" | "medium" | "large") => {
-		if (!level || level === "none") return {};
-		const shadowStyle = theme.shadows[level];
-		return { ...shadowStyle, shadowColor: theme.colors.shadow };
-	};
-	const finalMarginLeft =
-		marginStart !== undefined
-			? isRTL
-				? undefined
-				: getSpacingValue(marginStart)
-			: getSpacingValue(marginLeft);
-	const finalMarginRight =
-		marginEnd !== undefined
-			? isRTL
-				? undefined
-				: getSpacingValue(marginEnd)
-			: getSpacingValue(marginRight);
-	const finalMarginStart =
-		marginStart !== undefined
-			? isRTL
-				? getSpacingValue(marginStart)
-				: undefined
-			: undefined;
-	const finalMarginEnd =
-		marginEnd !== undefined
-			? isRTL
-				? getSpacingValue(marginEnd)
-				: undefined
-			: undefined;
-	const finalPaddingLeft =
-		paddingStart !== undefined
-			? isRTL
-				? undefined
-				: getSpacingValue(paddingStart)
-			: getSpacingValue(paddingLeft);
-	const finalPaddingRight =
-		paddingEnd !== undefined
-			? isRTL
-				? undefined
-				: getSpacingValue(paddingEnd)
-			: getSpacingValue(paddingRight);
-	const finalPaddingStart =
-		paddingStart !== undefined
-			? isRTL
-				? getSpacingValue(paddingStart)
-				: undefined
-			: undefined;
-	const finalPaddingEnd =
-		paddingEnd !== undefined
-			? isRTL
-				? getSpacingValue(paddingEnd)
-				: undefined
-			: undefined;
-	const styles = StyleSheet.create({
-		box: {
-			flex: flex,
-			flexDirection: row ? (isRTL ? "row-reverse" : "row") : "column",
-			alignItems: finalAlignItems,
-			justifyContent: finalJustifyContent,
-			padding: getSpacingValue(padding),
-			margin: getSpacingValue(margin),
-			marginTop: getSpacingValue(marginTop),
-			marginBottom: getSpacingValue(marginBottom),
-			paddingBottom: getSpacingValue(paddingBottom),
-			paddingTop: getSpacingValue(paddingTop),
-			marginLeft: finalMarginLeft,
-			marginRight: finalMarginRight,
-			marginStart: finalMarginStart,
-			marginEnd: finalMarginEnd,
-			marginHorizontal: getSpacingValue(marginHorizontal),
-			marginVertical: getSpacingValue(marginVertical),
-			paddingHorizontal: getSpacingValue(paddingHorizontal),
-			paddingVertical: getSpacingValue(paddingVertical),
-			paddingLeft: finalPaddingLeft,
-			paddingRight: finalPaddingRight,
-			paddingStart: finalPaddingStart,
-			paddingEnd: finalPaddingEnd,
-			borderRadius: getRadiusValue(rounded),
-			width,
-			height,
-			borderWidth,
-			borderColor: getColorValue(borderColor),
-			backgroundColor: card ? theme.colors.card : getColorValue(bg),
-			...(card ? getElevation("small") : {}),
-			...(elevation ? getElevation(elevation) : {}),
-		},
-	});
-	if (onPress) {
-		return (
-			<Pressable
-				onPress={onPress}
-				style={({ pressed }) => [
-					styles.box,
-					{ opacity: pressed ? activeOpacity : 1 },
-					style,
-				]}
-				{...props}
-				android_ripple={{ color: theme.colors.overlay }}
-			>
-				{children}
-			</Pressable>
-		);
-	}
-	return (
-		<View style={[styles.box, style]} {...props}>
-			{children}
-		</View>
-	);
-};
-export default Box;
 </file>
 
 <file path="apps/merchant-app/components/ui/Button.tsx">
@@ -1778,6 +1585,69 @@ export type FontSizeVariant = keyof AppTheme["typography"]["sizes"];
 export type FontWeightVariant = keyof AppTheme["typography"]["weights"];
 </file>
 
+<file path="apps/merchant-app/components/dashboard/AlertRow.tsx">
+import React from "react";
+import { Pressable } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { Box, Text } from "@/components/ui";
+import { AppTheme } from "@/hooks/useTheme";
+import { Alert } from "@/types";
+interface AlertRowProps {
+	alert: Alert;
+	theme: AppTheme;
+	onPress: () => void;
+}
+export const AlertRow: React.FC<AlertRowProps> = React.memo(
+	({ alert, theme, onPress }) => {
+		const iconColor = theme.colors[alert.type];
+		return (
+			<Pressable
+				onPress={onPress}
+				style={({ pressed }) => [
+					{
+						paddingHorizontal: theme.spacing.sm,
+						flexDirection: "row",
+						alignItems: "center",
+						paddingVertical: theme.spacing.md,
+						borderRadius: theme.radius.sm,
+					},
+					pressed && {
+						backgroundColor: theme.colors.backgroundAlt,
+					},
+				]}
+				android_ripple={{ color: theme.colors.overlay }}
+			>
+				<Ionicons
+					name={alert.icon as any}
+					size={theme.sizes.iconSm}
+					color={iconColor}
+					style={{ marginRight: theme.spacing.md }}
+				/>
+				<Box flex={1}>
+					<Text variant="sm" numberOfLines={1}>
+						{alert.title}
+					</Text>
+					{alert.timestamp && (
+						<Text
+							variant="xs"
+							color="textMuted"
+							marginTop={theme.spacing.xs / 2}
+						>
+							{alert.timestamp}
+						</Text>
+					)}
+				</Box>
+				<Ionicons
+					name="chevron-forward"
+					size={theme.sizes.iconSm}
+					color={theme.colors.textMuted}
+				/>
+			</Pressable>
+		);
+	},
+);
+</file>
+
 <file path="apps/merchant-app/components/layout/SearchOverlay.tsx">
 import React, { useRef, useEffect, useState } from "react";
 import {
@@ -2217,6 +2087,252 @@ export const Badge: React.FC<BadgeProps> = ({
 };
 </file>
 
+<file path="apps/merchant-app/components/ui/Box.tsx">
+import React from "react";
+import {
+	View,
+	ViewProps,
+	StyleSheet,
+	StyleProp,
+	ViewStyle,
+	DimensionValue,
+	FlexAlignType,
+	Pressable,
+	I18nManager,
+} from "react-native";
+import { useTheme } from "@/hooks/useTheme";
+import { SpacingToken, ColorToken, RadiusToken } from "@/hooks/useTheme";
+import Animated from "react-native-reanimated";
+type JustifyContentType =
+	| "flex-start"
+	| "flex-end"
+	| "center"
+	| "space-between"
+	| "space-around"
+	| "space-evenly";
+interface BoxProps extends ViewProps {
+	flex?: number;
+	row?: boolean;
+	center?: boolean;
+	alignCenter?: boolean;
+	alignItems?: FlexAlignType;
+	justifyCenter?: boolean;
+	justifyContent?: JustifyContentType;
+	card?: boolean;
+	padding?: SpacingToken | number;
+	margin?: SpacingToken | number;
+	marginTop?: SpacingToken | number;
+	marginBottom?: SpacingToken | number;
+	marginLeft?: SpacingToken | number;
+	marginRight?: SpacingToken | number;
+	marginStart?: SpacingToken | number;
+	marginEnd?: SpacingToken | number;
+	marginHorizontal?: SpacingToken | number;
+	marginVertical?: SpacingToken | number;
+	paddingHorizontal?: SpacingToken | number;
+	paddingBottom?: SpacingToken | number;
+	paddingTop?: SpacingToken | number;
+	paddingVertical?: SpacingToken | number;
+	paddingLeft?: SpacingToken | number;
+	paddingRight?: SpacingToken | number;
+	paddingStart?: SpacingToken | number;
+	paddingEnd?: SpacingToken | number;
+	rounded?: RadiusToken | number;
+	width?: DimensionValue;
+	height?: DimensionValue;
+	borderWidth?: number;
+	borderColor?: ColorToken;
+	bg?: ColorToken | string;
+	elevation?: "none" | "small" | "medium" | "large";
+	style?: StyleProp<ViewStyle>;
+	onPress?: () => void;
+	activeOpacity?: number;
+}
+export const Box: React.FC<BoxProps> = ({
+	children,
+	flex,
+	row,
+	center,
+	alignCenter,
+	paddingTop,
+	alignItems,
+	paddingBottom,
+	justifyCenter,
+	justifyContent,
+	card,
+	padding,
+	margin,
+	marginTop,
+	marginBottom,
+	marginLeft,
+	marginRight,
+	marginStart,
+	marginEnd,
+	marginHorizontal,
+	marginVertical,
+	paddingHorizontal,
+	paddingVertical,
+	paddingLeft,
+	paddingRight,
+	paddingStart,
+	paddingEnd,
+	rounded,
+	width,
+	height,
+	borderWidth,
+	borderColor,
+	bg,
+	elevation,
+	style,
+	onPress,
+	activeOpacity = 0.7,
+	...props
+}) => {
+	const theme = useTheme();
+	const isRTL = I18nManager.isRTL;
+	let finalAlignItems: FlexAlignType | undefined;
+	let finalJustifyContent: JustifyContentType | undefined;
+	if (center) {
+		finalAlignItems = "center";
+		finalJustifyContent = "center";
+	} else {
+		finalAlignItems = alignCenter ? "center" : alignItems;
+		finalJustifyContent = justifyCenter ? "center" : justifyContent;
+	}
+	const getSpacingValue = (
+		value: SpacingToken | number | undefined,
+	): number | undefined => {
+		if (value === undefined) return undefined;
+		return typeof value === "number" ? value : theme.spacing[value];
+	};
+	const getRadiusValue = (
+		value: RadiusToken | number | undefined,
+	): number | undefined => {
+		if (value === undefined) return undefined;
+		return typeof value === "number" ? value : theme.radius[value];
+	};
+	const getColorValue = (
+		color: ColorToken | string | undefined,
+	): string | undefined => {
+		if (color === undefined) return undefined;
+		if (typeof color === "string" && color in theme.colors) {
+			return theme.colors[color as ColorToken];
+		}
+		return color;
+	};
+	const getElevation = (level?: "none" | "small" | "medium" | "large") => {
+		if (!level || level === "none") return {};
+		const shadowStyle = theme.shadows[level];
+		return { ...shadowStyle, shadowColor: theme.colors.shadow };
+	};
+	const finalMarginLeft =
+		marginStart !== undefined
+			? isRTL
+				? undefined
+				: getSpacingValue(marginStart)
+			: getSpacingValue(marginLeft);
+	const finalMarginRight =
+		marginEnd !== undefined
+			? isRTL
+				? undefined
+				: getSpacingValue(marginEnd)
+			: getSpacingValue(marginRight);
+	const finalMarginStart =
+		marginStart !== undefined
+			? isRTL
+				? getSpacingValue(marginStart)
+				: undefined
+			: undefined;
+	const finalMarginEnd =
+		marginEnd !== undefined
+			? isRTL
+				? getSpacingValue(marginEnd)
+				: undefined
+			: undefined;
+	const finalPaddingLeft =
+		paddingStart !== undefined
+			? isRTL
+				? undefined
+				: getSpacingValue(paddingStart)
+			: getSpacingValue(paddingLeft);
+	const finalPaddingRight =
+		paddingEnd !== undefined
+			? isRTL
+				? undefined
+				: getSpacingValue(paddingEnd)
+			: getSpacingValue(paddingRight);
+	const finalPaddingStart =
+		paddingStart !== undefined
+			? isRTL
+				? getSpacingValue(paddingStart)
+				: undefined
+			: undefined;
+	const finalPaddingEnd =
+		paddingEnd !== undefined
+			? isRTL
+				? getSpacingValue(paddingEnd)
+				: undefined
+			: undefined;
+	const styles = StyleSheet.create({
+		box: {
+			flex: flex,
+			flexDirection: row ? (isRTL ? "row-reverse" : "row") : "column",
+			alignItems: finalAlignItems,
+			justifyContent: finalJustifyContent,
+			padding: getSpacingValue(padding),
+			margin: getSpacingValue(margin),
+			marginTop: getSpacingValue(marginTop),
+			marginBottom: getSpacingValue(marginBottom),
+			paddingBottom: getSpacingValue(paddingBottom),
+			paddingTop: getSpacingValue(paddingTop),
+			marginLeft: finalMarginLeft,
+			marginRight: finalMarginRight,
+			marginStart: finalMarginStart,
+			marginEnd: finalMarginEnd,
+			marginHorizontal: getSpacingValue(marginHorizontal),
+			marginVertical: getSpacingValue(marginVertical),
+			paddingHorizontal: getSpacingValue(paddingHorizontal),
+			paddingVertical: getSpacingValue(paddingVertical),
+			paddingLeft: finalPaddingLeft,
+			paddingRight: finalPaddingRight,
+			paddingStart: finalPaddingStart,
+			paddingEnd: finalPaddingEnd,
+			borderRadius: getRadiusValue(rounded),
+			width,
+			height,
+			borderWidth,
+			borderColor: getColorValue(borderColor),
+			backgroundColor: card ? theme.colors.card : getColorValue(bg),
+			...(card ? getElevation("small") : {}),
+			...(elevation ? getElevation(elevation) : {}),
+		},
+	});
+	if (onPress) {
+		return (
+			<Pressable
+				onPress={onPress}
+				style={({ pressed }) => [
+					styles.box,
+					{ opacity: pressed ? activeOpacity : 1 },
+					style,
+				]}
+				{...props}
+				android_ripple={{ color: theme.colors.overlay }}
+			>
+				{children}
+			</Pressable>
+		);
+	}
+	return (
+		<View style={[styles.box, style]} {...props}>
+			{children}
+		</View>
+	);
+};
+export default Box;
+export const AnimatedBox = Animated.createAnimatedComponent(Box);
+</file>
+
 <file path=".nvimrc">
 23.11.0
 </file>
@@ -2425,6 +2541,28 @@ export type ThemeColors = typeof theme.colors.light;
 export type ThemeMode = "light" | "dark";
 </file>
 
+<file path="pnpm-workspace.yaml">
+packages:
+  - apps/*
+catalog:
+  '@biomejs/biome': 1.9.4
+  typescript: ~5.8.3
+catalogs:
+  react18:
+    react: 18.3.1
+    react-dom: 18.3.1
+    '@types/react': ^18.3.3
+    '@types/react-dom': ^18.3.0
+  react-native:
+    react: 19.0.0
+    react-dom: 19.0.0
+    react-native: 0.79.0
+    '@types/react': ~19.0.10
+nodeLinker: hoisted
+onlyBuiltDependencies:
+  - '@biomejs/biome'
+</file>
+
 <file path="apps/merchant-app/app/index.tsx">
 import { Box, Text } from "@/components/ui";
 import { useTheme } from "@/hooks/useTheme";
@@ -2439,12 +2577,12 @@ import Animated, {
 	withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { ActivityCard } from "@/components/dashboard/ActivityCard";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { TodayPrepCard } from "@/components/dashboard/PrepCard";
 import { StatsGrid } from "@/components/dashboard/StatsGrid";
 import { Tabs } from "@/components/ui/Tabs";
-import { Alert, MealPrepSummary, OverviewStats, StatItem } from "@/types";
+import { AlertsCard } from "@/components/dashboard/AlertsCard";
+import { Alert, MealPrepSummary, StatItem } from "@/types";
 const TODAY_PREP_SUMMARY: MealPrepSummary[] = [
 	{
 		period: "Breakfast",
@@ -2494,10 +2632,6 @@ const getActivityStats = (tab: string): StatItem[] => {
 			];
 	}
 };
-const OVERVIEW_STATS: OverviewStats = {
-	activeSubscriptions: 52,
-	newThisWeek: 3,
-};
 const ALERTS: Alert[] = [
 	{
 		id: 1,
@@ -2523,7 +2657,6 @@ const ALERTS: Alert[] = [
 ];
 const HEADER_HEIGHT = 65;
 const PREP_CARD_WIDTH = 170;
-const AnimatedScrollView = Animated.createAnimatedComponent(FlatList);
 const HomeScreen: React.FC = () => {
 	const theme = useTheme();
 	const insets = useSafeAreaInsets();
@@ -2564,6 +2697,9 @@ const HomeScreen: React.FC = () => {
 	}, []);
 	const handleViewAlert = useCallback((id: string | number) => {
 		console.log("Navigate to Alert Details Screen, ID:", id);
+	}, []);
+	const handleViewAllAlerts = useCallback(() => {
+		console.log("Navigate to All Alerts Screen");
 	}, []);
 	const handleSettingsPress = useCallback(() => {
 		console.log("Navigate to Settings Screen");
@@ -2631,11 +2767,11 @@ const HomeScreen: React.FC = () => {
 						)}
 					/>
 				</Animated.View>
-				<ActivityCard
+				<AlertsCard
 					alerts={ALERTS}
-					overviewStats={OVERVIEW_STATS}
 					theme={theme}
 					onViewAlert={handleViewAlert}
+					onViewAllAlerts={handleViewAllAlerts}
 				/>
 			</>
 		),
@@ -2646,6 +2782,7 @@ const HomeScreen: React.FC = () => {
 			handleSelectTab,
 			handleViewSchedule,
 			handleViewAlert,
+			handleViewAllAlerts,
 		],
 	);
 	return (
@@ -2658,7 +2795,7 @@ const HomeScreen: React.FC = () => {
 				onSettingsPress={handleSettingsPress}
 				headerHeight={HEADER_HEIGHT}
 			/>
-			<AnimatedScrollView
+			<Animated.FlatList
 				ref={scrollRef}
 				data={[1]}
 				keyExtractor={() => "main"}
@@ -2685,28 +2822,6 @@ const HomeScreen: React.FC = () => {
 	);
 };
 export default HomeScreen;
-</file>
-
-<file path="pnpm-workspace.yaml">
-packages:
-  - apps/*
-catalog:
-  '@biomejs/biome': 1.9.4
-  typescript: ~5.8.3
-catalogs:
-  react18:
-    react: 18.3.1
-    react-dom: 18.3.1
-    '@types/react': ^18.3.3
-    '@types/react-dom': ^18.3.0
-  react-native:
-    react: 19.0.0
-    react-dom: 19.0.0
-    react-native: 0.79.0
-    '@types/react': ~19.0.10
-nodeLinker: hoisted
-onlyBuiltDependencies:
-  - '@biomejs/biome'
 </file>
 
 <file path="apps/merchant-app/app/_layout.tsx">

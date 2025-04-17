@@ -1,5 +1,4 @@
 import React from "react";
-import { StyleSheet } from "react-native";
 import Animated, {
 	FadeInUp,
 	FadeOutDown,
@@ -39,17 +38,16 @@ export const StatsGrid: React.FC<StatsGridProps> = React.memo(
 						flex={1}
 						marginRight={index < stats.length - 1 ? "sm" : undefined}
 					>
-						<Box
-							bg="card"
-							padding="md"
-							rounded="lg"
-							elevation="small"
-							style={localStyles.statCard}
-						>
+						<Box bg="card" padding="md" rounded="lg" elevation="small">
 							<Box row alignCenter marginBottom="sm">
 								<Box
 									style={[
-										localStyles.statIconContainer,
+										{
+											width: theme.sizes.buttonSm,
+											height: theme.sizes.buttonSm,
+											alignItems: "center",
+											justifyContent: "center",
+										},
 										{ borderRadius: theme.radius.sm },
 									]}
 									bg="primaryLight"
@@ -75,13 +73,3 @@ export const StatsGrid: React.FC<StatsGridProps> = React.memo(
 		);
 	},
 );
-
-const localStyles = StyleSheet.create({
-	statCard: {},
-	statIconContainer: {
-		width: 32,
-		height: 32,
-		alignItems: "center",
-		justifyContent: "center",
-	},
-});

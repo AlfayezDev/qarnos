@@ -1,0 +1,76 @@
+export const translations = {
+	en: {
+		common: {
+			settings: "Settings",
+			cancel: "Cancel",
+			save: "Save",
+			delete: "Delete",
+			edit: "Edit",
+			loading: "Loading...",
+			total: "Total",
+			more: "more",
+			back: "Back",
+		},
+		dashboard: {
+			title: "Dashboard",
+			todaysPrep: "Today's Prep",
+			activeSubscriptions: "Active Subs",
+			newThisWeek: "New This Week",
+			newThisMonth: "New This Month",
+			mealsToday: "Meals Today",
+			alerts: "Alerts",
+			viewAll: "View all",
+			allCaughtUp: "You're all caught up!",
+			noAlerts: "No pressing alerts at the moment",
+			prepList: "Prep List:",
+		},
+		periods: {
+			breakfast: "Breakfast",
+			lunch: "Lunch",
+			dinner: "Dinner",
+		},
+		alerts: {
+			warning: "Warning",
+			info: "Info",
+			error: "Error",
+		},
+	},
+	ar: {
+		common: {
+			settings: "الإعدادات",
+			cancel: "إلغاء",
+			save: "حفظ",
+			delete: "حذف",
+			edit: "تعديل",
+			loading: "جاري التحميل...",
+			total: "المجموع",
+			more: "المزيد",
+			back: "رجوع",
+		},
+		dashboard: {
+			title: "لوحة التحكم",
+			todaysPrep: "تحضير اليوم",
+			activeSubscriptions: "الاشتراكات النشطة",
+			newThisWeek: "جديد هذا الأسبوع",
+			newThisMonth: "جديد هذا الشهر",
+			mealsToday: "وجبات اليوم",
+			alerts: "التنبيهات",
+			viewAll: "عرض الكل",
+			allCaughtUp: "أنت على اطلاع بكل شيء!",
+			noAlerts: "لا توجد تنبيهات ملحة في الوقت الحالي",
+			prepList: "قائمة التحضير:",
+		},
+		periods: {
+			breakfast: "الإفطار",
+			lunch: "الغداء",
+			dinner: "العشاء",
+		},
+		alerts: {
+			warning: "تحذير",
+			info: "معلومات",
+			error: "خطأ",
+		},
+	},
+};
+
+export type Language = keyof typeof translations;
