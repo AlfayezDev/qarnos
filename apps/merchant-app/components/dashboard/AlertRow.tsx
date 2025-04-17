@@ -14,6 +14,7 @@ interface AlertRowProps {
 export const AlertRow: React.FC<AlertRowProps> = React.memo(
 	({ alert, theme, onPress }) => {
 		const iconColor = theme.colors[alert.type];
+
 		return (
 			<Pressable
 				onPress={onPress}
@@ -35,7 +36,9 @@ export const AlertRow: React.FC<AlertRowProps> = React.memo(
 					name={alert.icon as any}
 					size={theme.sizes.iconSm}
 					color={iconColor}
-					style={{ marginRight: theme.spacing.md }}
+					style={{
+						marginStart: theme.spacing.md,
+					}}
 				/>
 				<Box flex={1}>
 					<Text variant="sm" numberOfLines={1}>
@@ -52,7 +55,7 @@ export const AlertRow: React.FC<AlertRowProps> = React.memo(
 					)}
 				</Box>
 				<Ionicons
-					name="chevron-forward"
+					name={"chevron-back"}
 					size={theme.sizes.iconSm}
 					color={theme.colors.textMuted}
 				/>

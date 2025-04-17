@@ -73,16 +73,20 @@ apps/
         index.ts
         Tabs.tsx
         Text.tsx
+      LanguageSelector.tsx
     constants/
       Colors.ts
+      i18n.ts
       Spacing.ts
       theme.ts
       Typography.ts
     hooks/
       useColorScheme.ts
       useColorScheme.web.ts
+      useLanguage.ts
       useTheme.ts
       useThemeColor.ts
+      useTranslation.ts
     .gitignore
     types.ts
 .gitignore
@@ -433,86 +437,83 @@ const localStyles = StyleSheet.create({
 });
 </file>
 
-<file path="apps/merchant-app/components/dashboard/StatsGrid.tsx">
+<file path="apps/merchant-app/components/LanguageSelector.tsx">
 import React from "react";
-import { StyleSheet } from "react-native";
-import Animated, {
-	FadeInUp,
-	FadeOutDown,
-	LinearTransition,
-} from "react-native-reanimated";
-import { Ionicons } from "@expo/vector-icons";
-import { Box, Text } from "@/components/ui";
-import { AppTheme } from "@/hooks/useTheme";
-interface StatItem {
-	title: string;
-	value: string | number;
-	icon: string;
-}
-interface StatsGridProps {
-	stats: StatItem[];
-	theme: AppTheme;
-}
-const AnimatedBox = Animated.createAnimatedComponent(Box);
-export const StatsGrid: React.FC<StatsGridProps> = React.memo(
-	({ stats, theme }) => {
-		return (
-			<AnimatedBox
-				layout={LinearTransition.delay(100).duration(300)}
-				row
-				marginHorizontal="md"
-				marginBottom="lg"
-			>
-				{stats.map((stat, index) => (
-					<AnimatedBox
-						key={stat.title}
-						entering={FadeInUp.duration(300)}
-						exiting={FadeOutDown.duration(200)}
-						layout={LinearTransition.duration(300)}
-						flex={1}
-						marginRight={index < stats.length - 1 ? "sm" : undefined}
+import { View, TouchableOpacity, StyleSheet } from "react-native";
+import { useLanguage } from "@/hooks/useLanguage";
+import { Text } from "@/components/ui/Text";
+import { useTheme } from "@/hooks/useTheme";
+export const LanguageSelector: React.FC = () => {
+	const { language, changeLanguage } = useLanguage();
+	const theme = useTheme();
+	return (
+		<View style={styles.container}>
+			<Text variant="md" weight="semibold" marginBottom="md">
+				{language === "en" ? "Language" : "اللغة"}
+			</Text>
+			<View style={styles.buttonContainer}>
+				<TouchableOpacity
+					style={[
+						styles.languageButton,
+						{
+							backgroundColor:
+								language === "en" ? theme.colors.primary : "transparent",
+							borderColor: theme.colors.primary,
+						},
+					]}
+					onPress={() => changeLanguage("en")}
+					accessible={true}
+					accessibilityRole="button"
+					accessibilityLabel="Switch to English"
+				>
+					<Text
+						variant="md"
+						weight="medium"
+						color={language === "en" ? "background" : "primary"}
 					>
-						<Box
-							bg="card"
-							padding="md"
-							rounded="lg"
-							elevation="small"
-							style={localStyles.statCard}
-						>
-							<Box row alignCenter marginBottom="sm">
-								<Box
-									style={[
-										localStyles.statIconContainer,
-										{ borderRadius: theme.radius.sm },
-									]}
-									bg="primaryLight"
-									marginRight="sm"
-								>
-									<Ionicons
-										name={stat.icon as any}
-										size={theme.sizes.iconSm}
-										color={theme.colors.primary}
-									/>
-								</Box>
-								<Text variant="sm" color="textSecondary">
-									{stat.title}
-								</Text>
-							</Box>
-							<Text variant="xl" weight="bold">
-								{stat.value}
-							</Text>
-						</Box>
-					</AnimatedBox>
-				))}
-			</AnimatedBox>
-		);
+						English
+					</Text>
+				</TouchableOpacity>
+				<TouchableOpacity
+					style={[
+						styles.languageButton,
+						{
+							backgroundColor:
+								language === "ar" ? theme.colors.primary : "transparent",
+							borderColor: theme.colors.primary,
+						},
+					]}
+					onPress={() => changeLanguage("ar")}
+					accessible={true}
+					accessibilityRole="button"
+					accessibilityLabel="Switch to Arabic"
+				>
+					<Text
+						variant="md"
+						weight="medium"
+						color={language === "ar" ? "background" : "primary"}
+					>
+						العربية
+					</Text>
+				</TouchableOpacity>
+			</View>
+		</View>
+	);
+};
+const styles = StyleSheet.create({
+	container: {
+		padding: 16,
 	},
-);
-const localStyles = StyleSheet.create({
-	statCard: {},
-	statIconContainer: {
-		width: 32,
-		height: 32,
+	buttonContainer: {
+		flexDirection: "row",
+		justifyContent: "space-between",
+	},
+	languageButton: {
+		flex: 1,
+		margin: 4,
+		padding: 12,
+		borderRadius: 8,
+		borderWidth: 1,
 		alignItems: "center",
 		justifyContent: "center",
 	},
@@ -564,6 +565,84 @@ export const QarnColors = {
 		tabIconSelected: "#22C55E",
 	},
 };
+</file>
+
+<file path="apps/merchant-app/constants/i18n.ts">
+export const translations = {
+	en: {
+		common: {
+			settings: "Settings",
+			cancel: "Cancel",
+			save: "Save",
+			delete: "Delete",
+			edit: "Edit",
+			loading: "Loading...",
+			total: "Total",
+			more: "more",
+			back: "Back",
+		},
+		dashboard: {
+			title: "Dashboard",
+			todaysPrep: "Today's Prep",
+			activeSubscriptions: "Active Subs",
+			newThisWeek: "New This Week",
+			newThisMonth: "New This Month",
+			mealsToday: "Meals Today",
+			alerts: "Alerts",
+			viewAll: "View all",
+			allCaughtUp: "You're all caught up!",
+			noAlerts: "No pressing alerts at the moment",
+			prepList: "Prep List:",
+		},
+		periods: {
+			breakfast: "Breakfast",
+			lunch: "Lunch",
+			dinner: "Dinner",
+		},
+		alerts: {
+			warning: "Warning",
+			info: "Info",
+			error: "Error",
+		},
+	},
+	ar: {
+		common: {
+			settings: "الإعدادات",
+			cancel: "إلغاء",
+			save: "حفظ",
+			delete: "حذف",
+			edit: "تعديل",
+			loading: "جاري التحميل...",
+			total: "المجموع",
+			more: "المزيد",
+			back: "رجوع",
+		},
+		dashboard: {
+			title: "لوحة التحكم",
+			todaysPrep: "تحضير اليوم",
+			activeSubscriptions: "الاشتراكات النشطة",
+			newThisWeek: "جديد هذا الأسبوع",
+			newThisMonth: "جديد هذا الشهر",
+			mealsToday: "وجبات اليوم",
+			alerts: "التنبيهات",
+			viewAll: "عرض الكل",
+			allCaughtUp: "أنت على اطلاع بكل شيء!",
+			noAlerts: "لا توجد تنبيهات ملحة في الوقت الحالي",
+			prepList: "قائمة التحضير:",
+		},
+		periods: {
+			breakfast: "الإفطار",
+			lunch: "الغداء",
+			dinner: "العشاء",
+		},
+		alerts: {
+			warning: "تحذير",
+			info: "معلومات",
+			error: "خطأ",
+		},
+	},
+};
+export type Language = keyof typeof translations;
 </file>
 
 <file path="apps/merchant-app/constants/Spacing.ts">
@@ -704,6 +783,36 @@ export function useColorScheme() {
 }
 </file>
 
+<file path="apps/merchant-app/hooks/useLanguage.ts">
+import { useState, useEffect } from "react";
+import { I18nManager } from "react-native";
+import { Language } from "@/constants/i18n";
+const DEFAULT_LANGUAGE: Language = "ar";
+export function useLanguage() {
+	const [language, setLanguage] = useState<Language>(DEFAULT_LANGUAGE);
+	const [isLoading, setIsLoading] = useState(true);
+	useEffect(() => {
+		const savedLanguage: "ar" | "en" = DEFAULT_LANGUAGE;
+		if (savedLanguage && (savedLanguage === "en" || savedLanguage === "ar")) {
+			setLanguage(savedLanguage);
+			const shouldBeRTL = savedLanguage === "ar";
+			if (shouldBeRTL !== I18nManager.isRTL) {
+				I18nManager.forceRTL(shouldBeRTL);
+			}
+		}
+		setIsLoading(false);
+	}, []);
+	const changeLanguage = (newLanguage: Language) => {
+		setLanguage(newLanguage);
+		const shouldBeRTL = newLanguage === "ar";
+		if (shouldBeRTL !== I18nManager.isRTL) {
+			I18nManager.forceRTL(shouldBeRTL);
+		}
+	};
+	return { language, changeLanguage, isLoading };
+}
+</file>
+
 <file path="apps/merchant-app/hooks/useThemeColor.ts">
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
@@ -718,6 +827,65 @@ export function useThemeColor(
   } else {
     return Colors[theme][colorName];
   }
+}
+</file>
+
+<file path="apps/merchant-app/hooks/useTranslation.ts">
+import { useCallback } from "react";
+import { translations } from "@/constants/i18n";
+import { useLanguage } from "./useLanguage";
+type TranslationsType = typeof translations.en;
+type Primitive = string | number | boolean | null | undefined;
+type Join<K, P> = K extends string | number
+	? P extends string | number
+		? `${K}${"" extends P ? "" : "."}${P}`
+		: never
+	: never;
+type Paths<T, D extends number = 10> = [D] extends [never]
+	? never
+	: T extends Primitive
+		? ""
+		:
+				| {
+						[K in keyof T]: K extends string | number
+							? K | Join<K, Paths<T[K], Prev[D]>>
+							: never;
+				  }[keyof T & (string | number)]
+				| "";
+type Prev = [never, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+export type TranslationPath = Paths<TranslationsType, 4>;
+export function useTranslation() {
+	const { language } = useLanguage();
+	const t = useCallback(
+		(path: string, params?: Record<string, string | number>): string => {
+			const keys = path.split(".");
+			let translation: any = translations[language];
+			for (const key of keys) {
+				translation = translation?.[key];
+				if (translation === undefined) {
+					let fallback: any = translations.en;
+					for (const k of keys) {
+						fallback = fallback?.[k];
+						if (fallback === undefined) break;
+					}
+					translation = fallback;
+					break;
+				}
+			}
+			if (typeof translation !== "string") {
+				return path;
+			}
+			if (params) {
+				return Object.entries(params).reduce(
+					(result, [key, value]) => result.replace(`{{${key}}}`, String(value)),
+					translation,
+				);
+			}
+			return translation;
+		},
+		[language],
+	);
+	return { t, language };
 }
 </file>
 
@@ -826,97 +994,79 @@ const styles = StyleSheet.create({
 });
 </file>
 
-<file path="apps/merchant-app/components/dashboard/DashboardHeader.tsx">
+<file path="apps/merchant-app/components/dashboard/StatsGrid.tsx">
 import React from "react";
-import { View, Pressable, StyleSheet } from "react-native";
-import Animated from "react-native-reanimated";
+import Animated, {
+	FadeInUp,
+	FadeOutDown,
+	LinearTransition,
+} from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
-import { Text } from "@/components/ui";
+import { Box, Text } from "@/components/ui";
 import { AppTheme } from "@/hooks/useTheme";
-import { EdgeInsets } from "react-native-safe-area-context";
-interface DashboardHeaderProps {
-	theme: AppTheme;
-	insets: EdgeInsets;
-	animatedStyle: any;
-	currentDateString: string;
-	onSettingsPress: () => void;
-	headerHeight: number;
+interface StatItem {
+	title: string;
+	value: string | number;
+	icon: string;
 }
-export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
-	theme,
-	insets,
-	animatedStyle,
-	currentDateString,
-	onSettingsPress,
-	headerHeight,
-}) => (
-	<Animated.View
-		style={[
-			localStyles.headerBase,
-			{
-				backgroundColor: theme.colors.background,
-				paddingTop: insets.top,
-				height: headerHeight + insets.top,
-				paddingHorizontal: theme.spacing.md,
-				paddingBottom: theme.spacing.sm,
-			},
-			animatedStyle,
-		]}
-	>
-		<View style={localStyles.headerContent}>
-			<View>
-				<Text
-					variant="xs"
-					color="textSecondary"
-					weight="medium"
-					style={localStyles.headerTitleSmall}
-				>
-					Dashboard
-				</Text>
-				<Text variant="xl" weight="semibold">
-					{currentDateString}
-				</Text>
-			</View>
-			<Pressable
-				onPress={onSettingsPress}
-				style={({ pressed }) => [
-					localStyles.iconButton,
-					pressed && { backgroundColor: theme.colors.overlay },
-				]}
-				android_ripple={{ color: theme.colors.overlay, borderless: true }}
+interface StatsGridProps {
+	stats: StatItem[];
+	theme: AppTheme;
+}
+const AnimatedBox = Animated.createAnimatedComponent(Box);
+export const StatsGrid: React.FC<StatsGridProps> = React.memo(
+	({ stats, theme }) => {
+		return (
+			<AnimatedBox
+				layout={LinearTransition.delay(100).duration(300)}
+				row
+				marginHorizontal="md"
+				marginBottom="lg"
 			>
-				<Ionicons
-					name="settings-outline"
-					size={theme.sizes.iconMd}
-					color={theme.colors.textSecondary}
-				/>
-			</Pressable>
-		</View>
-	</Animated.View>
+				{stats.map((stat, index) => (
+					<AnimatedBox
+						key={stat.title}
+						entering={FadeInUp.duration(300)}
+						exiting={FadeOutDown.duration(200)}
+						layout={LinearTransition.duration(300)}
+						flex={1}
+						marginRight={index < stats.length - 1 ? "sm" : undefined}
+					>
+						<Box bg="card" padding="md" rounded="lg" elevation="small">
+							<Box row alignCenter marginBottom="sm">
+								<Box
+									style={[
+										{
+											width: theme.sizes.buttonSm,
+											height: theme.sizes.buttonSm,
+											alignItems: "center",
+											justifyContent: "center",
+										},
+										{ borderRadius: theme.radius.sm },
+									]}
+									bg="primaryLight"
+									marginRight="sm"
+								>
+									<Ionicons
+										name={stat.icon as any}
+										size={theme.sizes.iconSm}
+										color={theme.colors.primary}
+									/>
+								</Box>
+								<Text variant="sm" color="textSecondary">
+									{stat.title}
+								</Text>
+							</Box>
+							<Text variant="xl" weight="bold">
+								{stat.value}
+							</Text>
+						</Box>
+					</AnimatedBox>
+				))}
+			</AnimatedBox>
+		);
+	},
 );
-const localStyles = StyleSheet.create({
-	headerBase: {
-		position: "absolute",
-		top: 0,
-		left: 0,
-		right: 0,
-		zIndex: 100,
-	},
-	headerContent: {
-		flex: 1,
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-	},
-	headerTitleSmall: {
-		textTransform: "uppercase",
-		letterSpacing: 0.5,
-	},
-	iconButton: {
-		padding: 8,
-		borderRadius: 20,
-	},
-});
 </file>
 
 <file path="apps/merchant-app/components/layout/index.ts">
@@ -1417,128 +1567,6 @@ const localStyles = StyleSheet.create({
 });
 </file>
 
-<file path="apps/merchant-app/components/ui/Text.tsx">
-import React from "react";
-import {
-	Text as RNText,
-	TextProps as RNTextProps,
-	StyleSheet,
-	StyleProp,
-	TextStyle,
-	I18nManager,
-} from "react-native";
-import {
-	ColorToken,
-	FontSizeVariant,
-	FontWeightVariant,
-	SpacingToken,
-	useTheme,
-} from "@/hooks/useTheme";
-interface TextProps extends RNTextProps {
-	variant?: FontSizeVariant;
-	weight?: FontWeightVariant;
-	color?: ColorToken | string;
-	center?: boolean;
-	muted?: boolean;
-	marginBottom?: SpacingToken | number;
-	marginTop?: SpacingToken | number;
-	marginLeft?: SpacingToken | number;
-	marginRight?: SpacingToken | number;
-	marginStart?: SpacingToken | number;
-	marginEnd?: SpacingToken | number;
-	marginHorizontal?: SpacingToken | number;
-	marginVertical?: SpacingToken | number;
-	margin?: SpacingToken | number;
-	style?: StyleProp<TextStyle>;
-}
-export const Text: React.FC<TextProps> = ({
-	children,
-	variant = "md",
-	weight = "regular",
-	color,
-	center,
-	muted,
-	marginBottom,
-	marginTop,
-	marginLeft,
-	marginRight,
-	marginStart,
-	marginEnd,
-	marginHorizontal,
-	marginVertical,
-	margin,
-	style,
-	...props
-}) => {
-	const theme = useTheme();
-	const isRTL = I18nManager.isRTL;
-	const getSpacingValue = (
-		value: SpacingToken | number | undefined,
-	): number | undefined => {
-		if (value === undefined) return undefined;
-		return typeof value === "number" ? value : theme.spacing[value];
-	};
-	const getColorValue = (
-		colorProp: ColorToken | string | undefined,
-	): string => {
-		if (colorProp === undefined) {
-			return muted ? theme.colors.textSecondary : theme.colors.text;
-		}
-		if (typeof colorProp === "string" && colorProp in theme.colors) {
-			return theme.colors[colorProp as ColorToken];
-		}
-		return colorProp;
-	};
-	const finalMarginLeft =
-		marginStart !== undefined
-			? isRTL
-				? undefined
-				: getSpacingValue(marginStart)
-			: getSpacingValue(marginLeft);
-	const finalMarginRight =
-		marginEnd !== undefined
-			? isRTL
-				? undefined
-				: getSpacingValue(marginEnd)
-			: getSpacingValue(marginRight);
-	const finalMarginStart =
-		marginStart !== undefined
-			? isRTL
-				? getSpacingValue(marginStart)
-				: undefined
-			: undefined;
-	const finalMarginEnd =
-		marginEnd !== undefined
-			? isRTL
-				? getSpacingValue(marginEnd)
-				: undefined
-			: undefined;
-	const styles = StyleSheet.create({
-		text: {
-			fontSize: theme.typography.sizes[variant],
-			fontWeight: theme.typography.weights[weight],
-			color: getColorValue(color),
-			textAlign: center ? "center" : undefined,
-			marginBottom: getSpacingValue(marginBottom),
-			marginTop: getSpacingValue(marginTop),
-			marginLeft: finalMarginLeft,
-			marginRight: finalMarginRight,
-			marginStart: finalMarginStart,
-			marginEnd: finalMarginEnd,
-			marginHorizontal: getSpacingValue(marginHorizontal),
-			marginVertical: getSpacingValue(marginVertical),
-			margin: getSpacingValue(margin),
-		},
-	});
-	return (
-		<RNText style={[styles.text, style]} {...props}>
-			{children}
-		</RNText>
-	);
-};
-export default Text;
-</file>
-
 <file path="apps/merchant-app/hooks/useTheme.ts">
 import { useColorScheme } from "react-native";
 import { theme, ThemeMode } from "@/constants/theme";
@@ -1643,6 +1671,104 @@ export const AlertRow: React.FC<AlertRowProps> = React.memo(
 					color={theme.colors.textMuted}
 				/>
 			</Pressable>
+		);
+	},
+);
+</file>
+
+<file path="apps/merchant-app/components/dashboard/DashboardHeader.tsx">
+import { Text } from "@/components/ui";
+import { AppTheme } from "@/hooks/useTheme";
+import { Ionicons } from "@expo/vector-icons";
+import React, { memo } from "react";
+import { Pressable, View } from "react-native";
+import Animated from "react-native-reanimated";
+import { EdgeInsets } from "react-native-safe-area-context";
+import { useTranslation } from "@/hooks/useTranslation";
+interface DashboardHeaderProps {
+	theme: AppTheme;
+	insets: EdgeInsets;
+	animatedStyle: any;
+	currentDateString: string;
+	onSettingsPress: () => void;
+	headerHeight: number;
+}
+export const DashboardHeader: React.FC<DashboardHeaderProps> = memo(
+	({
+		theme,
+		insets,
+		animatedStyle,
+		currentDateString,
+		onSettingsPress,
+		headerHeight,
+	}) => {
+		const { t } = useTranslation();
+		return (
+			<Animated.View
+				style={[
+					{
+						position: "absolute",
+						top: 0,
+						left: 0,
+						right: 0,
+						zIndex: 100,
+					},
+					{
+						backgroundColor: theme.colors.background,
+						paddingTop: insets.top,
+						height: headerHeight + insets.top,
+						paddingHorizontal: theme.spacing.md,
+						paddingBottom: theme.spacing.sm,
+					},
+					animatedStyle,
+				]}
+			>
+				<View
+					style={{
+						flex: 1,
+						flexDirection: "row",
+						alignItems: "center",
+						justifyContent: "space-between",
+					}}
+				>
+					<View>
+						<Text
+							variant="xs"
+							color="textSecondary"
+							weight="medium"
+							style={{
+								textTransform: "uppercase",
+								letterSpacing: 0.5,
+							}}
+						>
+							{t("dashboard.title")}
+						</Text>
+						<Text variant="xl" weight="semibold">
+							{currentDateString}
+						</Text>
+					</View>
+					<Pressable
+						onPress={onSettingsPress}
+						style={({ pressed }) => [
+							{
+								padding: 8,
+								borderRadius: 20,
+							},
+							pressed && { backgroundColor: theme.colors.overlay },
+						]}
+						android_ripple={{ color: theme.colors.overlay, borderless: true }}
+						accessible={true}
+						accessibilityLabel={t("common.more")}
+						accessibilityRole="button"
+					>
+						<Ionicons
+							name="settings-outline"
+							size={theme.sizes.iconMd}
+							color={theme.colors.textSecondary}
+						/>
+					</Pressable>
+				</View>
+			</Animated.View>
 		);
 	},
 );
@@ -2087,21 +2213,149 @@ export const Badge: React.FC<BadgeProps> = ({
 };
 </file>
 
-<file path="apps/merchant-app/components/ui/Box.tsx">
-import React from "react";
+<file path="apps/merchant-app/components/ui/Text.tsx">
 import {
-	View,
-	ViewProps,
-	StyleSheet,
+	ColorToken,
+	FontSizeVariant,
+	FontWeightVariant,
+	SpacingToken,
+	useTheme,
+} from "@/hooks/useTheme";
+import React, { memo } from "react";
+import {
+	I18nManager,
+	Text as RNText,
+	TextProps as RNTextProps,
 	StyleProp,
-	ViewStyle,
+	StyleSheet,
+	TextStyle,
+} from "react-native";
+interface TextProps extends RNTextProps {
+	variant?: FontSizeVariant;
+	weight?: FontWeightVariant;
+	color?: ColorToken | string;
+	center?: boolean;
+	muted?: boolean;
+	marginBottom?: SpacingToken | number;
+	marginTop?: SpacingToken | number;
+	marginLeft?: SpacingToken | number;
+	marginRight?: SpacingToken | number;
+	marginStart?: SpacingToken | number;
+	marginEnd?: SpacingToken | number;
+	marginHorizontal?: SpacingToken | number;
+	marginVertical?: SpacingToken | number;
+	margin?: SpacingToken | number;
+	style?: StyleProp<TextStyle>;
+}
+export const Text: React.FC<TextProps> = memo(
+	({
+		children,
+		variant = "md",
+		weight = "regular",
+		color,
+		center,
+		muted,
+		marginBottom,
+		marginTop,
+		marginLeft,
+		marginRight,
+		marginStart,
+		marginEnd,
+		marginHorizontal,
+		marginVertical,
+		margin,
+		style,
+		...props
+	}) => {
+		const theme = useTheme();
+		const isRTL = I18nManager.isRTL;
+		const getSpacingValue = (
+			value: SpacingToken | number | undefined,
+		): number | undefined => {
+			if (value === undefined) return undefined;
+			return typeof value === "number" ? value : theme.spacing[value];
+		};
+		const getColorValue = (
+			colorProp: ColorToken | string | undefined,
+		): string => {
+			if (colorProp === undefined) {
+				return muted ? theme.colors.textSecondary : theme.colors.text;
+			}
+			if (typeof colorProp === "string" && colorProp in theme.colors) {
+				return theme.colors[colorProp as ColorToken];
+			}
+			return colorProp;
+		};
+		const finalMarginLeft =
+			marginStart !== undefined
+				? isRTL
+					? undefined
+					: getSpacingValue(marginStart)
+				: getSpacingValue(marginLeft);
+		const finalMarginRight =
+			marginEnd !== undefined
+				? isRTL
+					? undefined
+					: getSpacingValue(marginEnd)
+				: getSpacingValue(marginRight);
+		const finalMarginStart =
+			marginStart !== undefined
+				? isRTL
+					? getSpacingValue(marginStart)
+					: undefined
+				: undefined;
+		const finalMarginEnd =
+			marginEnd !== undefined
+				? isRTL
+					? getSpacingValue(marginEnd)
+					: undefined
+				: undefined;
+		const styles = StyleSheet.create({
+			text: {
+				fontSize: theme.typography.sizes[variant],
+				fontWeight: theme.typography.weights[weight],
+				color: getColorValue(color),
+				textAlign: center ? "center" : undefined,
+				marginBottom: getSpacingValue(marginBottom),
+				marginTop: getSpacingValue(marginTop),
+				marginLeft: finalMarginLeft,
+				marginRight: finalMarginRight,
+				marginStart: finalMarginStart,
+				marginEnd: finalMarginEnd,
+				marginHorizontal: getSpacingValue(marginHorizontal),
+				marginVertical: getSpacingValue(marginVertical),
+				margin: getSpacingValue(margin),
+			},
+		});
+		return (
+			<RNText style={[styles.text, style]} {...props}>
+				{children}
+			</RNText>
+		);
+	},
+);
+export default Text;
+</file>
+
+<file path=".nvimrc">
+23.11.0
+</file>
+
+<file path="apps/merchant-app/components/ui/Box.tsx">
+import { useTheme } from "@/hooks/useTheme";
+import { ColorToken, RadiusToken, SpacingToken } from "@/hooks/useTheme";
+import React, { memo } from "react";
+import {
 	DimensionValue,
 	FlexAlignType,
-	Pressable,
 	I18nManager,
+	Pressable,
+	StyleProp,
+	StyleSheet,
+	View,
+	ViewProps,
+	ViewStyle,
 } from "react-native";
-import { useTheme } from "@/hooks/useTheme";
-import { SpacingToken, ColorToken, RadiusToken } from "@/hooks/useTheme";
 import Animated from "react-native-reanimated";
 type JustifyContentType =
 	| "flex-start"
@@ -2148,193 +2402,191 @@ interface BoxProps extends ViewProps {
 	onPress?: () => void;
 	activeOpacity?: number;
 }
-export const Box: React.FC<BoxProps> = ({
-	children,
-	flex,
-	row,
-	center,
-	alignCenter,
-	paddingTop,
-	alignItems,
-	paddingBottom,
-	justifyCenter,
-	justifyContent,
-	card,
-	padding,
-	margin,
-	marginTop,
-	marginBottom,
-	marginLeft,
-	marginRight,
-	marginStart,
-	marginEnd,
-	marginHorizontal,
-	marginVertical,
-	paddingHorizontal,
-	paddingVertical,
-	paddingLeft,
-	paddingRight,
-	paddingStart,
-	paddingEnd,
-	rounded,
-	width,
-	height,
-	borderWidth,
-	borderColor,
-	bg,
-	elevation,
-	style,
-	onPress,
-	activeOpacity = 0.7,
-	...props
-}) => {
-	const theme = useTheme();
-	const isRTL = I18nManager.isRTL;
-	let finalAlignItems: FlexAlignType | undefined;
-	let finalJustifyContent: JustifyContentType | undefined;
-	if (center) {
-		finalAlignItems = "center";
-		finalJustifyContent = "center";
-	} else {
-		finalAlignItems = alignCenter ? "center" : alignItems;
-		finalJustifyContent = justifyCenter ? "center" : justifyContent;
-	}
-	const getSpacingValue = (
-		value: SpacingToken | number | undefined,
-	): number | undefined => {
-		if (value === undefined) return undefined;
-		return typeof value === "number" ? value : theme.spacing[value];
-	};
-	const getRadiusValue = (
-		value: RadiusToken | number | undefined,
-	): number | undefined => {
-		if (value === undefined) return undefined;
-		return typeof value === "number" ? value : theme.radius[value];
-	};
-	const getColorValue = (
-		color: ColorToken | string | undefined,
-	): string | undefined => {
-		if (color === undefined) return undefined;
-		if (typeof color === "string" && color in theme.colors) {
-			return theme.colors[color as ColorToken];
+export const Box: React.FC<BoxProps> = memo(
+	({
+		children,
+		flex,
+		row,
+		center,
+		alignCenter,
+		paddingTop,
+		alignItems,
+		paddingBottom,
+		justifyCenter,
+		justifyContent,
+		card,
+		padding,
+		margin,
+		marginTop,
+		marginBottom,
+		marginLeft,
+		marginRight,
+		marginStart,
+		marginEnd,
+		marginHorizontal,
+		marginVertical,
+		paddingHorizontal,
+		paddingVertical,
+		paddingLeft,
+		paddingRight,
+		paddingStart,
+		paddingEnd,
+		rounded,
+		width,
+		height,
+		borderWidth,
+		borderColor,
+		bg,
+		elevation,
+		style,
+		onPress,
+		activeOpacity = 0.7,
+		...props
+	}) => {
+		const theme = useTheme();
+		const isRTL = I18nManager.isRTL;
+		let finalAlignItems: FlexAlignType | undefined;
+		let finalJustifyContent: JustifyContentType | undefined;
+		if (center) {
+			finalAlignItems = "center";
+			finalJustifyContent = "center";
+		} else {
+			finalAlignItems = alignCenter ? "center" : alignItems;
+			finalJustifyContent = justifyCenter ? "center" : justifyContent;
 		}
-		return color;
-	};
-	const getElevation = (level?: "none" | "small" | "medium" | "large") => {
-		if (!level || level === "none") return {};
-		const shadowStyle = theme.shadows[level];
-		return { ...shadowStyle, shadowColor: theme.colors.shadow };
-	};
-	const finalMarginLeft =
-		marginStart !== undefined
-			? isRTL
-				? undefined
-				: getSpacingValue(marginStart)
-			: getSpacingValue(marginLeft);
-	const finalMarginRight =
-		marginEnd !== undefined
-			? isRTL
-				? undefined
-				: getSpacingValue(marginEnd)
-			: getSpacingValue(marginRight);
-	const finalMarginStart =
-		marginStart !== undefined
-			? isRTL
-				? getSpacingValue(marginStart)
-				: undefined
-			: undefined;
-	const finalMarginEnd =
-		marginEnd !== undefined
-			? isRTL
-				? getSpacingValue(marginEnd)
-				: undefined
-			: undefined;
-	const finalPaddingLeft =
-		paddingStart !== undefined
-			? isRTL
-				? undefined
-				: getSpacingValue(paddingStart)
-			: getSpacingValue(paddingLeft);
-	const finalPaddingRight =
-		paddingEnd !== undefined
-			? isRTL
-				? undefined
-				: getSpacingValue(paddingEnd)
-			: getSpacingValue(paddingRight);
-	const finalPaddingStart =
-		paddingStart !== undefined
-			? isRTL
-				? getSpacingValue(paddingStart)
-				: undefined
-			: undefined;
-	const finalPaddingEnd =
-		paddingEnd !== undefined
-			? isRTL
-				? getSpacingValue(paddingEnd)
-				: undefined
-			: undefined;
-	const styles = StyleSheet.create({
-		box: {
-			flex: flex,
-			flexDirection: row ? (isRTL ? "row-reverse" : "row") : "column",
-			alignItems: finalAlignItems,
-			justifyContent: finalJustifyContent,
-			padding: getSpacingValue(padding),
-			margin: getSpacingValue(margin),
-			marginTop: getSpacingValue(marginTop),
-			marginBottom: getSpacingValue(marginBottom),
-			paddingBottom: getSpacingValue(paddingBottom),
-			paddingTop: getSpacingValue(paddingTop),
-			marginLeft: finalMarginLeft,
-			marginRight: finalMarginRight,
-			marginStart: finalMarginStart,
-			marginEnd: finalMarginEnd,
-			marginHorizontal: getSpacingValue(marginHorizontal),
-			marginVertical: getSpacingValue(marginVertical),
-			paddingHorizontal: getSpacingValue(paddingHorizontal),
-			paddingVertical: getSpacingValue(paddingVertical),
-			paddingLeft: finalPaddingLeft,
-			paddingRight: finalPaddingRight,
-			paddingStart: finalPaddingStart,
-			paddingEnd: finalPaddingEnd,
-			borderRadius: getRadiusValue(rounded),
-			width,
-			height,
-			borderWidth,
-			borderColor: getColorValue(borderColor),
-			backgroundColor: card ? theme.colors.card : getColorValue(bg),
-			...(card ? getElevation("small") : {}),
-			...(elevation ? getElevation(elevation) : {}),
-		},
-	});
-	if (onPress) {
+		const getSpacingValue = (
+			value: SpacingToken | number | undefined,
+		): number | undefined => {
+			if (value === undefined) return undefined;
+			return typeof value === "number" ? value : theme.spacing[value];
+		};
+		const getRadiusValue = (
+			value: RadiusToken | number | undefined,
+		): number | undefined => {
+			if (value === undefined) return undefined;
+			return typeof value === "number" ? value : theme.radius[value];
+		};
+		const getColorValue = (
+			color: ColorToken | string | undefined,
+		): string | undefined => {
+			if (color === undefined) return undefined;
+			if (typeof color === "string" && color in theme.colors) {
+				return theme.colors[color as ColorToken];
+			}
+			return color;
+		};
+		const getElevation = (level?: "none" | "small" | "medium" | "large") => {
+			if (!level || level === "none") return {};
+			const shadowStyle = theme.shadows[level];
+			return { ...shadowStyle, shadowColor: theme.colors.shadow };
+		};
+		const finalMarginLeft =
+			marginStart !== undefined
+				? isRTL
+					? undefined
+					: getSpacingValue(marginStart)
+				: getSpacingValue(marginLeft);
+		const finalMarginRight =
+			marginEnd !== undefined
+				? isRTL
+					? undefined
+					: getSpacingValue(marginEnd)
+				: getSpacingValue(marginRight);
+		const finalMarginStart =
+			marginStart !== undefined
+				? isRTL
+					? getSpacingValue(marginStart)
+					: undefined
+				: undefined;
+		const finalMarginEnd =
+			marginEnd !== undefined
+				? isRTL
+					? getSpacingValue(marginEnd)
+					: undefined
+				: undefined;
+		const finalPaddingLeft =
+			paddingStart !== undefined
+				? isRTL
+					? undefined
+					: getSpacingValue(paddingStart)
+				: getSpacingValue(paddingLeft);
+		const finalPaddingRight =
+			paddingEnd !== undefined
+				? isRTL
+					? undefined
+					: getSpacingValue(paddingEnd)
+				: getSpacingValue(paddingRight);
+		const finalPaddingStart =
+			paddingStart !== undefined
+				? isRTL
+					? getSpacingValue(paddingStart)
+					: undefined
+				: undefined;
+		const finalPaddingEnd =
+			paddingEnd !== undefined
+				? isRTL
+					? getSpacingValue(paddingEnd)
+					: undefined
+				: undefined;
+		const styles = StyleSheet.create({
+			box: {
+				flex: flex,
+				flexDirection: row ? (isRTL ? "row-reverse" : "row") : "column",
+				alignItems: finalAlignItems,
+				justifyContent: finalJustifyContent,
+				padding: getSpacingValue(padding),
+				margin: getSpacingValue(margin),
+				marginTop: getSpacingValue(marginTop),
+				marginBottom: getSpacingValue(marginBottom),
+				paddingBottom: getSpacingValue(paddingBottom),
+				paddingTop: getSpacingValue(paddingTop),
+				marginLeft: finalMarginLeft,
+				marginRight: finalMarginRight,
+				marginStart: finalMarginStart,
+				marginEnd: finalMarginEnd,
+				marginHorizontal: getSpacingValue(marginHorizontal),
+				marginVertical: getSpacingValue(marginVertical),
+				paddingHorizontal: getSpacingValue(paddingHorizontal),
+				paddingVertical: getSpacingValue(paddingVertical),
+				paddingLeft: finalPaddingLeft,
+				paddingRight: finalPaddingRight,
+				paddingStart: finalPaddingStart,
+				paddingEnd: finalPaddingEnd,
+				borderRadius: getRadiusValue(rounded),
+				width,
+				height,
+				borderWidth,
+				borderColor: getColorValue(borderColor),
+				backgroundColor: card ? theme.colors.card : getColorValue(bg),
+				...(card ? getElevation("small") : {}),
+				...(elevation ? getElevation(elevation) : {}),
+			},
+		});
+		if (onPress) {
+			return (
+				<Pressable
+					onPress={onPress}
+					style={({ pressed }) => [
+						styles.box,
+						{ opacity: pressed ? activeOpacity : 1 },
+						style,
+					]}
+					{...props}
+					android_ripple={{ color: theme.colors.overlay }}
+				>
+					{children}
+				</Pressable>
+			);
+		}
 		return (
-			<Pressable
-				onPress={onPress}
-				style={({ pressed }) => [
-					styles.box,
-					{ opacity: pressed ? activeOpacity : 1 },
-					style,
-				]}
-				{...props}
-				android_ripple={{ color: theme.colors.overlay }}
-			>
+			<View style={[styles.box, style]} {...props}>
 				{children}
-			</Pressable>
+			</View>
 		);
-	}
-	return (
-		<View style={[styles.box, style]} {...props}>
-			{children}
-		</View>
-	);
-};
+	},
+);
 export default Box;
 export const AnimatedBox = Animated.createAnimatedComponent(Box);
-</file>
-
-<file path=".nvimrc">
-23.11.0
 </file>
 
 <file path="apps/merchant-app/constants/theme.ts">
@@ -2561,6 +2813,59 @@ catalogs:
 nodeLinker: hoisted
 onlyBuiltDependencies:
   - '@biomejs/biome'
+</file>
+
+<file path="apps/merchant-app/app/_layout.tsx">
+import { ThemeProvider } from "@react-navigation/native";
+import { useFonts } from "expo-font";
+import { Stack } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
+import { useEffect } from "react";
+import "react-native-reanimated";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { useTheme } from "@/hooks/useTheme";
+import { LogBox } from "react-native";
+LogBox.ignoreLogs([
+	"Sending `onAnimatedValueUpdate` with no listeners registered.",
+]);
+SplashScreen.preventAutoHideAsync();
+export default function RootLayout() {
+	const { isDark, navTheme, colors } = useTheme();
+	const [loaded, error] = useFonts({
+		SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
+	});
+	useEffect(() => {
+		if (error) throw error;
+	}, [error]);
+	useEffect(() => {
+		if (loaded) {
+			SplashScreen.hideAsync();
+		}
+	}, [loaded]);
+	if (!loaded) {
+		return null;
+	}
+	return (
+		<SafeAreaProvider>
+			<ThemeProvider value={navTheme}>
+				<Stack
+					screenOptions={{
+						headerShown: false,
+						animation: "slide_from_right",
+						contentStyle: {
+							backgroundColor: colors.background,
+						},
+					}}
+				>
+					<Stack.Screen name="index" />
+					<Stack.Screen name="+not-found" />
+				</Stack>
+				<StatusBar style={isDark ? "light" : "dark"} />
+			</ThemeProvider>
+		</SafeAreaProvider>
+	);
+}
 </file>
 
 <file path="apps/merchant-app/app/index.tsx">
@@ -2804,6 +3109,11 @@ const HomeScreen: React.FC = () => {
 					paddingTop: HEADER_HEIGHT + insets.top + theme.spacing.md,
 					paddingBottom: insets.bottom + theme.spacing.xxl,
 				}}
+				getItemLayout={(_, index) => ({
+					length: PREP_CARD_WIDTH + theme.spacing.sm,
+					offset: (PREP_CARD_WIDTH + theme.spacing.sm) * index,
+					index,
+				})}
 				renderItem={() => renderHeader()}
 				onScroll={scrollHandler}
 				scrollEventThrottle={16}
@@ -2822,59 +3132,6 @@ const HomeScreen: React.FC = () => {
 	);
 };
 export default HomeScreen;
-</file>
-
-<file path="apps/merchant-app/app/_layout.tsx">
-import { ThemeProvider } from "@react-navigation/native";
-import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
-import * as SplashScreen from "expo-splash-screen";
-import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
-import "react-native-reanimated";
-import { SafeAreaProvider } from "react-native-safe-area-context";
-import { useTheme } from "@/hooks/useTheme";
-import { LogBox } from "react-native";
-LogBox.ignoreLogs([
-	"Sending `onAnimatedValueUpdate` with no listeners registered.",
-]);
-SplashScreen.preventAutoHideAsync();
-export default function RootLayout() {
-	const { isDark, navTheme, colors } = useTheme();
-	const [loaded, error] = useFonts({
-		SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
-	});
-	useEffect(() => {
-		if (error) throw error;
-	}, [error]);
-	useEffect(() => {
-		if (loaded) {
-			SplashScreen.hideAsync();
-		}
-	}, [loaded]);
-	if (!loaded) {
-		return null;
-	}
-	return (
-		<SafeAreaProvider>
-			<ThemeProvider value={navTheme}>
-				<Stack
-					screenOptions={{
-						headerShown: false,
-						animation: "slide_from_right",
-						contentStyle: {
-							backgroundColor: colors.background,
-						},
-					}}
-				>
-					<Stack.Screen name="index" />
-					<Stack.Screen name="+not-found" />
-				</Stack>
-				<StatusBar style={isDark ? "light" : "dark"} />
-			</ThemeProvider>
-		</SafeAreaProvider>
-	);
-}
 </file>
 
 <file path=".gitignore">

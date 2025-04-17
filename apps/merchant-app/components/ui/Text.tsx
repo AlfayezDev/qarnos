@@ -7,13 +7,12 @@ import {
 } from "@/hooks/useTheme";
 import React, { memo } from "react";
 import {
-	I18nManager,
 	Text as RNText,
 	TextProps as RNTextProps,
 	StyleProp,
-	StyleSheet,
 	TextStyle,
 } from "react-native";
+
 interface TextProps extends RNTextProps {
 	variant?: FontSizeVariant;
 	weight?: FontWeightVariant;
@@ -22,15 +21,22 @@ interface TextProps extends RNTextProps {
 	muted?: boolean;
 	marginBottom?: SpacingToken | number;
 	marginTop?: SpacingToken | number;
-	marginLeft?: SpacingToken | number;
-	marginRight?: SpacingToken | number;
 	marginStart?: SpacingToken | number;
 	marginEnd?: SpacingToken | number;
 	marginHorizontal?: SpacingToken | number;
-	marginVertical?: SpacingToken | number; // Added marginVertical
+	marginVertical?: SpacingToken | number;
 	margin?: SpacingToken | number;
+	paddingStart?: SpacingToken | number;
+	paddingEnd?: SpacingToken | number;
+	paddingHorizontal?: SpacingToken | number;
+	paddingVertical?: SpacingToken | number;
+	paddingTop?: SpacingToken | number;
+	paddingBottom?: SpacingToken | number;
+	padding?: SpacingToken | number;
 	style?: StyleProp<TextStyle>;
+	align?: TextStyle["textAlign"];
 }
+
 export const Text: React.FC<TextProps> = memo(
 	({
 		children,
@@ -41,24 +47,31 @@ export const Text: React.FC<TextProps> = memo(
 		muted,
 		marginBottom,
 		marginTop,
-		marginLeft,
-		marginRight,
 		marginStart,
 		marginEnd,
 		marginHorizontal,
-		marginVertical, // Added marginVertical
+		marginVertical,
 		margin,
+		paddingStart,
+		paddingEnd,
+		paddingHorizontal,
+		paddingVertical,
+		paddingTop,
+		paddingBottom,
+		padding,
 		style,
+		align,
 		...props
 	}) => {
 		const theme = useTheme();
-		const isRTL = I18nManager.isRTL;
+
 		const getSpacingValue = (
 			value: SpacingToken | number | undefined,
 		): number | undefined => {
 			if (value === undefined) return undefined;
 			return typeof value === "number" ? value : theme.spacing[value];
 		};
+
 		const getColorValue = (
 			colorProp: ColorToken | string | undefined,
 		): string => {
@@ -70,52 +83,37 @@ export const Text: React.FC<TextProps> = memo(
 			}
 			return colorProp;
 		};
-		const finalMarginLeft =
-			marginStart !== undefined
-				? isRTL
-					? undefined
-					: getSpacingValue(marginStart)
-				: getSpacingValue(marginLeft);
-		const finalMarginRight =
-			marginEnd !== undefined
-				? isRTL
-					? undefined
-					: getSpacingValue(marginEnd)
-				: getSpacingValue(marginRight);
-		const finalMarginStart =
-			marginStart !== undefined
-				? isRTL
-					? getSpacingValue(marginStart)
-					: undefined
-				: undefined;
-		const finalMarginEnd =
-			marginEnd !== undefined
-				? isRTL
-					? getSpacingValue(marginEnd)
-					: undefined
-				: undefined;
-		const styles = StyleSheet.create({
-			text: {
-				fontSize: theme.typography.sizes[variant],
-				fontWeight: theme.typography.weights[weight],
-				color: getColorValue(color),
-				textAlign: center ? "center" : undefined,
-				marginBottom: getSpacingValue(marginBottom),
-				marginTop: getSpacingValue(marginTop),
-				marginLeft: finalMarginLeft,
-				marginRight: finalMarginRight,
-				marginStart: finalMarginStart,
-				marginEnd: finalMarginEnd,
-				marginHorizontal: getSpacingValue(marginHorizontal),
-				marginVertical: getSpacingValue(marginVertical), // Added marginVertical
-				margin: getSpacingValue(margin),
-			},
-		});
+
+		// Determine text alignment based on RTL and center props
+		const textAlign = center ? "center" : align; // Let React Native handle text alignment based on RTL
+
+		const textStyle: TextStyle = {
+			fontSize: theme.typography.sizes[variant],
+			fontWeight: theme.typography.weights[weight],
+			color: getColorValue(color),
+			textAlign,
+			marginBottom: getSpacingValue(marginBottom),
+			marginTop: getSpacingValue(marginTop),
+			marginStart: getSpacingValue(marginStart),
+			marginEnd: getSpacingValue(marginEnd),
+			marginHorizontal: getSpacingValue(marginHorizontal),
+			marginVertical: getSpacingValue(marginVertical),
+			margin: getSpacingValue(margin),
+			paddingStart: getSpacingValue(paddingStart),
+			paddingEnd: getSpacingValue(paddingEnd),
+			paddingHorizontal: getSpacingValue(paddingHorizontal),
+			paddingVertical: getSpacingValue(paddingVertical),
+			paddingTop: getSpacingValue(paddingTop),
+			paddingBottom: getSpacingValue(paddingBottom),
+			padding: getSpacingValue(padding),
+		};
+
 		return (
-			<RNText style={[styles.text, style]} {...props}>
+			<RNText style={[textStyle, style]} {...props}>
 				{children}
 			</RNText>
 		);
 	},
 );
+
 export default Text;

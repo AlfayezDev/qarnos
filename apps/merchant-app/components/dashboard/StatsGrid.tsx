@@ -1,24 +1,23 @@
+import { AnimatedBox, Box, Text } from "@/components/ui";
+import { AppTheme } from "@/hooks/useTheme";
+import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import Animated, {
+import {
 	FadeInUp,
 	FadeOutDown,
 	LinearTransition,
 } from "react-native-reanimated";
-import { Ionicons } from "@expo/vector-icons";
-import { Box, Text } from "@/components/ui";
-import { AppTheme } from "@/hooks/useTheme";
 
 interface StatItem {
 	title: string;
 	value: string | number;
 	icon: string;
 }
+
 interface StatsGridProps {
 	stats: StatItem[];
 	theme: AppTheme;
 }
-
-const AnimatedBox = Animated.createAnimatedComponent(Box);
 
 export const StatsGrid: React.FC<StatsGridProps> = React.memo(
 	({ stats, theme }) => {
@@ -28,30 +27,25 @@ export const StatsGrid: React.FC<StatsGridProps> = React.memo(
 				row
 				marginHorizontal="md"
 				marginBottom="lg"
+				gap={"sm"}
 			>
-				{stats.map((stat, index) => (
+				{stats.map((stat) => (
 					<AnimatedBox
 						key={stat.title}
 						entering={FadeInUp.duration(300)}
 						exiting={FadeOutDown.duration(200)}
 						layout={LinearTransition.duration(300)}
 						flex={1}
-						marginRight={index < stats.length - 1 ? "sm" : undefined}
 					>
 						<Box bg="card" padding="md" rounded="lg" elevation="small">
-							<Box row alignCenter marginBottom="sm">
+							<Box row alignCenter marginBottom="sm" gap={"sm"}>
 								<Box
-									style={[
-										{
-											width: theme.sizes.buttonSm,
-											height: theme.sizes.buttonSm,
-											alignItems: "center",
-											justifyContent: "center",
-										},
-										{ borderRadius: theme.radius.sm },
-									]}
+									width={theme.sizes.buttonSm}
+									height={theme.sizes.buttonSm}
+									alignItems="center"
+									justifyContent="center"
+									rounded={"sm"}
 									bg="primaryLight"
-									marginRight="sm"
 								>
 									<Ionicons
 										name={stat.icon as any}

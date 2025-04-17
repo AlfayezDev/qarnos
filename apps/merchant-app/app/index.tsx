@@ -17,6 +17,8 @@ import { StatsGrid } from "@/components/dashboard/StatsGrid";
 import { Tabs } from "@/components/ui/Tabs";
 import { AlertsCard } from "@/components/dashboard/AlertsCard";
 import { Alert, MealPrepSummary, StatItem } from "@/types";
+import { router } from "expo-router";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const TODAY_PREP_SUMMARY: MealPrepSummary[] = [
 	{
@@ -49,26 +51,6 @@ const TODAY_PREP_SUMMARY: MealPrepSummary[] = [
 	},
 ];
 
-const getActivityStats = (tab: string): StatItem[] => {
-	switch (tab) {
-		case "Week":
-			return [
-				{ title: "Active Subs", value: 52, icon: "people-outline" },
-				{ title: "New This Week", value: "+3", icon: "add-circle-outline" },
-			];
-		case "Month":
-			return [
-				{ title: "Active Subs", value: 52, icon: "people-outline" },
-				{ title: "New This Month", value: "+12", icon: "add-circle-outline" },
-			];
-		default:
-			return [
-				{ title: "Active Subs", value: 52, icon: "people-outline" },
-				{ title: "Meals Today", value: 85, icon: "restaurant-outline" },
-			];
-	}
-};
-
 const ALERTS: Alert[] = [
 	{
 		id: 1,
@@ -99,18 +81,64 @@ const PREP_CARD_WIDTH = 170;
 const HomeScreen: React.FC = () => {
 	const theme = useTheme();
 	const insets = useSafeAreaInsets();
+	const { t, language } = useTranslation();
+
 	const [refreshing, setRefreshing] = useState(false);
 	const [selectedTab, setSelectedTab] = useState("Today");
 	const scrollY = useSharedValue(0);
 	const scrollRef = useRef<Animated.FlatList<any>>(null);
-	const tabItems = ["Today", "Week", "Month"];
-	const currentStats = useMemo(
-		() => getActivityStats(selectedTab),
-		[selectedTab],
-	);
+
+	const tabItems = useMemo(() => {
+		return ["Today", "Week", "Month"];
+	}, [t]);
+
+	const currentStats = useMemo(() => {
+		switch (selectedTab) {
+			case "Week":
+				return [
+					{
+						title: t("dashboard.newThisWeek"),
+						value: 52,
+						icon: "people-outline",
+					},
+					{
+						title: t("dashboard.newThisMonth"),
+						value: "+3",
+						icon: "add-circle-outline",
+					},
+				];
+			case "Month":
+				return [
+					{
+						title: t("dashboard.newThisWeek"),
+						value: 52,
+						icon: "people-outline",
+					},
+					{
+						title: t("dashboard.newThisMonth"),
+						value: "+12",
+						icon: "add-circle-outline",
+					},
+				];
+			default:
+				return [
+					{
+						title: t("dashboard.newThisWeek"),
+						value: 52,
+						icon: "people-outline",
+					},
+					{
+						title: t("dashboard.newThisMonth"),
+						value: "+12",
+						icon: "add-circle-outline",
+					},
+				];
+		}
+	}, [selectedTab]);
+
 	const currentDateString = useMemo(
 		() =>
-			new Date().toLocaleDateString(undefined, {
+			new Date().toLocaleDateString(language, {
 				weekday: "long",
 				month: "short",
 				day: "numeric",
@@ -147,7 +175,7 @@ const HomeScreen: React.FC = () => {
 	}, []);
 
 	const handleSettingsPress = useCallback(() => {
-		console.log("Navigate to Settings Screen");
+		router.push("/settings");
 	}, []);
 
 	const scrollHandler = useAnimatedScrollHandler((event) => {
@@ -178,6 +206,7 @@ const HomeScreen: React.FC = () => {
 						selectedTab={selectedTab}
 						onSelectTab={handleSelectTab}
 						theme={theme}
+						labelRender={(tab) => t(`dashboard.${tab.toLowerCase()}`)}
 					/>
 				</Box>
 				<StatsGrid stats={currentStats} theme={theme} key={selectedTab} />
@@ -187,7 +216,7 @@ const HomeScreen: React.FC = () => {
 					marginHorizontal="md"
 					marginBottom="sm"
 				>
-					Today's Prep
+					{t("dashboard.todaysPrep")}
 				</Text>
 				<Animated.View
 					entering={FadeInUp.delay(300).duration(400).springify().damping(15)}
@@ -231,6 +260,8 @@ const HomeScreen: React.FC = () => {
 			handleViewSchedule,
 			handleViewAlert,
 			handleViewAllAlerts,
+			t,
+			tabItems,
 		],
 	);
 

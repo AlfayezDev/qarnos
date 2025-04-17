@@ -6,35 +6,38 @@ const DEFAULT_LANGUAGE: Language = "ar";
 
 export function useLanguage() {
 	const [language, setLanguage] = useState<Language>(DEFAULT_LANGUAGE);
-	const [isLoading, setIsLoading] = useState(true);
 
 	useEffect(() => {
-		// For now, hardcoded to English
-		const savedLanguage: "ar" | "en" = DEFAULT_LANGUAGE;
+		const loadLanguage = async () => {
+			const savedLanguage = DEFAULT_LANGUAGE;
+			if (savedLanguage === "en" || savedLanguage === "ar") {
+				setLanguage(savedLanguage);
 
-		if (savedLanguage && (savedLanguage === "en" || savedLanguage === "ar")) {
-			setLanguage(savedLanguage);
-
-			// Configure RTL based on language
-			const shouldBeRTL = savedLanguage === "ar";
-			if (shouldBeRTL !== I18nManager.isRTL) {
-				I18nManager.forceRTL(shouldBeRTL);
+				const shouldBeRTL = savedLanguage === "ar";
+				if (shouldBeRTL !== I18nManager.isRTL) {
+					I18nManager.forceRTL(shouldBeRTL);
+				} else if (!shouldBeRTL && I18nManager.isRTL) {
+					I18nManager.forceRTL(false);
+				}
 			}
-		}
+		};
 
-		setIsLoading(false);
+		loadLanguage();
 	}, []);
 
-	const changeLanguage = (newLanguage: Language) => {
-		// Will add AsyncStorage later
-		setLanguage(newLanguage);
+	const changeLanguage = async (newLanguage: Language) => {
+		try {
+			setLanguage(newLanguage);
 
-		// Handle RTL direction
-		const shouldBeRTL = newLanguage === "ar";
-		if (shouldBeRTL !== I18nManager.isRTL) {
-			I18nManager.forceRTL(shouldBeRTL);
+			const shouldBeRTL = newLanguage === "ar";
+			if (shouldBeRTL !== I18nManager.isRTL) {
+				I18nManager.allowRTL(shouldBeRTL);
+				I18nManager.forceRTL(shouldBeRTL);
+			}
+		} catch (error) {
+			console.error("Failed to save language setting:", error);
 		}
 	};
 
-	return { language, changeLanguage, isLoading };
+	return { language, changeLanguage };
 }

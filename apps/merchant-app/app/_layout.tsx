@@ -12,36 +12,44 @@ import { LogBox } from "react-native";
 LogBox.ignoreLogs([
 	"Sending `onAnimatedValueUpdate` with no listeners registered.",
 ]);
+
 SplashScreen.preventAutoHideAsync();
+
 export default function RootLayout() {
 	const { isDark, navTheme, colors } = useTheme();
+
 	const [loaded, error] = useFonts({
 		SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
 	});
+
 	useEffect(() => {
 		if (error) throw error;
 	}, [error]);
+
 	useEffect(() => {
 		if (loaded) {
 			SplashScreen.hideAsync();
 		}
 	}, [loaded]);
+
 	if (!loaded) {
 		return null;
 	}
+
 	return (
 		<SafeAreaProvider>
 			<ThemeProvider value={navTheme}>
 				<Stack
 					screenOptions={{
-						headerShown: false, // Default to no header
-						animation: "slide_from_right", // More native animation
+						headerShown: false,
+						animation: "slide_from_right",
 						contentStyle: {
 							backgroundColor: colors.background,
 						},
 					}}
 				>
 					<Stack.Screen name="index" />
+					<Stack.Screen name="settings" />
 					<Stack.Screen name="+not-found" />
 				</Stack>
 				<StatusBar style={isDark ? "light" : "dark"} />

@@ -5,8 +5,8 @@ import React, { memo } from "react";
 import { Pressable, View } from "react-native";
 import Animated from "react-native-reanimated";
 import { EdgeInsets } from "react-native-safe-area-context";
-
 import { useTranslation } from "@/hooks/useTranslation";
+
 interface DashboardHeaderProps {
 	theme: AppTheme;
 	insets: EdgeInsets;
@@ -63,6 +63,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = memo(
 							style={{
 								textTransform: "uppercase",
 								letterSpacing: 0.5,
+								alignSelf: "flex-start",
 							}}
 						>
 							{t("dashboard.title")}
@@ -82,7 +83,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = memo(
 						]}
 						android_ripple={{ color: theme.colors.overlay, borderless: true }}
 						accessible={true}
-						accessibilityLabel={t("common.more")}
+						accessibilityLabel={t("common.settings")}
 						accessibilityRole="button"
 					>
 						<Ionicons

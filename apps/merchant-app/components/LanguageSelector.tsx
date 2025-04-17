@@ -1,85 +1,120 @@
-import React from "react";
-import { View, TouchableOpacity, StyleSheet } from "react-native";
-import { useLanguage } from "@/hooks/useLanguage";
 import { Text } from "@/components/ui/Text";
+import { useLanguage } from "@/hooks/useLanguage";
 import { useTheme } from "@/hooks/useTheme";
+import { useTranslation } from "@/hooks/useTranslation";
+import { Ionicons } from "@expo/vector-icons";
+import React, { memo, useCallback } from "react";
+import { TouchableOpacity, View } from "react-native";
 
-export const LanguageSelector: React.FC = () => {
+export const LanguageSelector: React.FC = memo(() => {
 	const { language, changeLanguage } = useLanguage();
 	const theme = useTheme();
+	const { t } = useTranslation();
+
+	const handleLanguageChange = useCallback((newLanguage: "en" | "ar") => {
+		changeLanguage(newLanguage);
+	}, []);
 
 	return (
-		<View style={styles.container}>
-			<Text variant="md" weight="semibold" marginBottom="md">
-				{language === "en" ? "Language" : "اللغة"}
+		<View style={{ alignItems: "flex-start" }}>
+			<Text align="auto" variant="md" weight="semibold" marginBottom="md">
+				{t("settings.language")}
 			</Text>
-
-			<View style={styles.buttonContainer}>
+			<View
+				style={{
+					flexDirection: "row",
+					justifyContent: "space-between",
+				}}
+			>
 				<TouchableOpacity
-					style={[
-						styles.languageButton,
-						{
-							backgroundColor:
-								language === "en" ? theme.colors.primary : "transparent",
-							borderColor: theme.colors.primary,
-						},
-					]}
-					onPress={() => changeLanguage("en")}
+					style={{
+						flex: 1,
+						margin: theme.spacing.xs,
+						padding: theme.spacing.sm,
+						borderRadius: theme.radius.sm,
+						borderWidth: 1,
+						borderColor: theme.colors.primary,
+						alignItems: "center",
+						justifyContent: "center",
+						backgroundColor:
+							language === "en" ? theme.colors.primary : "transparent",
+					}}
+					onPress={() => handleLanguageChange("en")}
 					accessible={true}
 					accessibilityRole="button"
 					accessibilityLabel="Switch to English"
 				>
-					<Text
-						variant="md"
-						weight="medium"
-						color={language === "en" ? "background" : "primary"}
+					<View
+						style={{
+							flexDirection: "row",
+							alignItems: "center",
+							justifyContent: "center",
+						}}
 					>
-						English
-					</Text>
+						<Ionicons
+							name="globe-outline"
+							size={theme.sizes.iconSm}
+							color={
+								language === "en"
+									? theme.colors.background
+									: theme.colors.primary
+							}
+							style={{ marginRight: theme.spacing.xs }}
+						/>
+						<Text
+							variant="md"
+							weight="medium"
+							color={language === "en" ? "background" : "primary"}
+						>
+							English
+						</Text>
+					</View>
 				</TouchableOpacity>
-
 				<TouchableOpacity
-					style={[
-						styles.languageButton,
-						{
-							backgroundColor:
-								language === "ar" ? theme.colors.primary : "transparent",
-							borderColor: theme.colors.primary,
-						},
-					]}
-					onPress={() => changeLanguage("ar")}
+					style={{
+						flex: 1,
+						margin: theme.spacing.xs,
+						padding: theme.spacing.sm,
+						borderRadius: theme.radius.sm,
+						borderWidth: 1,
+						borderColor: theme.colors.primary,
+						alignItems: "center",
+						justifyContent: "center",
+						backgroundColor:
+							language === "ar" ? theme.colors.primary : "transparent",
+					}}
+					onPress={() => handleLanguageChange("ar")}
 					accessible={true}
 					accessibilityRole="button"
 					accessibilityLabel="Switch to Arabic"
 				>
-					<Text
-						variant="md"
-						weight="medium"
-						color={language === "ar" ? "background" : "primary"}
+					<View
+						style={{
+							flexDirection: "row",
+							alignItems: "center",
+							justifyContent: "center",
+						}}
 					>
-						العربية
-					</Text>
+						<Ionicons
+							name="globe-outline"
+							size={theme.sizes.iconSm}
+							color={
+								language === "ar"
+									? theme.colors.background
+									: theme.colors.primary
+							}
+							style={{ marginRight: theme.spacing.xs }}
+						/>
+						<Text
+							variant="md"
+							weight="medium"
+							color={language === "ar" ? "background" : "primary"}
+						>
+							العربية
+						</Text>
+					</View>
 				</TouchableOpacity>
 			</View>
 		</View>
 	);
-};
-
-const styles = StyleSheet.create({
-	container: {
-		padding: 16,
-	},
-	buttonContainer: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-	},
-	languageButton: {
-		flex: 1,
-		margin: 4,
-		padding: 12,
-		borderRadius: 8,
-		borderWidth: 1,
-		alignItems: "center",
-		justifyContent: "center",
-	},
 });

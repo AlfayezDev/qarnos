@@ -1,6 +1,7 @@
-import { useCallback } from "react";
 import { translations } from "@/constants/i18n";
+import { useCallback } from "react";
 import { useLanguage } from "./useLanguage";
+import { I18nManager } from "react-native";
 
 type TranslationsType = typeof translations.en;
 
@@ -30,6 +31,8 @@ export type TranslationPath = Paths<TranslationsType, 4>;
 
 export function useTranslation() {
 	const { language } = useLanguage();
+
+	const isRTL = I18nManager.isRTL;
 
 	const t = useCallback(
 		(path: string, params?: Record<string, string | number>): string => {
@@ -66,5 +69,5 @@ export function useTranslation() {
 		[language],
 	);
 
-	return { t, language };
+	return { t, language, isRTL };
 }

@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, Pressable, View } from "react-native";
+import { StyleSheet, Pressable, View, I18nManager } from "react-native";
 import Animated, {
 	FadeInUp,
 	FadeOutDown,
@@ -11,6 +11,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { AnimatedBox, Box, Text } from "@/components/ui";
 import { AppTheme } from "@/hooks/useTheme";
 import { Alert } from "@/types";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface AlertsCardProps {
 	alerts: Alert[];
@@ -21,6 +22,7 @@ interface AlertsCardProps {
 
 export const AlertsCard: React.FC<AlertsCardProps> = React.memo(
 	({ alerts, theme, onViewAlert, onViewAllAlerts }) => {
+		const { t } = useTranslation();
 		const hasAlerts = alerts.length > 0;
 
 		return (
@@ -43,7 +45,7 @@ export const AlertsCard: React.FC<AlertsCardProps> = React.memo(
 					paddingTop="md"
 				>
 					<Text variant="lg" weight="semibold">
-						Alerts
+						{t("dashboard.alerts")}
 					</Text>
 					{hasAlerts && (
 						<Animated.View>
@@ -62,13 +64,12 @@ export const AlertsCard: React.FC<AlertsCardProps> = React.memo(
 								]}
 							>
 								<Text variant="sm" color="primary" weight="medium">
-									View all
+									{t("dashboard.viewAll")}
 								</Text>
 							</Pressable>
 						</Animated.View>
 					)}
 				</Box>
-
 				{hasAlerts ? (
 					<Box>
 						{alerts.map((alert, index) => (
@@ -111,10 +112,10 @@ export const AlertsCard: React.FC<AlertsCardProps> = React.memo(
 							/>
 						</Box>
 						<Text color="textSecondary" center>
-							You're all caught up!
+							{t("dashboard.allCaughtUp")}
 						</Text>
 						<Text color="textMuted" variant="sm" center marginTop="xs">
-							No pressing alerts at the moment
+							{t("dashboard.noAlerts")}
 						</Text>
 					</Box>
 				)}
@@ -132,6 +133,7 @@ interface AlertItemProps {
 
 const AlertItem: React.FC<AlertItemProps> = React.memo(
 	({ alert, theme, onPress, isLast = false }) => {
+		const isRTL = I18nManager.isRTL;
 		const iconColor = theme.colors[alert.type];
 		const pressed = useSharedValue(0);
 
@@ -172,7 +174,7 @@ const AlertItem: React.FC<AlertItemProps> = React.memo(
 					onPressIn={handlePressIn}
 					onPressOut={handlePressOut}
 					style={{
-						flexDirection: "row",
+						flexDirection: isRTL ? "row-reverse" : "row",
 						alignItems: "center",
 						padding: theme.spacing.md,
 					}}
@@ -186,6 +188,8 @@ const AlertItem: React.FC<AlertItemProps> = React.memo(
 							alignItems: "center",
 							justifyContent: "center",
 							backgroundColor: theme.colors.primaryLight,
+							marginRight: isRTL ? 0 : theme.spacing.sm,
+							marginLeft: isRTL ? theme.spacing.sm : 0,
 						}}
 					>
 						<Ionicons
@@ -194,8 +198,7 @@ const AlertItem: React.FC<AlertItemProps> = React.memo(
 							color={iconColor}
 						/>
 					</View>
-
-					<Box flex={1} marginLeft="sm">
+					<Box flex={1} marginStart={"sm"}>
 						<Text variant="sm" weight="medium" numberOfLines={1}>
 							{alert.title}
 						</Text>
@@ -209,9 +212,8 @@ const AlertItem: React.FC<AlertItemProps> = React.memo(
 							</Text>
 						)}
 					</Box>
-
 					<Box
-						marginLeft="sm"
+						marginEnd={"sm"}
 						paddingVertical="xs"
 						paddingHorizontal="sm"
 						rounded="xs"
@@ -226,6 +228,12 @@ const AlertItem: React.FC<AlertItemProps> = React.memo(
 							{alert.type.charAt(0).toUpperCase() + alert.type.slice(1)}
 						</Text>
 					</Box>
+					<Ionicons
+						name="chevron-forward"
+						size={theme.sizes.iconSm}
+						color={theme.colors.textMuted}
+						style={{ marginLeft: theme.spacing.sm }}
+					/>
 				</Pressable>
 			</Animated.View>
 		);

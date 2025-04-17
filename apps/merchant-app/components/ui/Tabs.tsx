@@ -1,5 +1,5 @@
 import React from "react";
-import { Pressable, StyleSheet } from "react-native";
+import { Pressable } from "react-native";
 import Animated, { FadeInUp } from "react-native-reanimated";
 import { Box } from "./Box";
 import { Text } from "./Text";
@@ -11,22 +11,26 @@ interface TabsProps {
 	selectedTab: string;
 	onSelectTab: (tab: string) => void;
 	theme: AppTheme;
+	labelRender: (tab: string) => string;
 }
 
 const AnimatedBox = Animated.createAnimatedComponent(Box);
 
 export const Tabs: React.FC<TabsProps> = React.memo(
-	({ tabs, selectedTab, onSelectTab, theme }) => {
+	({ tabs, selectedTab, onSelectTab, theme, labelRender }) => {
 		const handlePress = (tab: string) => {
 			if (tab !== selectedTab) {
 				Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 				onSelectTab(tab);
 			}
 		};
+
 		return (
 			<AnimatedBox
 				entering={FadeInUp.delay(50).duration(400).springify().damping(15)}
-				style={localStyles.tabsContainer}
+				style={{
+					flexDirection: "row",
+				}}
 				bg="backgroundAlt"
 				rounded="md"
 				padding="xs"
@@ -36,10 +40,21 @@ export const Tabs: React.FC<TabsProps> = React.memo(
 					<Pressable
 						key={tab}
 						style={({ pressed }) => [
-							localStyles.tab,
+							{
+								flex: 1,
+								paddingVertical: 8,
+								paddingHorizontal: 12,
+								alignItems: "center",
+								justifyContent: "center",
+							},
 							{ borderRadius: theme.radius.sm },
 							tab === selectedTab && [
-								localStyles.selectedTab,
+								{
+									shadowOffset: { width: 0, height: 1 },
+									shadowOpacity: 0.1,
+									shadowRadius: 2,
+									elevation: 2,
+								},
 								{
 									backgroundColor: theme.colors.card,
 									shadowColor: theme.colors.shadow,
@@ -55,7 +70,7 @@ export const Tabs: React.FC<TabsProps> = React.memo(
 							weight={tab === selectedTab ? "semibold" : "medium"}
 							color={tab === selectedTab ? "primary" : "textSecondary"}
 						>
-							{tab}
+							{labelRender(tab)}
 						</Text>
 					</Pressable>
 				))}
@@ -63,20 +78,3 @@ export const Tabs: React.FC<TabsProps> = React.memo(
 		);
 	},
 );
-
-const localStyles = StyleSheet.create({
-	tabsContainer: { flexDirection: "row" },
-	tab: {
-		flex: 1,
-		paddingVertical: 8,
-		paddingHorizontal: 12,
-		alignItems: "center",
-		justifyContent: "center",
-	},
-	selectedTab: {
-		shadowOffset: { width: 0, height: 1 },
-		shadowOpacity: 0.1,
-		shadowRadius: 2,
-		elevation: 2,
-	},
-});

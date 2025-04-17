@@ -3,7 +3,8 @@ import { StyleSheet, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Box, Text, Badge } from "@/components/ui";
 import { AppTheme } from "@/hooks/useTheme";
-import { MealPrepSummary } from "@/types"; // Assuming MealPrepSummary type is defined elsewhere
+import { MealPrepSummary } from "@/types";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface TodayPrepCardProps {
 	summary: MealPrepSummary;
@@ -12,19 +13,25 @@ interface TodayPrepCardProps {
 }
 
 const MAX_MEALS_TO_SHOW = 3;
-const PREP_CARD_WIDTH = 170;
+const PREP_CARD_WIDTH = 180;
 
 export const TodayPrepCard: React.FC<TodayPrepCardProps> = React.memo(
 	({ summary, theme, onPress }) => {
+		const { t } = useTranslation();
+
 		const periodIcons = {
 			Breakfast: "cafe-outline",
 			Lunch: "restaurant-outline",
 			Dinner: "fast-food-outline",
 		};
+
 		const periodColors: Record<
 			"Breakfast" | "Lunch" | "Dinner",
 			"info" | "primary" | "error"
 		> = { Breakfast: "info", Lunch: "primary", Dinner: "error" };
+
+		const translatedPeriod = t(`periods.${summary.period.toLowerCase()}`);
+
 		return (
 			<Pressable
 				onPress={onPress}
@@ -46,15 +53,22 @@ export const TodayPrepCard: React.FC<TodayPrepCardProps> = React.memo(
 					]}
 					elevation="small"
 				>
-					<Box row alignCenter marginBottom="sm">
+					<Box
+						row
+						alignCenter
+						marginBottom="sm"
+						style={{ flexDirection: "row" }}
+					>
 						<Ionicons
 							name={periodIcons[summary.period] as any}
 							size={theme.sizes.iconSm}
 							color={theme.colors[periodColors[summary.period]]}
-							style={{ marginRight: theme.spacing.sm }}
+							style={{
+								marginEnd: theme.spacing.sm,
+							}}
 						/>
 						<Text variant="md" weight="semibold">
-							{summary.period}
+							{translatedPeriod}
 						</Text>
 					</Box>
 					<Text
@@ -62,8 +76,9 @@ export const TodayPrepCard: React.FC<TodayPrepCardProps> = React.memo(
 						weight="medium"
 						color="textSecondary"
 						marginBottom="xs"
+						style={{ alignSelf: "flex-start" }}
 					>
-						Prep List:
+						{t("dashboard.prepList")}
 					</Text>
 					<Box style={localStyles.prepListContainer}>
 						{summary.mealsToPrep.slice(0, MAX_MEALS_TO_SHOW).map((meal) => (
@@ -72,11 +87,15 @@ export const TodayPrepCard: React.FC<TodayPrepCardProps> = React.memo(
 								row
 								justifyContent="space-between"
 								paddingVertical={theme.spacing.xs / 1.5}
+								style={{ flexDirection: "row" }}
 							>
 								<Text
 									variant="sm"
 									numberOfLines={1}
-									style={{ flexShrink: 1, marginRight: theme.spacing.sm }}
+									style={{
+										flexShrink: 1,
+										marginEnd: theme.spacing.sm,
+									}}
 								>
 									{meal.name}
 								</Text>
@@ -91,17 +110,13 @@ export const TodayPrepCard: React.FC<TodayPrepCardProps> = React.memo(
 						justifyContent="space-between"
 						alignItems="flex-end"
 						paddingTop="sm"
+						style={{ flexDirection: "row" }}
 					>
 						<Badge
-							text={`${summary.totalMeals} Total`}
+							text={`${summary.totalMeals} ${t("common.total")}`}
 							variant={periodColors[summary.period]}
 							size="sm"
 						/>
-						{summary.mealsToPrep.length > MAX_MEALS_TO_SHOW && (
-							<Text variant="xs" color="textMuted">
-								+ {summary.mealsToPrep.length - MAX_MEALS_TO_SHOW} more
-							</Text>
-						)}
 					</Box>
 				</Box>
 			</Pressable>
