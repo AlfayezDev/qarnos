@@ -10,7 +10,8 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.alfayez.merchant-app"
+      "bundleIdentifier": "com.alfayez.merchant-app",
+      "appleTeamId": "RQAW599SMY"
     },
     "android": {
       "adaptiveIcon": {

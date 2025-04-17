@@ -1,31 +1,35 @@
 This file is a merged representation of a subset of the codebase, containing files not matching ignore patterns, combined into a single document by Repomix.
 The content has been processed where comments have been removed, empty lines have been removed.
 
-# File Summary
+<file_summary>
+This section contains a summary of this file.
 
-## Purpose
+<purpose>
 This file contains a packed representation of the entire repository's contents.
 It is designed to be easily consumable by AI systems for analysis, code review,
 or other automated processes.
+</purpose>
 
-## File Format
+<file_format>
 The content is organized as follows:
 1. This summary section
 2. Repository information
 3. Directory structure
-4. Multiple file entries, each consisting of:
-  a. A header with the file path (## File: path/to/file)
-  b. The full contents of the file in a code block
+4. Repository files, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
 
-## Usage Guidelines
+<usage_guidelines>
 - This file should be treated as read-only. Any changes should be made to the
   original repository files, not this packed version.
 - When processing this file, use the file path to distinguish
   between different files in the repository.
 - Be aware that this file may contain sensitive information. Handle it with
   the same level of security as you would the original repository.
+</usage_guidelines>
 
-## Notes
+<notes>
 - Some files may have been excluded based on .gitignore rules and Repomix's configuration
 - Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
 - Files matching these patterns are excluded: **/*.log, tmp/, **/Illustrations/**, **/*.json, **/Localization.ts, **/SVGS/**, **/generated/**
@@ -34,11 +38,15 @@ The content is organized as follows:
 - Code comments have been removed from supported file types
 - Empty lines have been removed from all files
 - Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
 
-## Additional Info
+<additional_info>
 
-# Directory Structure
-```
+</additional_info>
+
+</file_summary>
+
+<directory_structure>
 apps/
   merchant-app/
     app/
@@ -81,12 +89,12 @@ apps/
 .npmrc
 .nvimrc
 pnpm-workspace.yaml
-```
+</directory_structure>
 
-# Files
+<files>
+This section contains the contents of the repository's files.
 
-## File: apps/merchant-app/components/dashboard/ActivityCard.tsx
-```typescript
+<file path="apps/merchant-app/components/dashboard/ActivityCard.tsx">
 import React from "react";
 import { StyleSheet } from "react-native";
 import Animated, { FadeInUp, FadeOutDown } from "react-native-reanimated";
@@ -185,10 +193,9 @@ export const ActivityCard: React.FC<ActivityCardProps> = React.memo(
 const localStyles = StyleSheet.create({
 	activityCard: {},
 });
-```
+</file>
 
-## File: apps/merchant-app/components/dashboard/AlertRow.tsx
-```typescript
+<file path="apps/merchant-app/components/dashboard/AlertRow.tsx">
 import React from "react";
 import { Pressable, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -258,10 +265,9 @@ const localStyles = StyleSheet.create({
 		paddingVertical: 12,
 	},
 });
-```
+</file>
 
-## File: apps/merchant-app/components/dashboard/DashboardHeader.tsx
-```typescript
+<file path="apps/merchant-app/components/dashboard/DashboardHeader.tsx">
 import React from "react";
 import { View, Pressable, StyleSheet } from "react-native";
 import Animated from "react-native-reanimated";
@@ -340,10 +346,9 @@ const localStyles = StyleSheet.create({
 	headerTitleSmall: { textTransform: "uppercase", letterSpacing: 0.5 },
 	iconButton: { padding: 8, borderRadius: 20 },
 });
-```
+</file>
 
-## File: apps/merchant-app/components/dashboard/PrepCard.tsx
-```typescript
+<file path="apps/merchant-app/components/dashboard/PrepCard.tsx">
 import React from "react";
 import { StyleSheet, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -456,10 +461,9 @@ const localStyles = StyleSheet.create({
 	prepCard: { padding: 16, minHeight: 170, justifyContent: "space-between" },
 	prepListContainer: { marginTop: 4, flexGrow: 1 },
 });
-```
+</file>
 
-## File: apps/merchant-app/components/dashboard/StatsGrid.tsx
-```typescript
+<file path="apps/merchant-app/components/dashboard/StatsGrid.tsx">
 import React from "react";
 import { StyleSheet } from "react-native";
 import Animated, {
@@ -543,10 +547,9 @@ const localStyles = StyleSheet.create({
 		justifyContent: "center",
 	},
 });
-```
+</file>
 
-## File: apps/merchant-app/components/ui/Tabs.tsx
-```typescript
+<file path="apps/merchant-app/components/ui/Tabs.tsx">
 import React from "react";
 import { Pressable, StyleSheet } from "react-native";
 import Animated, { FadeInUp } from "react-native-reanimated";
@@ -625,10 +628,9 @@ const localStyles = StyleSheet.create({
 		elevation: 2,
 	},
 });
-```
+</file>
 
-## File: apps/merchant-app/constants/Colors.ts
-```typescript
+<file path="apps/merchant-app/constants/Colors.ts">
 export const QarnColors = {
 	light: {
 		primary: "#22C55E",
@@ -673,10 +675,9 @@ export const QarnColors = {
 		tabIconSelected: "#22C55E",
 	},
 };
-```
+</file>
 
-## File: apps/merchant-app/constants/Spacing.ts
-```typescript
+<file path="apps/merchant-app/constants/Spacing.ts">
 export const QarnSpacing = {
 	xs: 4,
 	sm: 8,
@@ -718,10 +719,9 @@ export const QarnSizes = {
 	avatarMd: 44,
 	avatarLg: 64,
 };
-```
+</file>
 
-## File: apps/merchant-app/constants/Typography.ts
-```typescript
+<file path="apps/merchant-app/constants/Typography.ts">
 export const QarnTypography = {
 	sizes: {
 		xs: 12,
@@ -793,15 +793,13 @@ export const QarnShadows = {
 		},
 	},
 };
-```
+</file>
 
-## File: apps/merchant-app/hooks/useColorScheme.ts
-```typescript
+<file path="apps/merchant-app/hooks/useColorScheme.ts">
 export { useColorScheme } from 'react-native';
-```
+</file>
 
-## File: apps/merchant-app/hooks/useColorScheme.web.ts
-```typescript
+<file path="apps/merchant-app/hooks/useColorScheme.web.ts">
 import { useEffect, useState } from 'react';
 import { useColorScheme as useRNColorScheme } from 'react-native';
 export function useColorScheme() {
@@ -815,10 +813,9 @@ export function useColorScheme() {
   }
   return 'light';
 }
-```
+</file>
 
-## File: apps/merchant-app/hooks/useThemeColor.ts
-```typescript
+<file path="apps/merchant-app/hooks/useThemeColor.ts">
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 export function useThemeColor(
@@ -833,19 +830,17 @@ export function useThemeColor(
     return Colors[theme][colorName];
   }
 }
-```
+</file>
 
-## File: apps/merchant-app/.gitignore
-```
+<file path="apps/merchant-app/.gitignore">
 # @generated expo-cli sync-2b81b286409207a5da26e14c78851eb30d8ccbdb
 # The following patterns were generated by expo-cli
 
 expo-env.d.ts
 # @end expo-cli
-```
+</file>
 
-## File: apps/merchant-app/types.ts
-```typescript
+<file path="apps/merchant-app/types.ts">
 export interface MealCount {
 	name: string;
 	count: number;
@@ -877,16 +872,14 @@ export interface QuickActionItem {
 	icon: string;
 	action: () => void;
 }
-```
+</file>
 
-## File: .npmrc
-```
+<file path=".npmrc">
 node-linker=hoisted
 engine-strict=true
-```
+</file>
 
-## File: apps/merchant-app/app/+not-found.tsx
-```typescript
+<file path="apps/merchant-app/app/+not-found.tsx">
 import React from "react";
 import { StyleSheet } from "react-native";
 import { Stack, router } from "expo-router";
@@ -942,16 +935,14 @@ const styles = StyleSheet.create({
 		marginBottom: 24,
 	},
 });
-```
+</file>
 
-## File: apps/merchant-app/components/layout/index.ts
-```typescript
+<file path="apps/merchant-app/components/layout/index.ts">
 export * from "./ScreenContainer";
 export * from "./SearchOverlay";
-```
+</file>
 
-## File: apps/merchant-app/components/layout/ScreenContainer.tsx
-```typescript
+<file path="apps/merchant-app/components/layout/ScreenContainer.tsx">
 import { useTheme } from "@/hooks/useTheme";
 import { Screen } from "expo-router/build/views/Screen";
 import React from "react";
@@ -1034,10 +1025,9 @@ export const ScreenContainer: React.FC<ScreenContainerProps> = ({
 		</>
 	);
 };
-```
+</file>
 
-## File: apps/merchant-app/components/ui/Avatar.tsx
-```typescript
+<file path="apps/merchant-app/components/ui/Avatar.tsx">
 import { ThemeTokens, useTheme } from "@/hooks/useTheme";
 import React from "react";
 import {
@@ -1127,10 +1117,9 @@ export const Avatar: React.FC<AvatarProps> = ({
 		</View>
 	);
 };
-```
+</file>
 
-## File: apps/merchant-app/components/ui/Box.tsx
-```typescript
+<file path="apps/merchant-app/components/ui/Box.tsx">
 import React from "react";
 import {
 	View,
@@ -1372,10 +1361,9 @@ export const Box: React.FC<BoxProps> = ({
 	);
 };
 export default Box;
-```
+</file>
 
-## File: apps/merchant-app/components/ui/Button.tsx
-```typescript
+<file path="apps/merchant-app/components/ui/Button.tsx">
 import React from "react";
 import {
 	TouchableOpacity,
@@ -1537,10 +1525,9 @@ export const Button: React.FC<ButtonProps> = ({
 		</TouchableOpacity>
 	);
 };
-```
+</file>
 
-## File: apps/merchant-app/components/ui/Card.tsx
-```typescript
+<file path="apps/merchant-app/components/ui/Card.tsx">
 import React from "react";
 import {
 	TouchableOpacity,
@@ -1599,10 +1586,9 @@ export const Card: React.FC<CardProps> = ({
 		</ContainerComponent>
 	);
 };
-```
+</file>
 
-## File: apps/merchant-app/components/ui/index.ts
-```typescript
+<file path="apps/merchant-app/components/ui/index.ts">
 export * from "./Box";
 export * from "./Text";
 export * from "./Button";
@@ -1610,10 +1596,9 @@ export * from "./Avatar";
 export * from "./Card";
 export * from "./Badge";
 export * from "./Tabs";
-```
+</file>
 
-## File: apps/merchant-app/components/ui/Text.tsx
-```typescript
+<file path="apps/merchant-app/components/ui/Text.tsx">
 import React from "react";
 import {
 	Text as RNText,
@@ -1733,10 +1718,9 @@ export const Text: React.FC<TextProps> = ({
 	);
 };
 export default Text;
-```
+</file>
 
-## File: apps/merchant-app/hooks/useTheme.ts
-```typescript
+<file path="apps/merchant-app/hooks/useTheme.ts">
 import { useColorScheme } from "react-native";
 import { theme, ThemeMode } from "@/constants/theme";
 import { DarkTheme, DefaultTheme } from "@react-navigation/native";
@@ -1780,10 +1764,9 @@ export type ThemeTokens = {
 };
 export type FontSizeVariant = keyof AppTheme["typography"]["sizes"];
 export type FontWeightVariant = keyof AppTheme["typography"]["weights"];
-```
+</file>
 
-## File: apps/merchant-app/components/layout/SearchOverlay.tsx
-```typescript
+<file path="apps/merchant-app/components/layout/SearchOverlay.tsx">
 import React, { useRef, useEffect, useState } from "react";
 import {
 	View,
@@ -2127,10 +2110,9 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({
 	);
 };
 export default SearchOverlay;
-```
+</file>
 
-## File: apps/merchant-app/components/ui/Badge.tsx
-```typescript
+<file path="apps/merchant-app/components/ui/Badge.tsx">
 import React from "react";
 import { View, StyleSheet, ViewProps } from "react-native";
 import { useTheme } from "@/hooks/useTheme";
@@ -2221,10 +2203,9 @@ export const Badge: React.FC<BadgeProps> = ({
 		</View>
 	);
 };
-```
+</file>
 
-## File: apps/merchant-app/constants/theme.ts
-```typescript
+<file path="apps/merchant-app/constants/theme.ts">
 import { Platform } from "react-native";
 import { DefaultTheme } from "@react-navigation/native";
 const colorPalette = {
@@ -2426,15 +2407,13 @@ export const theme = {
 };
 export type ThemeColors = typeof theme.colors.light;
 export type ThemeMode = "light" | "dark";
-```
+</file>
 
-## File: .nvimrc
-```
+<file path=".nvimrc">
 23.11.0
-```
+</file>
 
-## File: apps/merchant-app/app/index.tsx
-```typescript
+<file path="apps/merchant-app/app/index.tsx">
 import { Box, Text } from "@/components/ui";
 import { useTheme } from "@/hooks/useTheme";
 import * as Haptics from "expo-haptics";
@@ -2706,10 +2685,9 @@ const HomeScreen: React.FC = () => {
 	);
 };
 export default HomeScreen;
-```
+</file>
 
-## File: pnpm-workspace.yaml
-```yaml
+<file path="pnpm-workspace.yaml">
 packages:
   - apps/*
 catalog:
@@ -2729,10 +2707,9 @@ catalogs:
 nodeLinker: hoisted
 onlyBuiltDependencies:
   - '@biomejs/biome'
-```
+</file>
 
-## File: apps/merchant-app/app/_layout.tsx
-```typescript
+<file path="apps/merchant-app/app/_layout.tsx">
 import { ThemeProvider } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
@@ -2783,10 +2760,9 @@ export default function RootLayout() {
 		</SafeAreaProvider>
 	);
 }
-```
+</file>
 
-## File: .gitignore
-```
+<file path=".gitignore">
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
@@ -2863,4 +2839,6 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .maestro/tests/
 messages.js
-```
+</file>
+
+</files>

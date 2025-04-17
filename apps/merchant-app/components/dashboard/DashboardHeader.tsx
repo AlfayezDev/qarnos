@@ -69,13 +69,25 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 );
 
 const localStyles = StyleSheet.create({
-	headerBase: { position: "absolute", top: 0, left: 0, right: 0, zIndex: 100 },
+	headerBase: {
+		position: "absolute",
+		top: 0,
+		left: 0,
+		right: 0,
+		zIndex: 100,
+	},
 	headerContent: {
 		flex: 1,
 		flexDirection: "row",
 		alignItems: "center",
 		justifyContent: "space-between",
 	},
-	headerTitleSmall: { textTransform: "uppercase", letterSpacing: 0.5 },
-	iconButton: { padding: 8, borderRadius: 20 },
+	headerTitleSmall: {
+		textTransform: "uppercase",
+		letterSpacing: 0.5,
+	},
+	iconButton: {
+		padding: 8,
+		borderRadius: 20,
+	},
 });

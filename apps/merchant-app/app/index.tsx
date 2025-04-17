@@ -2,23 +2,15 @@ import { Box, Text } from "@/components/ui";
 import { useTheme } from "@/hooks/useTheme";
 import * as Haptics from "expo-haptics";
 import React, { useState, useCallback, useRef, useMemo } from "react";
-import {
-	FlatList,
-	RefreshControl,
-	ScrollView,
-	StyleSheet,
-	View,
-} from "react-native";
+import { FlatList, RefreshControl, StyleSheet, View } from "react-native";
 import Animated, {
 	useSharedValue,
 	useAnimatedStyle,
 	useAnimatedScrollHandler,
-	interpolate,
-	Extrapolation,
 	FadeInUp,
+	withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
 import { ActivityCard } from "@/components/dashboard/ActivityCard";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { TodayPrepCard } from "@/components/dashboard/PrepCard";
@@ -56,6 +48,7 @@ const TODAY_PREP_SUMMARY: MealPrepSummary[] = [
 		],
 	},
 ];
+
 const getActivityStats = (tab: string): StatItem[] => {
 	switch (tab) {
 		case "Week":
@@ -75,10 +68,12 @@ const getActivityStats = (tab: string): StatItem[] => {
 			];
 	}
 };
+
 const OVERVIEW_STATS: OverviewStats = {
 	activeSubscriptions: 52,
 	newThisWeek: 3,
 };
+
 const ALERTS: Alert[] = [
 	{
 		id: 1,
@@ -102,10 +97,11 @@ const ALERTS: Alert[] = [
 		timestamp: "Yesterday",
 	},
 ];
+
 const HEADER_HEIGHT = 65;
 const PREP_CARD_WIDTH = 170;
 
-const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
+const AnimatedScrollView = Animated.createAnimatedComponent(FlatList);
 
 const HomeScreen: React.FC = () => {
 	const theme = useTheme();
@@ -113,13 +109,14 @@ const HomeScreen: React.FC = () => {
 	const [refreshing, setRefreshing] = useState(false);
 	const [selectedTab, setSelectedTab] = useState("Today");
 	const scrollY = useSharedValue(0);
-	const scrollRef = useRef<Animated.ScrollView>(null);
-
+	const scrollRef = useRef<Animated.FlatList<any>>(null);
 	const tabItems = ["Today", "Week", "Month"];
+
 	const currentStats = useMemo(
 		() => getActivityStats(selectedTab),
 		[selectedTab],
 	);
+
 	const currentDateString = useMemo(
 		() =>
 			new Date().toLocaleDateString(undefined, {
@@ -158,82 +155,28 @@ const HomeScreen: React.FC = () => {
 		console.log("Navigate to Settings Screen");
 	}, []);
 
-	const scrollHandler = useAnimatedScrollHandler({
-		onScroll: (event) => {
-			scrollY.value = event.contentOffset.y;
-		},
+	const scrollHandler = useAnimatedScrollHandler((event) => {
+		const offsetY = event.contentOffset.y;
+		scrollY.value = withTiming(offsetY, { duration: 150 });
 	});
 
 	const headerAnimatedStyle = useAnimatedStyle(() => {
-		const value = scrollY.value;
-		const borderOpacity = interpolate(
-			value,
-			[0, 10],
-			[0, 1],
-			Extrapolation.CLAMP,
-		);
-		const shadowOpacity = interpolate(
-			value,
-			[0, 10],
-			[0, theme.isDark ? 0.2 : 0.05],
-			Extrapolation.CLAMP,
-		);
 		return {
-			borderBottomColor: theme.colors.divider,
-			borderBottomWidth: borderOpacity > 0 ? StyleSheet.hairlineWidth : 0,
-			shadowOpacity: shadowOpacity,
+			backgroundColor: theme.colors.background,
 			shadowColor: theme.colors.shadow,
-			shadowOffset: { width: 0, height: 2 },
+			shadowOffset: { width: 0, height: 1 },
 			shadowRadius: 3,
-			elevation: borderOpacity > 0 ? 2 : 0,
+			shadowOpacity: scrollY.value > 2 ? (theme.isDark ? 0.3 : 0.1) : 0,
+			borderBottomWidth: scrollY.value > 2 ? StyleSheet.hairlineWidth : 0,
+			borderBottomColor: theme.colors.divider,
+			elevation: scrollY.value > 2 ? 3 : 0,
+			zIndex: 1000,
 		};
 	});
 
-	const renderPrepItem = useCallback(
-		({ item }: { item: MealPrepSummary }) => (
-			<TodayPrepCard
-				summary={item}
-				theme={theme}
-				onPress={() => handleViewSchedule(item.period)}
-			/>
-		),
-		[theme, handleViewSchedule],
-	);
-	const keyExtractorPrepItem = useCallback(
-		(item: MealPrepSummary) => item.period,
-		[],
-	);
-	return (
-		<View style={[{ flex: 1, backgroundColor: theme.colors.background }]}>
-			<DashboardHeader
-				theme={theme}
-				insets={insets}
-				animatedStyle={headerAnimatedStyle}
-				currentDateString={currentDateString}
-				onSettingsPress={handleSettingsPress}
-				headerHeight={HEADER_HEIGHT}
-			/>
-			<AnimatedScrollView
-				ref={scrollRef}
-				showsVerticalScrollIndicator={false}
-				contentContainerStyle={{
-					paddingTop: HEADER_HEIGHT + insets.top + theme.spacing.md,
-					paddingBottom: insets.bottom + theme.spacing.xxl,
-				}}
-				onScroll={scrollHandler}
-				scrollEventThrottle={16}
-				refreshControl={
-					<RefreshControl
-						refreshing={refreshing}
-						onRefresh={handleRefresh}
-						tintColor={theme.colors.primary}
-						colors={[theme.colors.primary]}
-						progressBackgroundColor={theme.colors.card}
-						progressViewOffset={HEADER_HEIGHT + insets.top + theme.spacing.sm}
-					/>
-				}
-				keyboardShouldPersistTaps="handled"
-			>
+	const renderHeader = useCallback(
+		() => (
+			<>
 				<Box marginHorizontal="md" marginBottom="lg">
 					<Tabs
 						tabs={tabItems}
@@ -253,13 +196,14 @@ const HomeScreen: React.FC = () => {
 				>
 					Today's Prep
 				</Text>
+
 				<Animated.View
 					entering={FadeInUp.delay(300).duration(400).springify().damping(15)}
 				>
 					<FlatList<MealPrepSummary>
 						horizontal
 						data={TODAY_PREP_SUMMARY}
-						keyExtractor={keyExtractorPrepItem}
+						keyExtractor={(item) => item.period}
 						showsHorizontalScrollIndicator={false}
 						contentContainerStyle={[
 							{
@@ -270,7 +214,13 @@ const HomeScreen: React.FC = () => {
 						]}
 						snapToInterval={PREP_CARD_WIDTH + theme.spacing.sm}
 						decelerationRate="fast"
-						renderItem={renderPrepItem}
+						renderItem={({ item }) => (
+							<TodayPrepCard
+								summary={item}
+								theme={theme}
+								onPress={() => handleViewSchedule(item.period)}
+							/>
+						)}
 					/>
 				</Animated.View>
 
@@ -280,7 +230,52 @@ const HomeScreen: React.FC = () => {
 					theme={theme}
 					onViewAlert={handleViewAlert}
 				/>
-			</AnimatedScrollView>
+			</>
+		),
+		[
+			selectedTab,
+			currentStats,
+			theme,
+			handleSelectTab,
+			handleViewSchedule,
+			handleViewAlert,
+		],
+	);
+
+	return (
+		<View style={[{ flex: 1, backgroundColor: theme.colors.background }]}>
+			<DashboardHeader
+				theme={theme}
+				insets={insets}
+				animatedStyle={headerAnimatedStyle}
+				currentDateString={currentDateString}
+				onSettingsPress={handleSettingsPress}
+				headerHeight={HEADER_HEIGHT}
+			/>
+
+			<AnimatedScrollView
+				ref={scrollRef}
+				data={[1]}
+				keyExtractor={() => "main"}
+				showsVerticalScrollIndicator={false}
+				contentContainerStyle={{
+					paddingTop: HEADER_HEIGHT + insets.top + theme.spacing.md,
+					paddingBottom: insets.bottom + theme.spacing.xxl,
+				}}
+				renderItem={() => renderHeader()}
+				onScroll={scrollHandler}
+				scrollEventThrottle={16}
+				refreshControl={
+					<RefreshControl
+						refreshing={refreshing}
+						onRefresh={handleRefresh}
+						tintColor={theme.colors.primary}
+						colors={[theme.colors.primary]}
+						progressBackgroundColor={theme.colors.card}
+						progressViewOffset={HEADER_HEIGHT + insets.top + theme.spacing.sm}
+					/>
+				}
+			/>
 		</View>
 	);
 };

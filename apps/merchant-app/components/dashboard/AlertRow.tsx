@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Box, Text } from "@/components/ui";
 import { AppTheme } from "@/hooks/useTheme";
 import { Alert } from "@/types";
+import { QarnSpacing } from "@/constants/Spacing";
 
 interface AlertRowProps {
 	alert: Alert;
@@ -18,8 +19,16 @@ export const AlertRow: React.FC<AlertRowProps> = React.memo(
 			<Pressable
 				onPress={onPress}
 				style={({ pressed }) => [
-					localStyles.alertRowContainer,
-					pressed && { backgroundColor: theme.colors.backgroundAlt },
+					{
+						paddingHorizontal: theme.spacing.sm,
+						flexDirection: "row",
+						alignItems: "center",
+						paddingVertical: theme.spacing.md,
+						borderRadius: theme.radius.sm,
+					},
+					pressed && {
+						backgroundColor: theme.colors.backgroundAlt,
+					},
 				]}
 				android_ripple={{ color: theme.colors.overlay }}
 			>
@@ -55,6 +64,7 @@ export const AlertRow: React.FC<AlertRowProps> = React.memo(
 
 const localStyles = StyleSheet.create({
 	alertRowContainer: {
+		paddingHorizontal: QarnSpacing.sm,
 		flexDirection: "row",
 		alignItems: "center",
 		paddingVertical: 12,

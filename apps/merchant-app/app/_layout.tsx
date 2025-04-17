@@ -7,6 +7,11 @@ import { useEffect } from "react";
 import "react-native-reanimated";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useTheme } from "@/hooks/useTheme";
+import { LogBox } from "react-native";
+
+LogBox.ignoreLogs([
+	"Sending `onAnimatedValueUpdate` with no listeners registered.",
+]);
 SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
 	const { isDark, navTheme, colors } = useTheme();
@@ -37,7 +42,7 @@ export default function RootLayout() {
 					}}
 				>
 					<Stack.Screen name="index" />
-					<Stack.Screen name="+not-found" options={{ headerShown: false }} />
+					<Stack.Screen name="+not-found" />
 				</Stack>
 				<StatusBar style={isDark ? "light" : "dark"} />
 			</ThemeProvider>

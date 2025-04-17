@@ -68,6 +68,7 @@ export const ActivityCard: React.FC<ActivityCardProps> = React.memo(
 								style={{
 									borderTopColor: theme.colors.divider,
 									borderTopWidth: index > 0 ? StyleSheet.hairlineWidth : 0,
+									paddingVertical: theme.spacing.sm,
 								}}
 							>
 								<AlertRow

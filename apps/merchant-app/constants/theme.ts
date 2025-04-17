@@ -116,7 +116,7 @@ export const theme = {
 		cardPadding: 16,
 		itemSpacing: 12,
 		sectionSpacing: 24,
-	},
+	} as const,
 	radius: {
 		none: 0,
 		xs: 4,
@@ -129,7 +129,7 @@ export const theme = {
 		card: 16,
 		input: 12,
 		badge: 12,
-	},
+	} as const,
 	sizes: {
 		touchTarget: 44,
 		smallTouchTarget: 36,
@@ -146,7 +146,7 @@ export const theme = {
 		avatarSm: 32,
 		avatarMd: 44,
 		avatarLg: 64,
-	},
+	} as const,
 	typography: {
 		sizes: {
 			xs: 12,
@@ -156,7 +156,7 @@ export const theme = {
 			xl: 20,
 			xxl: 24,
 			xxxl: 30,
-		},
+		} as const,
 		weights: {
 			regular: "400",
 			medium: "500",
@@ -168,8 +168,8 @@ export const theme = {
 			tight: 1.2,
 			normal: 1.5,
 			loose: 1.8,
-		},
-	},
+		} as const,
+	} as const,
 	shadows: {
 		// Consistent structure for light/dark if needed, but using color token now
 		small: {

@@ -1,7 +1,8 @@
 import React from "react";
 import { Pressable, StyleSheet } from "react-native";
 import Animated, { FadeInUp } from "react-native-reanimated";
-import { Box, Text } from "@/components/ui";
+import { Box } from "./Box";
+import { Text } from "./Text";
 import { AppTheme } from "@/hooks/useTheme";
 import * as Haptics from "expo-haptics";
 
@@ -44,7 +45,7 @@ export const Tabs: React.FC<TabsProps> = React.memo(
 									shadowColor: theme.colors.shadow,
 								},
 							],
-							pressed && { backgroundColor: theme.colors.overlay },
+							pressed && { opacity: 0.5 },
 						]}
 						onPress={() => handlePress(tab)}
 						android_ripple={{ color: theme.colors.overlay, borderless: true }}
