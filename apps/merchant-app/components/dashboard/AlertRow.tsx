@@ -1,10 +1,9 @@
 import React from "react";
-import { Pressable, StyleSheet } from "react-native";
+import { Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Box, Text } from "@/components/ui";
 import { AppTheme } from "@/hooks/useTheme";
 import { Alert } from "@/types";
-import { QarnSpacing } from "@/constants/Spacing";
 
 interface AlertRowProps {
 	alert: Alert;
@@ -61,12 +60,3 @@ export const AlertRow: React.FC<AlertRowProps> = React.memo(
 		);
 	},
 );
-
-const localStyles = StyleSheet.create({
-	alertRowContainer: {
-		paddingHorizontal: QarnSpacing.sm,
-		flexDirection: "row",
-		alignItems: "center",
-		paddingVertical: 12,
-	},
-});

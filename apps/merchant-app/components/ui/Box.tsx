@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { useTheme } from "@/hooks/useTheme";
 import { SpacingToken, ColorToken, RadiusToken } from "@/hooks/useTheme";
+import Animated from "react-native-reanimated";
 type JustifyContentType =
 	| "flex-start"
 	| "flex-end"
@@ -239,3 +240,5 @@ export const Box: React.FC<BoxProps> = ({
 	);
 };
 export default Box;
+
+export const AnimatedBox = Animated.createAnimatedComponent(Box);

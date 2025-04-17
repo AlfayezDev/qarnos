@@ -11,12 +11,12 @@ import Animated, {
 	withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { ActivityCard } from "@/components/dashboard/ActivityCard";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { TodayPrepCard } from "@/components/dashboard/PrepCard";
 import { StatsGrid } from "@/components/dashboard/StatsGrid";
 import { Tabs } from "@/components/ui/Tabs";
-import { Alert, MealPrepSummary, OverviewStats, StatItem } from "@/types";
+import { AlertsCard } from "@/components/dashboard/AlertsCard";
+import { Alert, MealPrepSummary, StatItem } from "@/types";
 
 const TODAY_PREP_SUMMARY: MealPrepSummary[] = [
 	{
@@ -69,11 +69,6 @@ const getActivityStats = (tab: string): StatItem[] => {
 	}
 };
 
-const OVERVIEW_STATS: OverviewStats = {
-	activeSubscriptions: 52,
-	newThisWeek: 3,
-};
-
 const ALERTS: Alert[] = [
 	{
 		id: 1,
@@ -101,8 +96,6 @@ const ALERTS: Alert[] = [
 const HEADER_HEIGHT = 65;
 const PREP_CARD_WIDTH = 170;
 
-const AnimatedScrollView = Animated.createAnimatedComponent(FlatList);
-
 const HomeScreen: React.FC = () => {
 	const theme = useTheme();
 	const insets = useSafeAreaInsets();
@@ -111,12 +104,10 @@ const HomeScreen: React.FC = () => {
 	const scrollY = useSharedValue(0);
 	const scrollRef = useRef<Animated.FlatList<any>>(null);
 	const tabItems = ["Today", "Week", "Month"];
-
 	const currentStats = useMemo(
 		() => getActivityStats(selectedTab),
 		[selectedTab],
 	);
-
 	const currentDateString = useMemo(
 		() =>
 			new Date().toLocaleDateString(undefined, {
@@ -149,6 +140,10 @@ const HomeScreen: React.FC = () => {
 
 	const handleViewAlert = useCallback((id: string | number) => {
 		console.log("Navigate to Alert Details Screen, ID:", id);
+	}, []);
+
+	const handleViewAllAlerts = useCallback(() => {
+		console.log("Navigate to All Alerts Screen");
 	}, []);
 
 	const handleSettingsPress = useCallback(() => {
@@ -185,9 +180,7 @@ const HomeScreen: React.FC = () => {
 						theme={theme}
 					/>
 				</Box>
-
 				<StatsGrid stats={currentStats} theme={theme} key={selectedTab} />
-
 				<Text
 					variant="lg"
 					weight="semibold"
@@ -196,7 +189,6 @@ const HomeScreen: React.FC = () => {
 				>
 					Today's Prep
 				</Text>
-
 				<Animated.View
 					entering={FadeInUp.delay(300).duration(400).springify().damping(15)}
 				>
@@ -223,12 +215,11 @@ const HomeScreen: React.FC = () => {
 						)}
 					/>
 				</Animated.View>
-
-				<ActivityCard
+				<AlertsCard
 					alerts={ALERTS}
-					overviewStats={OVERVIEW_STATS}
 					theme={theme}
 					onViewAlert={handleViewAlert}
+					onViewAllAlerts={handleViewAllAlerts}
 				/>
 			</>
 		),
@@ -239,6 +230,7 @@ const HomeScreen: React.FC = () => {
 			handleSelectTab,
 			handleViewSchedule,
 			handleViewAlert,
+			handleViewAllAlerts,
 		],
 	);
 
@@ -252,8 +244,7 @@ const HomeScreen: React.FC = () => {
 				onSettingsPress={handleSettingsPress}
 				headerHeight={HEADER_HEIGHT}
 			/>
-
-			<AnimatedScrollView
+			<Animated.FlatList
 				ref={scrollRef}
 				data={[1]}
 				keyExtractor={() => "main"}

@@ -94,260 +94,6 @@ pnpm-workspace.yaml
 <files>
 This section contains the contents of the repository's files.
 
-<file path="apps/merchant-app/components/dashboard/ActivityCard.tsx">
-import React from "react";
-import { StyleSheet } from "react-native";
-import Animated, { FadeInUp, FadeOutDown } from "react-native-reanimated";
-import { Ionicons } from "@expo/vector-icons";
-import { Box, Text } from "@/components/ui";
-import { AppTheme } from "@/hooks/useTheme";
-import { Alert, OverviewStats } from "@/types";
-import { AlertRow } from "./AlertRow";
-interface ActivityCardProps {
-	alerts: Alert[];
-	overviewStats: OverviewStats;
-	theme: AppTheme;
-	onViewAlert: (id: string | number) => void;
-}
-const AnimatedBox = Animated.createAnimatedComponent(Box);
-export const ActivityCard: React.FC<ActivityCardProps> = React.memo(
-	({ alerts, overviewStats, theme, onViewAlert }) => {
-		const hasAlerts = alerts.length > 0;
-		return (
-			<AnimatedBox
-				entering={FadeInUp.delay(350).duration(400).springify().damping(15)}
-				exiting={FadeOutDown.duration(200)}
-				bg="card"
-				rounded="lg"
-				marginHorizontal="md"
-				marginBottom="lg"
-				padding="md"
-				elevation="medium"
-				style={localStyles.activityCard}
-			>
-				<Text variant="lg" weight="semibold" marginBottom="md">
-					Activity & Alerts
-				</Text>
-				<Box row marginBottom="md">
-					<Box flex={1} marginRight="sm">
-						<Text
-							variant="sm"
-							color="textSecondary"
-							marginBottom={theme.spacing.xs / 2}
-						>
-							Active Subs
-						</Text>
-						<Text variant="xl" weight="bold">
-							{overviewStats.activeSubscriptions}
-						</Text>
-					</Box>
-					<Box flex={1} marginLeft="sm">
-						<Text
-							variant="sm"
-							color="textSecondary"
-							marginBottom={theme.spacing.xs / 2}
-						>
-							New This Week
-						</Text>
-						<Text variant="xl" weight="bold" color="success">
-							+{overviewStats.newThisWeek}
-						</Text>
-					</Box>
-				</Box>
-				{hasAlerts ? (
-					<Box marginTop="xs">
-						{alerts.map((alert, index) => (
-							<Box
-								key={alert.id}
-								style={{
-									borderTopColor: theme.colors.divider,
-									borderTopWidth: index > 0 ? StyleSheet.hairlineWidth : 0,
-									paddingVertical: theme.spacing.sm,
-								}}
-							>
-								<AlertRow
-									alert={alert}
-									theme={theme}
-									onPress={() => onViewAlert(alert.id)}
-								/>
-							</Box>
-						))}
-					</Box>
-				) : (
-					<Box row alignCenter paddingVertical="sm" marginTop="xs">
-						<Ionicons
-							name="checkmark-circle-outline"
-							size={theme.sizes.iconSm}
-							color={theme.colors.success}
-							style={{ marginRight: theme.spacing.sm }}
-						/>
-						<Text color="textSecondary" variant="sm">
-							No pressing alerts.
-						</Text>
-					</Box>
-				)}
-			</AnimatedBox>
-		);
-	},
-);
-const localStyles = StyleSheet.create({
-	activityCard: {},
-});
-</file>
-
-<file path="apps/merchant-app/components/dashboard/AlertRow.tsx">
-import React from "react";
-import { Pressable, StyleSheet } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { Box, Text } from "@/components/ui";
-import { AppTheme } from "@/hooks/useTheme";
-import { Alert } from "@/types";
-import { QarnSpacing } from "@/constants/Spacing";
-interface AlertRowProps {
-	alert: Alert;
-	theme: AppTheme;
-	onPress: () => void;
-}
-export const AlertRow: React.FC<AlertRowProps> = React.memo(
-	({ alert, theme, onPress }) => {
-		const iconColor = theme.colors[alert.type];
-		return (
-			<Pressable
-				onPress={onPress}
-				style={({ pressed }) => [
-					{
-						paddingHorizontal: theme.spacing.sm,
-						flexDirection: "row",
-						alignItems: "center",
-						paddingVertical: theme.spacing.md,
-						borderRadius: theme.radius.sm,
-					},
-					pressed && {
-						backgroundColor: theme.colors.backgroundAlt,
-					},
-				]}
-				android_ripple={{ color: theme.colors.overlay }}
-			>
-				<Ionicons
-					name={alert.icon as any}
-					size={theme.sizes.iconSm}
-					color={iconColor}
-					style={{ marginRight: theme.spacing.md }}
-				/>
-				<Box flex={1}>
-					<Text variant="sm" numberOfLines={1}>
-						{alert.title}
-					</Text>
-					{alert.timestamp && (
-						<Text
-							variant="xs"
-							color="textMuted"
-							marginTop={theme.spacing.xs / 2}
-						>
-							{alert.timestamp}
-						</Text>
-					)}
-				</Box>
-				<Ionicons
-					name="chevron-forward"
-					size={theme.sizes.iconSm}
-					color={theme.colors.textMuted}
-				/>
-			</Pressable>
-		);
-	},
-);
-const localStyles = StyleSheet.create({
-	alertRowContainer: {
-		paddingHorizontal: QarnSpacing.sm,
-		flexDirection: "row",
-		alignItems: "center",
-		paddingVertical: 12,
-	},
-});
-</file>
-
-<file path="apps/merchant-app/components/dashboard/DashboardHeader.tsx">
-import React from "react";
-import { View, Pressable, StyleSheet } from "react-native";
-import Animated from "react-native-reanimated";
-import { Ionicons } from "@expo/vector-icons";
-import { Text } from "@/components/ui";
-import { AppTheme } from "@/hooks/useTheme";
-import { EdgeInsets } from "react-native-safe-area-context";
-interface DashboardHeaderProps {
-	theme: AppTheme;
-	insets: EdgeInsets;
-	animatedStyle: any;
-	currentDateString: string;
-	onSettingsPress: () => void;
-	headerHeight: number;
-}
-export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
-	theme,
-	insets,
-	animatedStyle,
-	currentDateString,
-	onSettingsPress,
-	headerHeight,
-}) => (
-	<Animated.View
-		style={[
-			localStyles.headerBase,
-			{
-				backgroundColor: theme.colors.background,
-				paddingTop: insets.top,
-				height: headerHeight + insets.top,
-				paddingHorizontal: theme.spacing.md,
-				paddingBottom: theme.spacing.sm,
-			},
-			animatedStyle,
-		]}
-	>
-		<View style={localStyles.headerContent}>
-			<View>
-				<Text
-					variant="xs"
-					color="textSecondary"
-					weight="medium"
-					style={localStyles.headerTitleSmall}
-				>
-					Dashboard
-				</Text>
-				<Text variant="xl" weight="semibold">
-					{currentDateString}
-				</Text>
-			</View>
-			<Pressable
-				onPress={onSettingsPress}
-				style={({ pressed }) => [
-					localStyles.iconButton,
-					pressed && { backgroundColor: theme.colors.overlay },
-				]}
-				android_ripple={{ color: theme.colors.overlay, borderless: true }}
-			>
-				<Ionicons
-					name="settings-outline"
-					size={theme.sizes.iconMd}
-					color={theme.colors.textSecondary}
-				/>
-			</Pressable>
-		</View>
-	</Animated.View>
-);
-const localStyles = StyleSheet.create({
-	headerBase: { position: "absolute", top: 0, left: 0, right: 0, zIndex: 100 },
-	headerContent: {
-		flex: 1,
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-	},
-	headerTitleSmall: { textTransform: "uppercase", letterSpacing: 0.5 },
-	iconButton: { padding: 8, borderRadius: 20 },
-});
-</file>
-
 <file path="apps/merchant-app/components/dashboard/PrepCard.tsx">
 import React from "react";
 import { StyleSheet, Pressable } from "react-native";
@@ -545,87 +291,6 @@ const localStyles = StyleSheet.create({
 		height: 32,
 		alignItems: "center",
 		justifyContent: "center",
-	},
-});
-</file>
-
-<file path="apps/merchant-app/components/ui/Tabs.tsx">
-import React from "react";
-import { Pressable, StyleSheet } from "react-native";
-import Animated, { FadeInUp } from "react-native-reanimated";
-import { Box } from "./Box";
-import { Text } from "./Text";
-import { AppTheme } from "@/hooks/useTheme";
-import * as Haptics from "expo-haptics";
-interface TabsProps {
-	tabs: string[];
-	selectedTab: string;
-	onSelectTab: (tab: string) => void;
-	theme: AppTheme;
-}
-const AnimatedBox = Animated.createAnimatedComponent(Box);
-export const Tabs: React.FC<TabsProps> = React.memo(
-	({ tabs, selectedTab, onSelectTab, theme }) => {
-		const handlePress = (tab: string) => {
-			if (tab !== selectedTab) {
-				Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-				onSelectTab(tab);
-			}
-		};
-		return (
-			<AnimatedBox
-				entering={FadeInUp.delay(50).duration(400).springify().damping(15)}
-				style={localStyles.tabsContainer}
-				bg="backgroundAlt"
-				rounded="md"
-				padding="xs"
-				row
-			>
-				{tabs.map((tab) => (
-					<Pressable
-						key={tab}
-						style={({ pressed }) => [
-							localStyles.tab,
-							{ borderRadius: theme.radius.sm },
-							tab === selectedTab && [
-								localStyles.selectedTab,
-								{
-									backgroundColor: theme.colors.card,
-									shadowColor: theme.colors.shadow,
-								},
-							],
-							pressed && { opacity: 0.5 },
-						]}
-						onPress={() => handlePress(tab)}
-						android_ripple={{ color: theme.colors.overlay, borderless: true }}
-					>
-						<Text
-							variant="sm"
-							weight={tab === selectedTab ? "semibold" : "medium"}
-							color={tab === selectedTab ? "primary" : "textSecondary"}
-						>
-							{tab}
-						</Text>
-					</Pressable>
-				))}
-			</AnimatedBox>
-		);
-	},
-);
-const localStyles = StyleSheet.create({
-	tabsContainer: { flexDirection: "row" },
-	tab: {
-		flex: 1,
-		paddingVertical: 8,
-		paddingHorizontal: 12,
-		alignItems: "center",
-		justifyContent: "center",
-	},
-	selectedTab: {
-		shadowOffset: { width: 0, height: 1 },
-		shadowOpacity: 0.1,
-		shadowRadius: 2,
-		elevation: 2,
 	},
 });
 </file>
@@ -933,6 +598,272 @@ const styles = StyleSheet.create({
 	},
 	icon: {
 		marginBottom: 24,
+	},
+});
+</file>
+
+<file path="apps/merchant-app/components/dashboard/ActivityCard.tsx">
+import React from "react";
+import { StyleSheet } from "react-native";
+import Animated, { FadeInUp, FadeOutDown } from "react-native-reanimated";
+import { Ionicons } from "@expo/vector-icons";
+import { Box, Text } from "@/components/ui";
+import { AppTheme } from "@/hooks/useTheme";
+import { Alert, OverviewStats } from "@/types";
+import { AlertRow } from "./AlertRow";
+interface ActivityCardProps {
+	alerts: Alert[];
+	overviewStats: OverviewStats;
+	theme: AppTheme;
+	onViewAlert: (id: string | number) => void;
+}
+const AnimatedBox = Animated.createAnimatedComponent(Box);
+export const ActivityCard: React.FC<ActivityCardProps> = React.memo(
+	({ alerts, overviewStats, theme, onViewAlert }) => {
+		const hasAlerts = alerts.length > 0;
+		return (
+			<AnimatedBox
+				entering={FadeInUp.delay(350).duration(400).springify().damping(15)}
+				exiting={FadeOutDown.duration(200)}
+				bg="card"
+				rounded="lg"
+				marginHorizontal="md"
+				marginBottom="lg"
+				padding="md"
+				elevation="medium"
+				style={localStyles.activityCard}
+			>
+				<Text variant="lg" weight="semibold" marginBottom="md">
+					Activity & Alerts
+				</Text>
+				<Box row marginBottom="md">
+					<Box flex={1} marginRight="sm">
+						<Text
+							variant="sm"
+							color="textSecondary"
+							marginBottom={theme.spacing.xs / 2}
+						>
+							Active Subs
+						</Text>
+						<Text variant="xl" weight="bold">
+							{overviewStats.activeSubscriptions}
+						</Text>
+					</Box>
+					<Box flex={1} marginLeft="sm">
+						<Text
+							variant="sm"
+							color="textSecondary"
+							marginBottom={theme.spacing.xs / 2}
+						>
+							New This Week
+						</Text>
+						<Text variant="xl" weight="bold" color="success">
+							+{overviewStats.newThisWeek}
+						</Text>
+					</Box>
+				</Box>
+				{hasAlerts ? (
+					<Box marginTop="xs">
+						{alerts.map((alert, index) => (
+							<Box
+								key={alert.id}
+								style={{
+									borderTopColor: theme.colors.divider,
+									borderTopWidth: index > 0 ? StyleSheet.hairlineWidth : 0,
+									paddingVertical: theme.spacing.sm,
+								}}
+							>
+								<AlertRow
+									alert={alert}
+									theme={theme}
+									onPress={() => onViewAlert(alert.id)}
+								/>
+							</Box>
+						))}
+					</Box>
+				) : (
+					<Box row alignCenter paddingVertical="sm" marginTop="xs">
+						<Ionicons
+							name="checkmark-circle-outline"
+							size={theme.sizes.iconSm}
+							color={theme.colors.success}
+							style={{ marginRight: theme.spacing.sm }}
+						/>
+						<Text color="textSecondary" variant="sm">
+							No pressing alerts.
+						</Text>
+					</Box>
+				)}
+			</AnimatedBox>
+		);
+	},
+);
+const localStyles = StyleSheet.create({
+	activityCard: {},
+});
+</file>
+
+<file path="apps/merchant-app/components/dashboard/AlertRow.tsx">
+import React from "react";
+import { Pressable, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { Box, Text } from "@/components/ui";
+import { AppTheme } from "@/hooks/useTheme";
+import { Alert } from "@/types";
+import { QarnSpacing } from "@/constants/Spacing";
+interface AlertRowProps {
+	alert: Alert;
+	theme: AppTheme;
+	onPress: () => void;
+}
+export const AlertRow: React.FC<AlertRowProps> = React.memo(
+	({ alert, theme, onPress }) => {
+		const iconColor = theme.colors[alert.type];
+		return (
+			<Pressable
+				onPress={onPress}
+				style={({ pressed }) => [
+					{
+						paddingHorizontal: theme.spacing.sm,
+						flexDirection: "row",
+						alignItems: "center",
+						paddingVertical: theme.spacing.md,
+						borderRadius: theme.radius.sm,
+					},
+					pressed && {
+						backgroundColor: theme.colors.backgroundAlt,
+					},
+				]}
+				android_ripple={{ color: theme.colors.overlay }}
+			>
+				<Ionicons
+					name={alert.icon as any}
+					size={theme.sizes.iconSm}
+					color={iconColor}
+					style={{ marginRight: theme.spacing.md }}
+				/>
+				<Box flex={1}>
+					<Text variant="sm" numberOfLines={1}>
+						{alert.title}
+					</Text>
+					{alert.timestamp && (
+						<Text
+							variant="xs"
+							color="textMuted"
+							marginTop={theme.spacing.xs / 2}
+						>
+							{alert.timestamp}
+						</Text>
+					)}
+				</Box>
+				<Ionicons
+					name="chevron-forward"
+					size={theme.sizes.iconSm}
+					color={theme.colors.textMuted}
+				/>
+			</Pressable>
+		);
+	},
+);
+const localStyles = StyleSheet.create({
+	alertRowContainer: {
+		paddingHorizontal: QarnSpacing.sm,
+		flexDirection: "row",
+		alignItems: "center",
+		paddingVertical: 12,
+	},
+});
+</file>
+
+<file path="apps/merchant-app/components/dashboard/DashboardHeader.tsx">
+import React from "react";
+import { View, Pressable, StyleSheet } from "react-native";
+import Animated from "react-native-reanimated";
+import { Ionicons } from "@expo/vector-icons";
+import { Text } from "@/components/ui";
+import { AppTheme } from "@/hooks/useTheme";
+import { EdgeInsets } from "react-native-safe-area-context";
+interface DashboardHeaderProps {
+	theme: AppTheme;
+	insets: EdgeInsets;
+	animatedStyle: any;
+	currentDateString: string;
+	onSettingsPress: () => void;
+	headerHeight: number;
+}
+export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
+	theme,
+	insets,
+	animatedStyle,
+	currentDateString,
+	onSettingsPress,
+	headerHeight,
+}) => (
+	<Animated.View
+		style={[
+			localStyles.headerBase,
+			{
+				backgroundColor: theme.colors.background,
+				paddingTop: insets.top,
+				height: headerHeight + insets.top,
+				paddingHorizontal: theme.spacing.md,
+				paddingBottom: theme.spacing.sm,
+			},
+			animatedStyle,
+		]}
+	>
+		<View style={localStyles.headerContent}>
+			<View>
+				<Text
+					variant="xs"
+					color="textSecondary"
+					weight="medium"
+					style={localStyles.headerTitleSmall}
+				>
+					Dashboard
+				</Text>
+				<Text variant="xl" weight="semibold">
+					{currentDateString}
+				</Text>
+			</View>
+			<Pressable
+				onPress={onSettingsPress}
+				style={({ pressed }) => [
+					localStyles.iconButton,
+					pressed && { backgroundColor: theme.colors.overlay },
+				]}
+				android_ripple={{ color: theme.colors.overlay, borderless: true }}
+			>
+				<Ionicons
+					name="settings-outline"
+					size={theme.sizes.iconMd}
+					color={theme.colors.textSecondary}
+				/>
+			</Pressable>
+		</View>
+	</Animated.View>
+);
+const localStyles = StyleSheet.create({
+	headerBase: {
+		position: "absolute",
+		top: 0,
+		left: 0,
+		right: 0,
+		zIndex: 100,
+	},
+	headerContent: {
+		flex: 1,
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "space-between",
+	},
+	headerTitleSmall: {
+		textTransform: "uppercase",
+		letterSpacing: 0.5,
+	},
+	iconButton: {
+		padding: 8,
+		borderRadius: 20,
 	},
 });
 </file>
@@ -1598,6 +1529,87 @@ export * from "./Badge";
 export * from "./Tabs";
 </file>
 
+<file path="apps/merchant-app/components/ui/Tabs.tsx">
+import React from "react";
+import { Pressable, StyleSheet } from "react-native";
+import Animated, { FadeInUp } from "react-native-reanimated";
+import { Box } from "./Box";
+import { Text } from "./Text";
+import { AppTheme } from "@/hooks/useTheme";
+import * as Haptics from "expo-haptics";
+interface TabsProps {
+	tabs: string[];
+	selectedTab: string;
+	onSelectTab: (tab: string) => void;
+	theme: AppTheme;
+}
+const AnimatedBox = Animated.createAnimatedComponent(Box);
+export const Tabs: React.FC<TabsProps> = React.memo(
+	({ tabs, selectedTab, onSelectTab, theme }) => {
+		const handlePress = (tab: string) => {
+			if (tab !== selectedTab) {
+				Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+				onSelectTab(tab);
+			}
+		};
+		return (
+			<AnimatedBox
+				entering={FadeInUp.delay(50).duration(400).springify().damping(15)}
+				style={localStyles.tabsContainer}
+				bg="backgroundAlt"
+				rounded="md"
+				padding="xs"
+				row
+			>
+				{tabs.map((tab) => (
+					<Pressable
+						key={tab}
+						style={({ pressed }) => [
+							localStyles.tab,
+							{ borderRadius: theme.radius.sm },
+							tab === selectedTab && [
+								localStyles.selectedTab,
+								{
+									backgroundColor: theme.colors.card,
+									shadowColor: theme.colors.shadow,
+								},
+							],
+							pressed && { opacity: 0.5 },
+						]}
+						onPress={() => handlePress(tab)}
+						android_ripple={{ color: theme.colors.overlay, borderless: true }}
+					>
+						<Text
+							variant="sm"
+							weight={tab === selectedTab ? "semibold" : "medium"}
+							color={tab === selectedTab ? "primary" : "textSecondary"}
+						>
+							{tab}
+						</Text>
+					</Pressable>
+				))}
+			</AnimatedBox>
+		);
+	},
+);
+const localStyles = StyleSheet.create({
+	tabsContainer: { flexDirection: "row" },
+	tab: {
+		flex: 1,
+		paddingVertical: 8,
+		paddingHorizontal: 12,
+		alignItems: "center",
+		justifyContent: "center",
+	},
+	selectedTab: {
+		shadowOffset: { width: 0, height: 1 },
+		shadowOpacity: 0.1,
+		shadowRadius: 2,
+		elevation: 2,
+	},
+});
+</file>
+
 <file path="apps/merchant-app/components/ui/Text.tsx">
 import React from "react";
 import {
@@ -2205,6 +2217,10 @@ export const Badge: React.FC<BadgeProps> = ({
 };
 </file>
 
+<file path=".nvimrc">
+23.11.0
+</file>
+
 <file path="apps/merchant-app/constants/theme.ts">
 import { Platform } from "react-native";
 import { DefaultTheme } from "@react-navigation/native";
@@ -2409,29 +2425,18 @@ export type ThemeColors = typeof theme.colors.light;
 export type ThemeMode = "light" | "dark";
 </file>
 
-<file path=".nvimrc">
-23.11.0
-</file>
-
 <file path="apps/merchant-app/app/index.tsx">
 import { Box, Text } from "@/components/ui";
 import { useTheme } from "@/hooks/useTheme";
 import * as Haptics from "expo-haptics";
 import React, { useState, useCallback, useRef, useMemo } from "react";
-import {
-	FlatList,
-	RefreshControl,
-	ScrollView,
-	StyleSheet,
-	View,
-} from "react-native";
+import { FlatList, RefreshControl, StyleSheet, View } from "react-native";
 import Animated, {
 	useSharedValue,
 	useAnimatedStyle,
 	useAnimatedScrollHandler,
-	interpolate,
-	Extrapolation,
 	FadeInUp,
+	withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ActivityCard } from "@/components/dashboard/ActivityCard";
@@ -2518,14 +2523,14 @@ const ALERTS: Alert[] = [
 ];
 const HEADER_HEIGHT = 65;
 const PREP_CARD_WIDTH = 170;
-const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
+const AnimatedScrollView = Animated.createAnimatedComponent(FlatList);
 const HomeScreen: React.FC = () => {
 	const theme = useTheme();
 	const insets = useSafeAreaInsets();
 	const [refreshing, setRefreshing] = useState(false);
 	const [selectedTab, setSelectedTab] = useState("Today");
 	const scrollY = useSharedValue(0);
-	const scrollRef = useRef<Animated.ScrollView>(null);
+	const scrollRef = useRef<Animated.FlatList<any>>(null);
 	const tabItems = ["Today", "Week", "Month"];
 	const currentStats = useMemo(
 		() => getActivityStats(selectedTab),
@@ -2563,80 +2568,26 @@ const HomeScreen: React.FC = () => {
 	const handleSettingsPress = useCallback(() => {
 		console.log("Navigate to Settings Screen");
 	}, []);
-	const scrollHandler = useAnimatedScrollHandler({
-		onScroll: (event) => {
-			scrollY.value = event.contentOffset.y;
-		},
+	const scrollHandler = useAnimatedScrollHandler((event) => {
+		const offsetY = event.contentOffset.y;
+		scrollY.value = withTiming(offsetY, { duration: 150 });
 	});
 	const headerAnimatedStyle = useAnimatedStyle(() => {
-		const value = scrollY.value;
-		const borderOpacity = interpolate(
-			value,
-			[0, 10],
-			[0, 1],
-			Extrapolation.CLAMP,
-		);
-		const shadowOpacity = interpolate(
-			value,
-			[0, 10],
-			[0, theme.isDark ? 0.2 : 0.05],
-			Extrapolation.CLAMP,
-		);
 		return {
-			borderBottomColor: theme.colors.divider,
-			borderBottomWidth: borderOpacity > 0 ? StyleSheet.hairlineWidth : 0,
-			shadowOpacity: shadowOpacity,
+			backgroundColor: theme.colors.background,
 			shadowColor: theme.colors.shadow,
-			shadowOffset: { width: 0, height: 2 },
+			shadowOffset: { width: 0, height: 1 },
 			shadowRadius: 3,
-			elevation: borderOpacity > 0 ? 2 : 0,
+			shadowOpacity: scrollY.value > 2 ? (theme.isDark ? 0.3 : 0.1) : 0,
+			borderBottomWidth: scrollY.value > 2 ? StyleSheet.hairlineWidth : 0,
+			borderBottomColor: theme.colors.divider,
+			elevation: scrollY.value > 2 ? 3 : 0,
+			zIndex: 1000,
 		};
 	});
-	const renderPrepItem = useCallback(
-		({ item }: { item: MealPrepSummary }) => (
-			<TodayPrepCard
-				summary={item}
-				theme={theme}
-				onPress={() => handleViewSchedule(item.period)}
-			/>
-		),
-		[theme, handleViewSchedule],
-	);
-	const keyExtractorPrepItem = useCallback(
-		(item: MealPrepSummary) => item.period,
-		[],
-	);
-	return (
-		<View style={[{ flex: 1, backgroundColor: theme.colors.background }]}>
-			<DashboardHeader
-				theme={theme}
-				insets={insets}
-				animatedStyle={headerAnimatedStyle}
-				currentDateString={currentDateString}
-				onSettingsPress={handleSettingsPress}
-				headerHeight={HEADER_HEIGHT}
-			/>
-			<AnimatedScrollView
-				ref={scrollRef}
-				showsVerticalScrollIndicator={false}
-				contentContainerStyle={{
-					paddingTop: HEADER_HEIGHT + insets.top + theme.spacing.md,
-					paddingBottom: insets.bottom + theme.spacing.xxl,
-				}}
-				onScroll={scrollHandler}
-				scrollEventThrottle={16}
-				refreshControl={
-					<RefreshControl
-						refreshing={refreshing}
-						onRefresh={handleRefresh}
-						tintColor={theme.colors.primary}
-						colors={[theme.colors.primary]}
-						progressBackgroundColor={theme.colors.card}
-						progressViewOffset={HEADER_HEIGHT + insets.top + theme.spacing.sm}
-					/>
-				}
-				keyboardShouldPersistTaps="handled"
-			>
+	const renderHeader = useCallback(
+		() => (
+			<>
 				<Box marginHorizontal="md" marginBottom="lg">
 					<Tabs
 						tabs={tabItems}
@@ -2660,7 +2611,7 @@ const HomeScreen: React.FC = () => {
 					<FlatList<MealPrepSummary>
 						horizontal
 						data={TODAY_PREP_SUMMARY}
-						keyExtractor={keyExtractorPrepItem}
+						keyExtractor={(item) => item.period}
 						showsHorizontalScrollIndicator={false}
 						contentContainerStyle={[
 							{
@@ -2671,7 +2622,13 @@ const HomeScreen: React.FC = () => {
 						]}
 						snapToInterval={PREP_CARD_WIDTH + theme.spacing.sm}
 						decelerationRate="fast"
-						renderItem={renderPrepItem}
+						renderItem={({ item }) => (
+							<TodayPrepCard
+								summary={item}
+								theme={theme}
+								onPress={() => handleViewSchedule(item.period)}
+							/>
+						)}
 					/>
 				</Animated.View>
 				<ActivityCard
@@ -2680,7 +2637,50 @@ const HomeScreen: React.FC = () => {
 					theme={theme}
 					onViewAlert={handleViewAlert}
 				/>
-			</AnimatedScrollView>
+			</>
+		),
+		[
+			selectedTab,
+			currentStats,
+			theme,
+			handleSelectTab,
+			handleViewSchedule,
+			handleViewAlert,
+		],
+	);
+	return (
+		<View style={[{ flex: 1, backgroundColor: theme.colors.background }]}>
+			<DashboardHeader
+				theme={theme}
+				insets={insets}
+				animatedStyle={headerAnimatedStyle}
+				currentDateString={currentDateString}
+				onSettingsPress={handleSettingsPress}
+				headerHeight={HEADER_HEIGHT}
+			/>
+			<AnimatedScrollView
+				ref={scrollRef}
+				data={[1]}
+				keyExtractor={() => "main"}
+				showsVerticalScrollIndicator={false}
+				contentContainerStyle={{
+					paddingTop: HEADER_HEIGHT + insets.top + theme.spacing.md,
+					paddingBottom: insets.bottom + theme.spacing.xxl,
+				}}
+				renderItem={() => renderHeader()}
+				onScroll={scrollHandler}
+				scrollEventThrottle={16}
+				refreshControl={
+					<RefreshControl
+						refreshing={refreshing}
+						onRefresh={handleRefresh}
+						tintColor={theme.colors.primary}
+						colors={[theme.colors.primary]}
+						progressBackgroundColor={theme.colors.card}
+						progressViewOffset={HEADER_HEIGHT + insets.top + theme.spacing.sm}
+					/>
+				}
+			/>
 		</View>
 	);
 };
