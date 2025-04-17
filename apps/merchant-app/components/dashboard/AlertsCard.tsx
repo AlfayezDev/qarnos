@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, Pressable, View, I18nManager } from "react-native";
+import { StyleSheet, Pressable, View } from "react-native";
 import Animated, {
 	FadeInUp,
 	FadeOutDown,
@@ -133,8 +133,8 @@ interface AlertItemProps {
 
 const AlertItem: React.FC<AlertItemProps> = React.memo(
 	({ alert, theme, onPress, isLast = false }) => {
-		const isRTL = I18nManager.isRTL;
 		const iconColor = theme.colors[alert.type];
+		const { isRTL } = useTranslation();
 		const pressed = useSharedValue(0);
 
 		const handlePressIn = () => {
@@ -174,7 +174,7 @@ const AlertItem: React.FC<AlertItemProps> = React.memo(
 					onPressIn={handlePressIn}
 					onPressOut={handlePressOut}
 					style={{
-						flexDirection: isRTL ? "row-reverse" : "row",
+						flexDirection: "row",
 						alignItems: "center",
 						padding: theme.spacing.md,
 					}}
@@ -188,8 +188,7 @@ const AlertItem: React.FC<AlertItemProps> = React.memo(
 							alignItems: "center",
 							justifyContent: "center",
 							backgroundColor: theme.colors.primaryLight,
-							marginRight: isRTL ? 0 : theme.spacing.sm,
-							marginLeft: isRTL ? theme.spacing.sm : 0,
+							marginStart: theme.spacing.sm,
 						}}
 					>
 						<Ionicons
@@ -198,22 +197,23 @@ const AlertItem: React.FC<AlertItemProps> = React.memo(
 							color={iconColor}
 						/>
 					</View>
-					<Box flex={1} marginStart={"sm"}>
+					<Box
+						flex={1}
+						marginStart={"sm"}
+						gap={theme.spacing.xs / 2}
+						alignItems="flex-start"
+					>
 						<Text variant="sm" weight="medium" numberOfLines={1}>
 							{alert.title}
 						</Text>
 						{alert.timestamp && (
-							<Text
-								variant="xs"
-								color="textMuted"
-								marginTop={theme.spacing.xs / 2}
-							>
+							<Text variant="xs" color="textMuted">
 								{alert.timestamp}
 							</Text>
 						)}
 					</Box>
 					<Box
-						marginEnd={"sm"}
+						marginStart={"sm"}
 						paddingVertical="xs"
 						paddingHorizontal="sm"
 						rounded="xs"
@@ -229,10 +229,10 @@ const AlertItem: React.FC<AlertItemProps> = React.memo(
 						</Text>
 					</Box>
 					<Ionicons
-						name="chevron-forward"
+						name={isRTL ? "chevron-back" : "chevron-forward"}
 						size={theme.sizes.iconSm}
 						color={theme.colors.textMuted}
-						style={{ marginLeft: theme.spacing.sm }}
+						style={{ marginStart: theme.spacing.sm }}
 					/>
 				</Pressable>
 			</Animated.View>

@@ -53,7 +53,7 @@ export const StatsGrid: React.FC<StatsGridProps> = React.memo(
 										color={theme.colors.primary}
 									/>
 								</Box>
-								<Text variant="sm" color="textSecondary">
+								<Text variant="xs" weight="semibold" color="textSecondary">
 									{stat.title}
 								</Text>
 							</Box>
