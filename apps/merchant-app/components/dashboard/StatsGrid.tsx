@@ -25,7 +25,7 @@ export const StatsGrid: React.FC<StatsGridProps> = React.memo(
 			<AnimatedBox
 				layout={LinearTransition.delay(100).duration(300)}
 				row
-				marginHorizontal="md"
+				marginHorizontal="sm"
 				marginBottom="lg"
 				gap={"sm"}
 			>

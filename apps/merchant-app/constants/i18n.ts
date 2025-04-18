@@ -2,6 +2,8 @@ export const translations = {
 	en: {
 		common: {
 			settings: "Settings",
+			dashboard: "Dashboard",
+			meals: "Meals",
 			cancel: "Cancel",
 			save: "Save",
 			delete: "Delete",
@@ -48,6 +50,22 @@ export const translations = {
 			week: "Week",
 			month: "Month",
 		},
+		meals: {
+			title: "Meal Management",
+			addNew: "Add New Meal",
+			noMeals: "No meals found",
+			addFirstMeal: "Add your first meal to get started",
+			mealName: "Meal Name",
+			description: "Description",
+			price: "Price ($)",
+			calories: "Calories",
+			prepTime: "Prep Time",
+			ingredients: "Ingredients (comma separated)",
+			mealPeriod: "Meal Period",
+			createMeal: "Create Meal",
+			saveChanges: "Save Changes",
+			confirmDelete: "Are you sure you want to delete this meal?",
+		},
 		periods: {
 			breakfast: "Breakfast",
 			lunch: "Lunch",
@@ -62,6 +80,8 @@ export const translations = {
 	ar: {
 		common: {
 			settings: "الإعدادات",
+			dashboard: "لوحة التحكم",
+			meals: "الوجبات",
 			cancel: "إلغاء",
 			save: "حفظ",
 			delete: "حذف",
@@ -107,6 +127,22 @@ export const translations = {
 			today: "اليوم",
 			week: "الأسبوع",
 			month: "الشهر",
+		},
+		meals: {
+			title: "إدارة الوجبات",
+			addNew: "إضافة وجبة جديدة",
+			noMeals: "لم يتم العثور على وجبات",
+			addFirstMeal: "أضف وجبتك الأولى للبدء",
+			mealName: "اسم الوجبة",
+			description: "الوصف",
+			price: "السعر ($)",
+			calories: "السعرات الحرارية",
+			prepTime: "وقت التحضير",
+			ingredients: "المكونات (مفصولة بفواصل)",
+			mealPeriod: "فترة الوجبة",
+			createMeal: "إنشاء وجبة",
+			saveChanges: "حفظ التغييرات",
+			confirmDelete: "هل أنت متأكد من حذف هذه الوجبة؟",
 		},
 		periods: {
 			breakfast: "الإفطار",

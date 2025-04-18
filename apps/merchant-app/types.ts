@@ -34,3 +34,19 @@ export interface QuickActionItem {
 	icon: string;
 	action: () => void;
 }
+
+export interface Meal {
+	id: string;
+	name: string;
+	name_ar?: string;
+	description: string;
+	description_ar?: string;
+	price: number;
+	ingredients: string[];
+	ingredients_ar?: string[];
+	calories: number;
+	prepTime: number;
+	period: string;
+	available: boolean;
+	image?: string;
+}

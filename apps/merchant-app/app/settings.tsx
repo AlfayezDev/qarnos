@@ -7,7 +7,7 @@ import {
 	Pressable,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { router, Stack } from "expo-router";
+import { Stack } from "expo-router";
 import { useTheme } from "@/hooks/useTheme";
 import { Text, Box, AnimatedBox, Avatar } from "@/components/ui";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -26,14 +26,9 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 export default function SettingsScreen() {
 	const theme = useTheme();
 	const insets = useSafeAreaInsets();
-	const { t, isRTL } = useTranslation();
+	const { t } = useTranslation();
 
 	const restaurantName = "The Gourmet Spot";
-
-	const handleBack = () => {
-		Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-		router.back();
-	};
 
 	const handleThemeChange = useCallback((newTheme: "light" | "dark") => {
 		Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -168,44 +163,15 @@ export default function SettingsScreen() {
 					height: theme.sizes.headerHeight,
 				}}
 			>
-				<Box width={theme.sizes.touchTarget * 1.5} alignItems="flex-start">
-					<TouchableOpacity
-						onPress={handleBack}
-						style={{
-							width: theme.sizes.buttonMd,
-							height: theme.sizes.buttonMd,
-							borderRadius: theme.radius.md,
-							backgroundColor: theme.colors.backgroundAlt,
-							alignItems: "center",
-							justifyContent: "center",
-						}}
-						hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-					>
-						<Ionicons
-							name={isRTL ? "chevron-forward" : "chevron-back"}
-							size={theme.sizes.iconMd}
-							color={theme.colors.text}
-						/>
-					</TouchableOpacity>
-				</Box>
-
-				<Text
-					variant="xl"
-					weight="semibold"
-					style={{ flex: 1, textAlign: "center" }}
-					numberOfLines={1}
-				>
+				<Text variant="xl" weight="semibold" numberOfLines={1}>
 					{t("common.settings")}
 				</Text>
-
-				<Box width={theme.sizes.touchTarget * 1.5} />
 			</Box>
 
 			<ScrollView
 				contentContainerStyle={{
-					padding: theme.spacing.md,
-					paddingTop: theme.spacing.sm,
-					paddingBottom: theme.spacing.xl,
+					paddingHorizontal: theme.spacing.md,
+					paddingBottom: theme.spacing.md,
 				}}
 				showsVerticalScrollIndicator={false}
 			>

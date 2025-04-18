@@ -1,6 +1,14 @@
-import React from "react";
-import { StyleSheet, Pressable } from "react-native";
+import React, { useCallback } from "react";
+import { Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import Animated, {
+	useSharedValue,
+	useAnimatedStyle,
+	withTiming,
+	interpolate,
+	Extrapolation,
+} from "react-native-reanimated";
+import * as Haptics from "expo-haptics";
 import { Box, Text, Badge } from "@/components/ui";
 import { AppTheme } from "@/hooks/useTheme";
 import { MealPrepSummary } from "@/types";
@@ -15,9 +23,13 @@ interface TodayPrepCardProps {
 const MAX_MEALS_TO_SHOW = 3;
 const PREP_CARD_WIDTH = 180;
 
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
 export const TodayPrepCard: React.FC<TodayPrepCardProps> = React.memo(
 	({ summary, theme, onPress }) => {
 		const { t } = useTranslation();
+		const pressed = useSharedValue(0);
+		const hovered = useSharedValue(0);
 
 		const periodIcons = {
 			Breakfast: "cafe-outline",
@@ -32,45 +44,113 @@ export const TodayPrepCard: React.FC<TodayPrepCardProps> = React.memo(
 
 		const translatedPeriod = t(`periods.${summary.period.toLowerCase()}`);
 
+		const handlePressIn = useCallback(() => {
+			Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+			pressed.value = withTiming(1, { duration: 100 });
+		}, []);
+
+		const handlePressOut = useCallback(() => {
+			pressed.value = withTiming(0, { duration: 200 });
+		}, []);
+
+		const handleHoverIn = useCallback(() => {
+			hovered.value = withTiming(1, { duration: 300 });
+		}, []);
+
+		const handleHoverOut = useCallback(() => {
+			hovered.value = withTiming(0, { duration: 300 });
+		}, []);
+
+		const handlePress = useCallback(() => {
+			Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+			onPress();
+		}, [onPress]);
+
+		const animatedCardStyle = useAnimatedStyle(() => {
+			const scale = interpolate(
+				pressed.value,
+				[0, 1],
+				[1, 0.95],
+				Extrapolation.CLAMP,
+			);
+
+			const opacity = interpolate(
+				pressed.value,
+				[0, 1],
+				[1, 0.5],
+				Extrapolation.CLAMP,
+			);
+
+			const translateY = interpolate(
+				pressed.value,
+				[0, 1],
+				[0, 2],
+				Extrapolation.CLAMP,
+			);
+
+			const shadowOpacity = interpolate(
+				pressed.value,
+				[0, 1],
+				[0.15, 0.05],
+				Extrapolation.CLAMP,
+			);
+
+			const elevation = interpolate(
+				pressed.value,
+				[0, 1],
+				[4, 1],
+				Extrapolation.CLAMP,
+			);
+
+			return {
+				transform: [{ scale }, { translateY }],
+				shadowOpacity: shadowOpacity,
+				elevation: elevation,
+				opacity,
+			};
+		});
+
 		return (
-			<Pressable
-				onPress={onPress}
-				style={({ pressed }) => [
-					localStyles.prepCardContainer,
-					{ borderRadius: theme.radius.lg },
-					pressed && { opacity: 0.8 },
+			<AnimatedPressable
+				onPress={handlePress}
+				onPressIn={handlePressIn}
+				onPressOut={handlePressOut}
+				onHoverIn={handleHoverIn}
+				onHoverOut={handleHoverOut}
+				style={[
+					{
+						width: PREP_CARD_WIDTH,
+						shadowColor: theme.colors.shadow,
+						shadowOffset: { width: 0, height: theme.spacing.xs / 2 },
+						shadowRadius: theme.radius.sm,
+						margin: theme.spacing.xs / 2,
+						borderRadius: theme.radius.lg,
+					},
+					animatedCardStyle,
 				]}
 				android_ripple={{ color: theme.colors.overlay }}
 			>
 				<Box
-					style={[
-						localStyles.prepCard,
-						{
-							backgroundColor: theme.colors.card,
-							borderRadius: theme.radius.lg,
-							shadowColor: theme.colors.shadow,
-						},
-					]}
+					card
+					rounded="lg"
+					padding="md"
 					elevation="small"
+					style={{
+						minHeight: theme.sizes.buttonLg * 4,
+					}}
 				>
-					<Box
-						row
-						alignCenter
-						marginBottom="sm"
-						style={{ flexDirection: "row" }}
-					>
+					<Box row alignCenter marginBottom="sm">
 						<Ionicons
 							name={periodIcons[summary.period] as any}
 							size={theme.sizes.iconSm}
 							color={theme.colors[periodColors[summary.period]]}
-							style={{
-								marginEnd: theme.spacing.sm,
-							}}
+							style={{ marginEnd: theme.spacing.sm }}
 						/>
 						<Text variant="md" weight="semibold">
 							{translatedPeriod}
 						</Text>
 					</Box>
+
 					<Text
 						variant="sm"
 						weight="medium"
@@ -80,14 +160,14 @@ export const TodayPrepCard: React.FC<TodayPrepCardProps> = React.memo(
 					>
 						{t("dashboard.prepList")}
 					</Text>
-					<Box style={localStyles.prepListContainer}>
+
+					<Box marginTop="xs" flex={1} gap={"sm"}>
 						{summary.mealsToPrep.slice(0, MAX_MEALS_TO_SHOW).map((meal) => (
 							<Box
 								key={meal.id}
 								row
 								justifyContent="space-between"
 								paddingVertical={theme.spacing.xs / 1.5}
-								style={{ flexDirection: "row" }}
 							>
 								<Text
 									variant="sm"
@@ -105,12 +185,12 @@ export const TodayPrepCard: React.FC<TodayPrepCardProps> = React.memo(
 							</Box>
 						))}
 					</Box>
+
 					<Box
 						row
 						justifyContent="space-between"
 						alignItems="flex-end"
 						paddingTop="sm"
-						style={{ flexDirection: "row" }}
 					>
 						<Badge
 							text={`${summary.totalMeals} ${t("common.total")}`}
@@ -119,13 +199,7 @@ export const TodayPrepCard: React.FC<TodayPrepCardProps> = React.memo(
 						/>
 					</Box>
 				</Box>
-			</Pressable>
+			</AnimatedPressable>
 		);
 	},
 );
-
-const localStyles = StyleSheet.create({
-	prepCardContainer: { width: PREP_CARD_WIDTH },
-	prepCard: { padding: 16, minHeight: 170, justifyContent: "space-between" },
-	prepListContainer: { marginTop: 4, flexGrow: 1 },
-});

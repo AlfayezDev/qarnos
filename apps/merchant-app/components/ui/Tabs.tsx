@@ -1,6 +1,6 @@
 import React from "react";
 import { Pressable } from "react-native";
-import Animated, { FadeInUp } from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 import { Box } from "./Box";
 import { Text } from "./Text";
 import { AppTheme } from "@/hooks/useTheme";
@@ -14,8 +14,6 @@ interface TabsProps {
 	labelRender: (tab: string) => string;
 }
 
-const AnimatedBox = Animated.createAnimatedComponent(Box);
-
 export const Tabs: React.FC<TabsProps> = React.memo(
 	({ tabs, selectedTab, onSelectTab, theme, labelRender }) => {
 		const handlePress = (tab: string) => {
@@ -26,8 +24,7 @@ export const Tabs: React.FC<TabsProps> = React.memo(
 		};
 
 		return (
-			<AnimatedBox
-				entering={FadeInUp.delay(50).duration(400).springify().damping(15)}
+			<Box
 				style={{
 					flexDirection: "row",
 				}}
@@ -74,7 +71,7 @@ export const Tabs: React.FC<TabsProps> = React.memo(
 						</Text>
 					</Pressable>
 				))}
-			</AnimatedBox>
+			</Box>
 		);
 	},
 );

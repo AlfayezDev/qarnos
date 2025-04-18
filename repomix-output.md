@@ -54,7 +54,6 @@ apps/
         PrepCard.tsx
         StatsGrid.tsx
       layout/
-        index.ts
         ScreenContainer.tsx
       ui/
         Avatar.tsx
@@ -67,19 +66,16 @@ apps/
         Text.tsx
       LanguageSelector.tsx
     constants/
-      Colors.ts
       i18n.ts
-      Spacing.ts
       theme.ts
-      Typography.ts
     hooks/
-      useColorScheme.ts
-      useColorScheme.web.ts
+      useColorScheme/
+        index.ts
+        useColorScheme.web.ts
       useLanguage.ts
       useTheme.ts
-      useThemeColor.ts
       useTranslation.ts
-    .gitignore
+    data.ts
     types.ts
 .gitignore
 .npmrc
@@ -89,253 +85,12 @@ pnpm-workspace.yaml
 
 # Files
 
-## File: apps/merchant-app/app/settings.tsx
-```typescript
-import React from "react";
-import { View, TouchableOpacity } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { router, Stack } from "expo-router";
-import { useTheme } from "@/hooks/useTheme";
-import { Text, Box } from "@/components/ui";
-import { ScreenContainer } from "@/components/layout";
-import { useTranslation } from "@/hooks/useTranslation";
-import { LanguageSelector } from "@/components/LanguageSelector";
-import { SafeAreaView } from "react-native-safe-area-context";
-export default function SettingsScreen() {
-	const theme = useTheme();
-	const { t, isRTL } = useTranslation();
-	const handleBack = () => {
-		router.back();
-	};
-	return (
-		<SafeAreaView
-			style={{
-				paddingHorizontal: theme.spacing.screenPadding,
-			}}
-		>
-			<Stack.Screen
-				options={{
-					headerShown: false,
-				}}
-			/>
-			<Box row alignItems="center" marginBottom="lg" marginTop="sm">
-				<TouchableOpacity
-					onPress={handleBack}
-					style={{
-						width: theme.sizes.buttonSm,
-						height: theme.sizes.buttonSm,
-						borderRadius: theme.radius.round,
-						alignItems: "center",
-						justifyContent: "center",
-						backgroundColor: theme.colors.backgroundAlt,
-					}}
-				>
-					<Ionicons
-						name={isRTL ? "chevron-forward" : "chevron-back"}
-						size={theme.sizes.iconMd}
-						color={theme.colors.text}
-					/>
-				</TouchableOpacity>
-				<Text variant="xl" weight="semibold" marginStart={"md"}>
-					{t("common.settings")}
-				</Text>
-			</Box>
-			<Box card padding="md" marginBottom="lg">
-				<LanguageSelector />
-			</Box>
-			<Box
-				card
-				padding={"md"}
-				alignItems="flex-start"
-				justifyContent="space-between"
-				row
-			>
-				<Text variant="md" weight="semibold">
-					{t("common.version")}
-				</Text>
-				<Text center variant="sm" color="textSecondary">
-					v1.0.0
-				</Text>
-			</Box>
-		</SafeAreaView>
-	);
-}
-```
-
-## File: apps/merchant-app/constants/Colors.ts
-```typescript
-export const QarnColors = {
-	light: {
-		primary: "#22C55E",
-		primaryDark: "#15803D",
-		primaryLight: "#E5F6ED",
-		background: "#F8FAF8",
-		card: "#FFFFFF",
-		cardAlt: "#F3F4F6",
-		text: "#1C1D1F",
-		textSecondary: "#6B7280",
-		textMuted: "#9CA3AF",
-		success: "#22C55E",
-		warning: "#FFD60A",
-		info: "#3B82F6",
-		error: "#EF4444",
-		divider: "#E5E7EB",
-		overlay: "rgba(0,0,0,0.4)",
-		shadow: "rgba(0,0,0,0.1)",
-		tabBar: "#FFFFFF",
-		tabIconDefault: "#9CA3AF",
-		tabIconSelected: "#22C55E",
-	},
-	dark: {
-		primary: "#22C55E",
-		primaryDark: "#15803D",
-		primaryLight: "#2C2C2E",
-		background: "#0C0C0C",
-		card: "#1C1C1E",
-		cardAlt: "#2C2C2E",
-		text: "#F2F2F7",
-		textSecondary: "#8E8E93",
-		textMuted: "#636366",
-		success: "#22C55E",
-		warning: "#FFD60A",
-		info: "#3B82F6",
-		error: "#EF4444",
-		divider: "#38383A",
-		overlay: "rgba(0,0,0,0.6)",
-		shadow: "rgba(0,0,0,0.3)",
-		tabBar: "#1C1C1E",
-		tabIconDefault: "#8E8E93",
-		tabIconSelected: "#22C55E",
-	},
-};
-```
-
-## File: apps/merchant-app/constants/Spacing.ts
-```typescript
-export const QarnSpacing = {
-	xs: 4,
-	sm: 8,
-	md: 16,
-	lg: 24,
-	xl: 32,
-	xxl: 48,
-	screenPadding: 16,
-	cardPadding: 16,
-	itemSpacing: 12,
-	sectionSpacing: 24,
-};
-export const QarnRadius = {
-	xs: 4,
-	sm: 8,
-	md: 12,
-	lg: 16,
-	xl: 24,
-	round: 999,
-	button: 12,
-	card: 16,
-	input: 12,
-	badge: 12,
-};
-export const QarnSizes = {
-	touchTarget: 44,
-	smallTouchTarget: 36,
-	iconXs: 16,
-	iconSm: 20,
-	iconMd: 24,
-	iconLg: 32,
-	buttonSm: 36,
-	buttonMd: 44,
-	buttonLg: 52,
-	inputHeight: 48,
-	headerHeight: 56,
-	tabBarHeight: 49,
-	avatarSm: 32,
-	avatarMd: 44,
-	avatarLg: 64,
-};
-```
-
-## File: apps/merchant-app/constants/Typography.ts
-```typescript
-export const QarnTypography = {
-	sizes: {
-		xs: 12,
-		sm: 14,
-		md: 16,
-		lg: 18,
-		xl: 20,
-		xxl: 24,
-		xxxl: 30,
-	},
-	weights: {
-		regular: "400",
-		medium: "500",
-		semibold: "600",
-		bold: "700",
-		extrabold: "800",
-	} as const,
-	lineHeights: {
-		tight: 1.2,
-		normal: 1.5,
-		loose: 1.8,
-	},
-};
-export const QarnShadows = {
-	light: {
-		small: {
-			shadowColor: "#000",
-			shadowOffset: { width: 0, height: 1 },
-			shadowOpacity: 0.1,
-			shadowRadius: 2,
-			elevation: 1,
-		},
-		medium: {
-			shadowColor: "#000",
-			shadowOffset: { width: 0, height: 2 },
-			shadowOpacity: 0.1,
-			shadowRadius: 4,
-			elevation: 2,
-		},
-		large: {
-			shadowColor: "#000",
-			shadowOffset: { width: 0, height: 4 },
-			shadowOpacity: 0.1,
-			shadowRadius: 8,
-			elevation: 4,
-		},
-	},
-	dark: {
-		small: {
-			shadowColor: "#000",
-			shadowOffset: { width: 0, height: 1 },
-			shadowOpacity: 0.3,
-			shadowRadius: 2,
-			elevation: 1,
-		},
-		medium: {
-			shadowColor: "#000",
-			shadowOffset: { width: 0, height: 2 },
-			shadowOpacity: 0.4,
-			shadowRadius: 4,
-			elevation: 2,
-		},
-		large: {
-			shadowColor: "#000",
-			shadowOffset: { width: 0, height: 4 },
-			shadowOpacity: 0.5,
-			shadowRadius: 8,
-			elevation: 4,
-		},
-	},
-};
-```
-
-## File: apps/merchant-app/hooks/useColorScheme.ts
+## File: apps/merchant-app/hooks/useColorScheme/index.ts
 ```typescript
 export { useColorScheme } from 'react-native';
 ```
 
-## File: apps/merchant-app/hooks/useColorScheme.web.ts
+## File: apps/merchant-app/hooks/useColorScheme/useColorScheme.web.ts
 ```typescript
 import { useEffect, useState } from 'react';
 import { useColorScheme as useRNColorScheme } from 'react-native';
@@ -350,33 +105,6 @@ export function useColorScheme() {
   }
   return 'light';
 }
-```
-
-## File: apps/merchant-app/hooks/useThemeColor.ts
-```typescript
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
-export function useThemeColor(
-  props: { light?: string; dark?: string },
-  colorName: keyof typeof Colors.light & keyof typeof Colors.dark
-) {
-  const theme = useColorScheme() ?? 'light';
-  const colorFromProps = props[theme];
-  if (colorFromProps) {
-    return colorFromProps;
-  } else {
-    return Colors[theme][colorName];
-  }
-}
-```
-
-## File: apps/merchant-app/.gitignore
-```
-# @generated expo-cli sync-2b81b286409207a5da26e14c78851eb30d8ccbdb
-# The following patterns were generated by expo-cli
-
-expo-env.d.ts
-# @end expo-cli
 ```
 
 ## File: apps/merchant-app/types.ts
@@ -418,65 +146,6 @@ export interface QuickActionItem {
 ```
 node-linker=hoisted
 engine-strict=true
-```
-
-## File: apps/merchant-app/app/+not-found.tsx
-```typescript
-import React from "react";
-import { StyleSheet } from "react-native";
-import { Stack, router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
-import { useTheme } from "@/hooks/useTheme";
-import { Text, Button } from "@/components/ui";
-import { ScreenContainer } from "@/components/layout";
-export default function NotFoundScreen() {
-	const theme = useTheme();
-	const handleGoHome = () => {
-		router.replace("/");
-	};
-	return (
-		<ScreenContainer scrollable={false} padded={false}>
-			<Stack.Screen options={{ title: "Not Found", headerShown: false }} />
-			<Animated.View
-				style={[styles.container, { backgroundColor: theme.colors.background }]}
-				entering={FadeIn.duration(300)}
-				exiting={FadeOut.duration(200)}
-			>
-				<Ionicons
-					name="alert-circle-outline"
-					size={theme.sizes.iconLg * 2.5}
-					color={theme.colors.textMuted}
-					style={styles.icon}
-				/>
-				<Text variant="xxl" weight="bold" center marginBottom="sm">
-					Oops! Page Not Found
-				</Text>
-				<Text variant="md" color="textSecondary" center marginBottom="xl">
-					We can't seem to find the page you're looking for. It might have been
-					moved or doesn't exist.
-				</Text>
-				<Button
-					title="Go to Dashboard"
-					onPress={handleGoHome}
-					leftIcon="home-outline"
-					size="lg"
-				/>
-			</Animated.View>
-		</ScreenContainer>
-	);
-}
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		alignItems: "center",
-		justifyContent: "center",
-		padding: 16,
-	},
-	icon: {
-		marginBottom: 24,
-	},
-});
 ```
 
 ## File: apps/merchant-app/components/dashboard/PrepCard.tsx
@@ -1023,250 +692,6 @@ export * from "./Badge";
 export * from "./Tabs";
 ```
 
-## File: apps/merchant-app/components/LanguageSelector.tsx
-```typescript
-import { Text } from "@/components/ui/Text";
-import { useLanguage } from "@/hooks/useLanguage";
-import { useTheme } from "@/hooks/useTheme";
-import { useTranslation } from "@/hooks/useTranslation";
-import { Ionicons } from "@expo/vector-icons";
-import React, { memo, useCallback } from "react";
-import { TouchableOpacity, View } from "react-native";
-export const LanguageSelector: React.FC = memo(() => {
-	const { language, changeLanguage } = useLanguage();
-	const theme = useTheme();
-	const { t } = useTranslation();
-	const handleLanguageChange = useCallback((newLanguage: "en" | "ar") => {
-		changeLanguage(newLanguage);
-	}, []);
-	return (
-		<View style={{ alignItems: "flex-start" }}>
-			<Text align="auto" variant="md" weight="semibold" marginBottom="md">
-				{t("settings.language")}
-			</Text>
-			<View
-				style={{
-					flexDirection: "row",
-					justifyContent: "space-between",
-				}}
-			>
-				<TouchableOpacity
-					style={{
-						flex: 1,
-						margin: theme.spacing.xs,
-						padding: theme.spacing.sm,
-						borderRadius: theme.radius.sm,
-						borderWidth: 1,
-						borderColor: theme.colors.primary,
-						alignItems: "center",
-						justifyContent: "center",
-						backgroundColor:
-							language === "en" ? theme.colors.primary : "transparent",
-					}}
-					onPress={() => handleLanguageChange("en")}
-					accessible={true}
-					accessibilityRole="button"
-					accessibilityLabel="Switch to English"
-				>
-					<View
-						style={{
-							flexDirection: "row",
-							alignItems: "center",
-							justifyContent: "center",
-						}}
-					>
-						<Ionicons
-							name="globe-outline"
-							size={theme.sizes.iconSm}
-							color={
-								language === "en"
-									? theme.colors.background
-									: theme.colors.primary
-							}
-							style={{ marginRight: theme.spacing.xs }}
-						/>
-						<Text
-							variant="md"
-							weight="medium"
-							color={language === "en" ? "background" : "primary"}
-						>
-							English
-						</Text>
-					</View>
-				</TouchableOpacity>
-				<TouchableOpacity
-					style={{
-						flex: 1,
-						margin: theme.spacing.xs,
-						padding: theme.spacing.sm,
-						borderRadius: theme.radius.sm,
-						borderWidth: 1,
-						borderColor: theme.colors.primary,
-						alignItems: "center",
-						justifyContent: "center",
-						backgroundColor:
-							language === "ar" ? theme.colors.primary : "transparent",
-					}}
-					onPress={() => handleLanguageChange("ar")}
-					accessible={true}
-					accessibilityRole="button"
-					accessibilityLabel="Switch to Arabic"
-				>
-					<View
-						style={{
-							flexDirection: "row",
-							alignItems: "center",
-							justifyContent: "center",
-						}}
-					>
-						<Ionicons
-							name="globe-outline"
-							size={theme.sizes.iconSm}
-							color={
-								language === "ar"
-									? theme.colors.background
-									: theme.colors.primary
-							}
-							style={{ marginRight: theme.spacing.xs }}
-						/>
-						<Text
-							variant="md"
-							weight="medium"
-							color={language === "ar" ? "background" : "primary"}
-						>
-							العربية
-						</Text>
-					</View>
-				</TouchableOpacity>
-			</View>
-		</View>
-	);
-});
-```
-
-## File: apps/merchant-app/constants/i18n.ts
-```typescript
-export const translations = {
-	en: {
-		common: {
-			settings: "Settings",
-			cancel: "Cancel",
-			save: "Save",
-			delete: "Delete",
-			edit: "Edit",
-			loading: "Loading...",
-			total: "Total",
-			more: "more",
-			back: "Back",
-			version: "Version",
-		},
-		search: {
-			title: "Search",
-			placeholder: "Search...",
-			noResults: "No results found for",
-			recentSearches: "Recent Searches",
-			clear: "Clear",
-		},
-		settings: {
-			title: "Settings",
-			language: "Language",
-			theme: "Theme",
-			notifications: "Notifications",
-			about: "About",
-			logout: "Logout",
-			darkMode: "Dark Mode",
-			lightMode: "Light Mode",
-			systemTheme: "System Theme",
-		},
-		dashboard: {
-			title: "Dashboard",
-			todaysPrep: "Today's Prep",
-			activeSubscriptions: "Active Subs",
-			newThisWeek: "New This Week",
-			newThisMonth: "New This Month",
-			mealsToday: "Meals Today",
-			alerts: "Alerts",
-			viewAll: "View all",
-			allCaughtUp: "You're all caught up!",
-			noAlerts: "No pressing alerts at the moment",
-			prepList: "Prep List:",
-			today: "Today",
-			week: "Week",
-			month: "Month",
-		},
-		periods: {
-			breakfast: "Breakfast",
-			lunch: "Lunch",
-			dinner: "Dinner",
-		},
-		alerts: {
-			warning: "Warning",
-			info: "Info",
-			error: "Error",
-		},
-	},
-	ar: {
-		common: {
-			settings: "الإعدادات",
-			cancel: "إلغاء",
-			save: "حفظ",
-			delete: "حذف",
-			edit: "تعديل",
-			loading: "جاري التحميل...",
-			total: "المجموع",
-			more: "المزيد",
-			back: "رجوع",
-			version: "الإصدار",
-		},
-		search: {
-			title: "بحث",
-			placeholder: "بحث...",
-			noResults: "لا توجد نتائج لـ",
-			recentSearches: "عمليات البحث الأخيرة",
-			clear: "مسح",
-		},
-		settings: {
-			title: "الإعدادات",
-			language: "اللغة",
-			theme: "السمة",
-			notifications: "الإشعارات",
-			about: "حول",
-			logout: "تسجيل الخروج",
-			darkMode: "الوضع الداكن",
-			lightMode: "الوضع الفاتح",
-			systemTheme: "سمة النظام",
-		},
-		dashboard: {
-			title: "لوحة التحكم",
-			todaysPrep: "تحضير اليوم",
-			activeSubscriptions: "الاشتراكات النشطة",
-			newThisWeek: "جديد هذا الأسبوع",
-			newThisMonth: "جديد هذا الشهر",
-			mealsToday: "وجبات اليوم",
-			alerts: "التنبيهات",
-			viewAll: "عرض الكل",
-			allCaughtUp: "أنت على اطلاع بكل شيء!",
-			noAlerts: "لا توجد تنبيهات ملحة في الوقت الحالي",
-			prepList: "قائمة التحضير:",
-			today: "اليوم",
-			week: "الأسبوع",
-			month: "الشهر",
-		},
-		periods: {
-			breakfast: "الإفطار",
-			lunch: "الغداء",
-			dinner: "العشاء",
-		},
-		alerts: {
-			warning: "تحذير",
-			info: "معلومات",
-			error: "خطأ",
-		},
-	},
-};
-export type Language = keyof typeof translations;
-```
-
 ## File: apps/merchant-app/hooks/useLanguage.ts
 ```typescript
 import { useState, useEffect } from "react";
@@ -1412,6 +837,425 @@ export function useTranslation() {
 		[language],
 	);
 	return { t, language, isRTL };
+}
+```
+
+## File: apps/merchant-app/data.ts
+```typescript
+import { Alert, MealPrepSummary } from "./types";
+export const TODAY_PREP_SUMMARY: MealPrepSummary[] = [
+	{
+		period: "Breakfast",
+		totalMeals: 25,
+		mealsToPrep: [
+			{ id: "shashuka", name: "Shashuka", count: 15 },
+			{ id: "oats", name: "Overnight Oats", count: 7 },
+			{ id: "smoothie", name: "Green Smoothie", count: 3 },
+		],
+	},
+	{
+		period: "Lunch",
+		totalMeals: 32,
+		mealsToPrep: [
+			{ id: "salad_x", name: "Quinoa Salad", count: 18 },
+			{ id: "wrap_y", name: "Falafel Wrap", count: 10 },
+			{ id: "soup_z", name: "Lentil Soup", count: 4 },
+			{ id: "extra1", name: "Side Salad", count: 2 },
+		],
+	},
+	{
+		period: "Dinner",
+		totalMeals: 28,
+		mealsToPrep: [
+			{ id: "salmon", name: "Grilled Salmon", count: 12 },
+			{ id: "tofu_stirfry", name: "Tofu Stir-fry", count: 9 },
+			{ id: "pasta_veg", name: "Veggie Pasta", count: 7 },
+		],
+	},
+];
+export const ALERTS: Alert[] = [
+	{
+		id: 1,
+		type: "info",
+		title: "New 'Keto Weekly' subscriber",
+		icon: "person-add-outline",
+		timestamp: "3h ago",
+	},
+	{
+		id: 2,
+		type: "warning",
+		title: "Low inventory: Quinoa",
+		icon: "cube-outline",
+		timestamp: "1h ago",
+	},
+	{
+		id: 3,
+		type: "error",
+		title: "Delivery issue Order #12345",
+		icon: "car-sport-outline",
+		timestamp: "Yesterday",
+	},
+];
+```
+
+## File: apps/merchant-app/app/+not-found.tsx
+```typescript
+import React from "react";
+import { StyleSheet } from "react-native";
+import { Stack, router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
+import { useTheme } from "@/hooks/useTheme";
+import { Text, Button } from "@/components/ui";
+import { ScreenContainer } from "@/components/layout/ScreenContainer";
+export default function NotFoundScreen() {
+	const theme = useTheme();
+	const handleGoHome = () => {
+		router.replace("/");
+	};
+	return (
+		<ScreenContainer scrollable={false} padded={false}>
+			<Stack.Screen options={{ title: "Not Found", headerShown: false }} />
+			<Animated.View
+				style={[styles.container, { backgroundColor: theme.colors.background }]}
+				entering={FadeIn.duration(300)}
+				exiting={FadeOut.duration(200)}
+			>
+				<Ionicons
+					name="alert-circle-outline"
+					size={theme.sizes.iconLg * 2.5}
+					color={theme.colors.textMuted}
+					style={styles.icon}
+				/>
+				<Text variant="xxl" weight="bold" center marginBottom="sm">
+					Oops! Page Not Found
+				</Text>
+				<Text variant="md" color="textSecondary" center marginBottom="xl">
+					We can't seem to find the page you're looking for. It might have been
+					moved or doesn't exist.
+				</Text>
+				<Button
+					title="Go to Dashboard"
+					onPress={handleGoHome}
+					leftIcon="home-outline"
+					size="lg"
+				/>
+			</Animated.View>
+		</ScreenContainer>
+	);
+}
+const styles = StyleSheet.create({
+	container: {
+		flex: 1,
+		alignItems: "center",
+		justifyContent: "center",
+		padding: 16,
+	},
+	icon: {
+		marginBottom: 24,
+	},
+});
+```
+
+## File: apps/merchant-app/app/settings.tsx
+```typescript
+import React, { useCallback } from "react";
+import {
+	TouchableOpacity,
+	View,
+	Appearance,
+	ScrollView,
+	Pressable,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { router, Stack } from "expo-router";
+import { useTheme } from "@/hooks/useTheme";
+import { Text, Box, AnimatedBox, Avatar } from "@/components/ui";
+import { useTranslation } from "@/hooks/useTranslation";
+import { LanguageSelector } from "@/components/LanguageSelector";
+import Animated, {
+	FadeInUp,
+	useAnimatedStyle,
+	withTiming,
+	LinearTransition,
+} from "react-native-reanimated";
+import * as Haptics from "expo-haptics";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+export default function SettingsScreen() {
+	const theme = useTheme();
+	const insets = useSafeAreaInsets();
+	const { t, isRTL } = useTranslation();
+	const restaurantName = "The Gourmet Spot";
+	const handleBack = () => {
+		Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+		router.back();
+	};
+	const handleThemeChange = useCallback((newTheme: "light" | "dark") => {
+		Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+		Appearance.setColorScheme(newTheme);
+		console.log("Theme changed to:", newTheme);
+	}, []);
+	const ThemeOption = ({
+		option,
+	}: { option: { key: "light" | "dark"; icon: string; label: string } }) => {
+		const isSelected = theme.mode === option.key;
+		const animatedStyle = useAnimatedStyle(() => {
+			return {
+				backgroundColor: withTiming(
+					isSelected ? theme.colors.primaryLight : theme.colors.backgroundAlt,
+					{ duration: 200 },
+				),
+				borderColor: withTiming(
+					isSelected ? theme.colors.primary : theme.colors.divider,
+					{ duration: 200 },
+				),
+				transform: [
+					{ scale: withTiming(isSelected ? 1.0 : 0.98, { duration: 150 }) },
+				],
+				opacity: withTiming(isSelected ? 1 : 0.8, { duration: 200 }),
+			};
+		});
+		const iconColor = isSelected
+			? theme.colors.primary
+			: theme.colors.textSecondary;
+		const textColor = isSelected
+			? theme.colors.primary
+			: theme.colors.textSecondary;
+		return (
+			<AnimatedPressable
+				key={option.key}
+				style={[
+					{
+						flex: 1,
+						marginHorizontal: theme.spacing.xs,
+						paddingVertical: theme.spacing.md,
+						paddingHorizontal: theme.spacing.sm,
+						borderRadius: theme.radius.lg,
+						borderWidth: 2,
+						alignItems: "center" as const,
+						justifyContent: "center" as const,
+						minHeight: theme.sizes.buttonLg * 1.8,
+					},
+					animatedStyle,
+				]}
+				onPress={() => handleThemeChange(option.key)}
+				accessible={true}
+				accessibilityRole="button"
+				accessibilityLabel={`Set theme to ${option.label}`}
+				accessibilityState={{ selected: isSelected }}
+			>
+				<Ionicons
+					name={option.icon as any}
+					size={theme.sizes.iconLg}
+					color={iconColor}
+					style={{ marginBottom: theme.spacing.sm }}
+				/>
+				<Text variant="sm" weight="semibold" color={textColor}>
+					{option.label}
+				</Text>
+			</AnimatedPressable>
+		);
+	};
+	const themeOptions = [
+		{ key: "light", icon: "sunny-outline", label: t("settings.lightMode") },
+		{ key: "dark", icon: "moon-outline", label: t("settings.darkMode") },
+	] as const;
+	const SettingsSection = ({
+		title,
+		icon,
+		children,
+		delay,
+	}: {
+		title: string;
+		icon: any;
+		children: React.ReactNode;
+		delay: number;
+	}) => (
+		<AnimatedBox
+			entering={FadeInUp.delay(delay).duration(500).springify().damping(18)}
+			layout={LinearTransition.duration(300)}
+			padding="lg"
+			marginBottom="lg"
+			bg="card"
+			rounded="xl"
+			style={{
+				borderWidth: 1,
+				borderColor: theme.colors.divider,
+			}}
+		>
+			<Box row alignCenter marginBottom="md">
+				<Ionicons
+					name={icon}
+					size={theme.sizes.iconSm}
+					color={theme.colors.primary}
+					style={{ marginEnd: theme.spacing.sm }}
+				/>
+				<Text variant="lg" weight="semibold" color="textSecondary">
+					{title}
+				</Text>
+			</Box>
+			{children}
+		</AnimatedBox>
+	);
+	return (
+		<View
+			style={{
+				flex: 1,
+				backgroundColor: theme.colors.background,
+				paddingTop: insets.top,
+			}}
+		>
+			<Stack.Screen options={{ headerShown: false }} />
+			<Box
+				row
+				alignItems="center"
+				paddingHorizontal="md"
+				paddingVertical="sm"
+				style={{
+					height: theme.sizes.headerHeight,
+				}}
+			>
+				<Box width={theme.sizes.touchTarget * 1.5} alignItems="flex-start">
+					<TouchableOpacity
+						onPress={handleBack}
+						style={{
+							width: theme.sizes.buttonMd,
+							height: theme.sizes.buttonMd,
+							borderRadius: theme.radius.md,
+							backgroundColor: theme.colors.backgroundAlt,
+							alignItems: "center",
+							justifyContent: "center",
+						}}
+						hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+					>
+						<Ionicons
+							name={isRTL ? "chevron-forward" : "chevron-back"}
+							size={theme.sizes.iconMd}
+							color={theme.colors.text}
+						/>
+					</TouchableOpacity>
+				</Box>
+				<Text
+					variant="xl"
+					weight="semibold"
+					style={{ flex: 1, textAlign: "center" }}
+					numberOfLines={1}
+				>
+					{t("common.settings")}
+				</Text>
+				<Box width={theme.sizes.touchTarget * 1.5} />
+			</Box>
+			<ScrollView
+				contentContainerStyle={{
+					padding: theme.spacing.md,
+					paddingTop: theme.spacing.sm,
+					paddingBottom: theme.spacing.xl,
+				}}
+				showsVerticalScrollIndicator={false}
+			>
+				<AnimatedBox
+					entering={FadeInUp.delay(100).duration(500).springify().damping(18)}
+					row
+					alignCenter
+					bg="card"
+					padding="md"
+					rounded="xl"
+					marginBottom="lg"
+					style={{ borderWidth: 1, borderColor: theme.colors.divider }}
+				>
+					<Avatar
+						text={restaurantName.charAt(0)}
+						size="md"
+						style={{ marginEnd: theme.spacing.md }}
+					/>
+					<Box alignItems="flex-start" flex={1}>
+						<Text variant="sm" color="textSecondary">
+							{t("settings.signedInAs") ?? "Signed in as"}
+						</Text>
+						<Text variant="lg" weight="semibold" numberOfLines={1}>
+							{restaurantName}
+						</Text>
+					</Box>
+					<Ionicons
+						name="person-circle-outline"
+						size={theme.sizes.iconLg}
+						color={theme.colors.textMuted}
+					/>
+				</AnimatedBox>
+				<SettingsSection
+					title={t("settings.language")}
+					icon="language-outline"
+					delay={200}
+				>
+					<LanguageSelector />
+				</SettingsSection>
+				<SettingsSection
+					title={t("settings.theme")}
+					icon="color-palette-outline"
+					delay={300}
+				>
+					<View
+						style={{
+							flexDirection: "row",
+							marginHorizontal: -theme.spacing.xs,
+						}}
+					>
+						{themeOptions.map((option) => (
+							<ThemeOption key={option.key} option={option} />
+						))}
+					</View>
+				</SettingsSection>
+				<SettingsSection
+					title={t("settings.appInfo")}
+					icon="information-circle-outline"
+					delay={400}
+				>
+					<Box row justifyContent="space-between" alignItems="center">
+						<Text variant="md" weight="medium" color="textSecondary">
+							{t("common.version")}
+						</Text>
+						<Text variant="md" weight="medium" color="textMuted">
+							v1.0.0
+						</Text>
+					</Box>
+				</SettingsSection>
+				<AnimatedBox
+					entering={FadeInUp.delay(500).duration(500).springify().damping(18)}
+				>
+					<TouchableOpacity
+						style={{
+							marginTop: theme.spacing.lg,
+							padding: theme.spacing.md,
+							borderRadius: theme.radius.lg,
+							backgroundColor: theme.colors.cardAlt,
+							borderWidth: 1,
+							borderColor: theme.colors.error,
+							flexDirection: "row",
+							alignItems: "center",
+							justifyContent: "center",
+						}}
+						onPress={() => {
+							Haptics.notificationAsync(
+								Haptics.NotificationFeedbackType.Warning,
+							);
+							console.log("Logout Pressed");
+						}}
+					>
+						<Ionicons
+							name="log-out-outline"
+							size={theme.sizes.iconMd}
+							color={theme.colors.error}
+							style={{ marginEnd: theme.spacing.sm }}
+						/>
+						<Text variant="md" weight="semibold" color="error">
+							{t("settings.logout")}
+						</Text>
+					</TouchableOpacity>
+				</AnimatedBox>
+			</ScrollView>
+		</View>
+	);
 }
 ```
 
@@ -1651,11 +1495,6 @@ const AlertItem: React.FC<AlertItemProps> = React.memo(
 );
 ```
 
-## File: apps/merchant-app/components/layout/index.ts
-```typescript
-export * from "./ScreenContainer";
-```
-
 ## File: apps/merchant-app/components/ui/Badge.tsx
 ```typescript
 import React from "react";
@@ -1828,6 +1667,122 @@ export const Tabs: React.FC<TabsProps> = React.memo(
 		);
 	},
 );
+```
+
+## File: apps/merchant-app/components/LanguageSelector.tsx
+```typescript
+import { Text } from "@/components/ui/Text";
+import { useLanguage } from "@/hooks/useLanguage";
+import { useTheme } from "@/hooks/useTheme";
+import { Ionicons } from "@expo/vector-icons";
+import React, { memo, useCallback } from "react";
+import { TouchableOpacity, View } from "react-native";
+export const LanguageSelector: React.FC = memo(() => {
+	const { language, changeLanguage } = useLanguage();
+	const theme = useTheme();
+	const handleLanguageChange = useCallback((newLanguage: "en" | "ar") => {
+		changeLanguage(newLanguage);
+	}, []);
+	return (
+		<View style={{ alignItems: "flex-start" }}>
+			<View
+				style={{
+					flexDirection: "row",
+					justifyContent: "space-between",
+				}}
+			>
+				<TouchableOpacity
+					style={{
+						flex: 1,
+						margin: theme.spacing.xs,
+						padding: theme.spacing.sm,
+						borderRadius: theme.radius.sm,
+						borderWidth: 1,
+						borderColor: theme.colors.primary,
+						alignItems: "center",
+						justifyContent: "center",
+						backgroundColor:
+							language === "en" ? theme.colors.primary : "transparent",
+					}}
+					onPress={() => handleLanguageChange("en")}
+					accessible={true}
+					accessibilityRole="button"
+					accessibilityLabel="Switch to English"
+				>
+					<View
+						style={{
+							flexDirection: "row",
+							alignItems: "center",
+							justifyContent: "center",
+						}}
+					>
+						<Ionicons
+							name="globe-outline"
+							size={theme.sizes.iconSm}
+							color={
+								language === "en"
+									? theme.colors.background
+									: theme.colors.primary
+							}
+							style={{ marginRight: theme.spacing.xs }}
+						/>
+						<Text
+							variant="md"
+							weight="medium"
+							color={language === "en" ? "background" : "primary"}
+						>
+							English
+						</Text>
+					</View>
+				</TouchableOpacity>
+				<TouchableOpacity
+					style={{
+						flex: 1,
+						margin: theme.spacing.xs,
+						padding: theme.spacing.sm,
+						borderRadius: theme.radius.sm,
+						borderWidth: 1,
+						borderColor: theme.colors.primary,
+						alignItems: "center",
+						justifyContent: "center",
+						backgroundColor:
+							language === "ar" ? theme.colors.primary : "transparent",
+					}}
+					onPress={() => handleLanguageChange("ar")}
+					accessible={true}
+					accessibilityRole="button"
+					accessibilityLabel="Switch to Arabic"
+				>
+					<View
+						style={{
+							flexDirection: "row",
+							alignItems: "center",
+							justifyContent: "center",
+						}}
+					>
+						<Ionicons
+							name="globe-outline"
+							size={theme.sizes.iconSm}
+							color={
+								language === "ar"
+									? theme.colors.background
+									: theme.colors.primary
+							}
+							style={{ marginRight: theme.spacing.xs }}
+						/>
+						<Text
+							variant="md"
+							weight="medium"
+							color={language === "ar" ? "background" : "primary"}
+						>
+							العربية
+						</Text>
+					</View>
+				</TouchableOpacity>
+			</View>
+		</View>
+	);
+});
 ```
 
 ## File: .nvimrc
@@ -2183,6 +2138,133 @@ export const Text: React.FC<TextProps> = memo(
 	},
 );
 export default Text;
+```
+
+## File: apps/merchant-app/constants/i18n.ts
+```typescript
+export const translations = {
+	en: {
+		common: {
+			settings: "Settings",
+			cancel: "Cancel",
+			save: "Save",
+			delete: "Delete",
+			edit: "Edit",
+			loading: "Loading...",
+			total: "Total",
+			more: "more",
+			back: "Back",
+			version: "Version",
+		},
+		search: {
+			title: "Search",
+			placeholder: "Search...",
+			noResults: "No results found for",
+			recentSearches: "Recent Searches",
+			clear: "Clear",
+		},
+		settings: {
+			title: "Settings",
+			language: "Language",
+			theme: "Appearance",
+			notifications: "Notifications",
+			about: "About",
+			logout: "Logout",
+			lightMode: "Light",
+			darkMode: "Dark",
+			systemTheme: "System",
+			signedInAs: "Signed in as",
+			appInfo: "App Information",
+		},
+		dashboard: {
+			title: "Dashboard",
+			todaysPrep: "Today's Prep",
+			activeSubscriptions: "Active Subs",
+			newThisWeek: "New This Week",
+			newThisMonth: "New This Month",
+			mealsToday: "Meals Today",
+			alerts: "Alerts",
+			viewAll: "View all",
+			allCaughtUp: "You're all caught up!",
+			noAlerts: "No pressing alerts at the moment",
+			prepList: "Prep List:",
+			today: "Today",
+			week: "Week",
+			month: "Month",
+		},
+		periods: {
+			breakfast: "Breakfast",
+			lunch: "Lunch",
+			dinner: "Dinner",
+		},
+		alerts: {
+			warning: "Warning",
+			info: "Info",
+			error: "Error",
+		},
+	},
+	ar: {
+		common: {
+			settings: "الإعدادات",
+			cancel: "إلغاء",
+			save: "حفظ",
+			delete: "حذف",
+			edit: "تعديل",
+			loading: "جاري التحميل...",
+			total: "المجموع",
+			more: "المزيد",
+			back: "رجوع",
+			version: "الإصدار",
+		},
+		search: {
+			title: "بحث",
+			placeholder: "بحث...",
+			noResults: "لا توجد نتائج لـ",
+			recentSearches: "عمليات البحث الأخيرة",
+			clear: "مسح",
+		},
+		settings: {
+			title: "الإعدادات",
+			language: "اللغة",
+			theme: "المظهر",
+			notifications: "الإشعارات",
+			about: "حول",
+			logout: "تسجيل الخروج",
+			lightMode: "فاتح",
+			darkMode: "داكن",
+			systemTheme: "النظام",
+			signedInAs: "مسجل الدخول كـ",
+			appInfo: "معلومات التطبيق",
+		},
+		dashboard: {
+			title: "لوحة التحكم",
+			todaysPrep: "تحضير اليوم",
+			activeSubscriptions: "الاشتراكات النشطة",
+			newThisWeek: "جديد هذا الأسبوع",
+			newThisMonth: "جديد هذا الشهر",
+			mealsToday: "وجبات اليوم",
+			alerts: "التنبيهات",
+			viewAll: "عرض الكل",
+			allCaughtUp: "أنت على اطلاع بكل شيء!",
+			noAlerts: "لا توجد تنبيهات ملحة في الوقت الحالي",
+			prepList: "قائمة التحضير:",
+			today: "اليوم",
+			week: "الأسبوع",
+			month: "الشهر",
+		},
+		periods: {
+			breakfast: "الإفطار",
+			lunch: "الغداء",
+			dinner: "العشاء",
+		},
+		alerts: {
+			warning: "تحذير",
+			info: "معلومات",
+			error: "خطأ",
+		},
+	},
+};
+export type Language = keyof typeof translations;
 ```
 
 ## File: apps/merchant-app/constants/theme.ts
@@ -2655,11 +2737,99 @@ export default function RootLayout() {
 }
 ```
 
+## File: .gitignore
+```
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+node_modules
+.pnp
+.pnp.js
+
+# testing
+coverage
+
+# next.js
+.next/
+out/
+next-env.d.ts
+#sveltekit
+.svelte-kit
+# nitro
+.nitro/
+.output/
+
+# expo
+.expo
+expo-env.d.ts
+ios/
+android/
+*.gen.ts
+
+# production
+build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# local env files
+.env
+.env*.local
+
+# typescript
+*.tsbuildinfo
+dist/
+
+# turbo
+.turbo
+
+
+
+
+# Output
+.cache
+.output
+.vercel
+/.svelte-kit
+/build
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.*
+!.env.example
+!.env.test
+
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+.maestro/tests/
+messages.js
+```
+
 ## File: apps/merchant-app/app/index.tsx
 ```typescript
+import { AlertsCard } from "@/components/dashboard/AlertsCard";
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+import { TodayPrepCard } from "@/components/dashboard/PrepCard";
+import { StatsGrid } from "@/components/dashboard/StatsGrid";
 import { Box, Text } from "@/components/ui";
+import { Tabs } from "@/components/ui/Tabs";
+import { ALERTS, TODAY_PREP_SUMMARY } from "@/data";
 import { useTheme } from "@/hooks/useTheme";
+import { useTranslation } from "@/hooks/useTranslation";
 import * as Haptics from "expo-haptics";
+import { router } from "expo-router";
 import React, { useState, useCallback, useRef, useMemo } from "react";
 import { FlatList, RefreshControl, StyleSheet, View } from "react-native";
 import Animated, {
@@ -2670,67 +2840,6 @@ import Animated, {
 	withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
-import { TodayPrepCard } from "@/components/dashboard/PrepCard";
-import { StatsGrid } from "@/components/dashboard/StatsGrid";
-import { Tabs } from "@/components/ui/Tabs";
-import { AlertsCard } from "@/components/dashboard/AlertsCard";
-import { Alert, MealPrepSummary, StatItem } from "@/types";
-import { router } from "expo-router";
-import { useTranslation } from "@/hooks/useTranslation";
-const TODAY_PREP_SUMMARY: MealPrepSummary[] = [
-	{
-		period: "Breakfast",
-		totalMeals: 25,
-		mealsToPrep: [
-			{ id: "shashuka", name: "Shashuka", count: 15 },
-			{ id: "oats", name: "Overnight Oats", count: 7 },
-			{ id: "smoothie", name: "Green Smoothie", count: 3 },
-		],
-	},
-	{
-		period: "Lunch",
-		totalMeals: 32,
-		mealsToPrep: [
-			{ id: "salad_x", name: "Quinoa Salad", count: 18 },
-			{ id: "wrap_y", name: "Falafel Wrap", count: 10 },
-			{ id: "soup_z", name: "Lentil Soup", count: 4 },
-			{ id: "extra1", name: "Side Salad", count: 2 },
-		],
-	},
-	{
-		period: "Dinner",
-		totalMeals: 28,
-		mealsToPrep: [
-			{ id: "salmon", name: "Grilled Salmon", count: 12 },
-			{ id: "tofu_stirfry", name: "Tofu Stir-fry", count: 9 },
-			{ id: "pasta_veg", name: "Veggie Pasta", count: 7 },
-		],
-	},
-];
-const ALERTS: Alert[] = [
-	{
-		id: 1,
-		type: "info",
-		title: "New 'Keto Weekly' subscriber",
-		icon: "person-add-outline",
-		timestamp: "3h ago",
-	},
-	{
-		id: 2,
-		type: "warning",
-		title: "Low inventory: Quinoa",
-		icon: "cube-outline",
-		timestamp: "1h ago",
-	},
-	{
-		id: 3,
-		type: "error",
-		title: "Delivery issue Order #12345",
-		icon: "car-sport-outline",
-		timestamp: "Yesterday",
-	},
-];
 const HEADER_HEIGHT = 65;
 const PREP_CARD_WIDTH = 170;
 const HomeScreen: React.FC = () => {
@@ -2830,7 +2939,6 @@ const HomeScreen: React.FC = () => {
 		return {
 			backgroundColor: theme.colors.background,
 			shadowColor: theme.colors.shadow,
-			shadowOffset: { width: 0, height: 1 },
 			shadowRadius: 3,
 			shadowOpacity: scrollY.value > 2 ? (theme.isDark ? 0.3 : 0.1) : 0,
 			borderBottomWidth: scrollY.value > 2 ? StyleSheet.hairlineWidth : 0,
@@ -2863,7 +2971,7 @@ const HomeScreen: React.FC = () => {
 				<Animated.View
 					entering={FadeInUp.delay(300).duration(400).springify().damping(15)}
 				>
-					<FlatList<MealPrepSummary>
+					<FlatList
 						horizontal
 						data={TODAY_PREP_SUMMARY}
 						keyExtractor={(item) => item.period}
@@ -2948,84 +3056,4 @@ const HomeScreen: React.FC = () => {
 	);
 };
 export default HomeScreen;
-```
-
-## File: .gitignore
-```
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-node_modules
-.pnp
-.pnp.js
-
-# testing
-coverage
-
-# next.js
-.next/
-out/
-next-env.d.ts
-#sveltekit
-.svelte-kit
-# nitro
-.nitro/
-.output/
-
-# expo
-.expo
-expo-env.d.ts
-ios/
-android/
-*.gen.ts
-
-# production
-build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# local env files
-.env
-.env*.local
-
-# typescript
-*.tsbuildinfo
-dist/
-
-# turbo
-.turbo
-
-
-
-
-# Output
-.cache
-.output
-.vercel
-/.svelte-kit
-/build
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Env
-.env
-.env.*
-!.env.example
-!.env.test
-
-# Vite
-vite.config.js.timestamp-*
-vite.config.ts.timestamp-*
-.maestro/tests/
-messages.js
 ```

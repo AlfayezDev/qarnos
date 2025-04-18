@@ -1,26 +1,18 @@
 import { AlertsCard } from "@/components/dashboard/AlertsCard";
-import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { TodayPrepCard } from "@/components/dashboard/PrepCard";
 import { StatsGrid } from "@/components/dashboard/StatsGrid";
-import { Box, Text } from "@/components/ui";
+import { AnimatedBox, Box } from "@/components/ui";
 import { Tabs } from "@/components/ui/Tabs";
+import { Text } from "@/components/ui/Text";
 import { ALERTS, TODAY_PREP_SUMMARY } from "@/data";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import * as Haptics from "expo-haptics";
-import { router } from "expo-router";
-import React, { useState, useCallback, useRef, useMemo } from "react";
-import { FlatList, RefreshControl, StyleSheet, View } from "react-native";
-import Animated, {
-	useSharedValue,
-	useAnimatedStyle,
-	useAnimatedScrollHandler,
-	FadeInUp,
-	withTiming,
-} from "react-native-reanimated";
+import React, { useState, useCallback, useMemo } from "react";
+import { FlatList, View, ScrollView } from "react-native";
+import Animated, { FadeInUp } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const HEADER_HEIGHT = 65;
 const PREP_CARD_WIDTH = 170;
 
 const HomeScreen: React.FC = () => {
@@ -28,10 +20,7 @@ const HomeScreen: React.FC = () => {
 	const insets = useSafeAreaInsets();
 	const { t, language } = useTranslation();
 
-	const [refreshing, setRefreshing] = useState(false);
 	const [selectedTab, setSelectedTab] = useState("Today");
-	const scrollY = useSharedValue(0);
-	const scrollRef = useRef<Animated.FlatList<any>>(null);
 
 	const tabItems = useMemo(() => {
 		return ["Today", "Week", "Month"];
@@ -91,12 +80,6 @@ const HomeScreen: React.FC = () => {
 		[],
 	);
 
-	const handleRefresh = useCallback(() => {
-		setRefreshing(true);
-		Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-		setTimeout(() => setRefreshing(false), 1200);
-	}, []);
-
 	const handleSelectTab = useCallback(
 		(tab: string) => {
 			if (tab !== selectedTab) {
@@ -119,33 +102,39 @@ const HomeScreen: React.FC = () => {
 		console.log("Navigate to All Alerts Screen");
 	}, []);
 
-	const handleSettingsPress = useCallback(() => {
-		router.push("/settings");
-	}, []);
+	return (
+		<View
+			style={{
+				flex: 1,
+				backgroundColor: theme.colors.background,
+				paddingTop: insets.top,
+			}}
+		>
+			<ScrollView
+				contentContainerStyle={{
+					paddingBottom: theme.spacing.md,
+				}}
+				showsVerticalScrollIndicator={false}
+			>
+				<Box
+					row
+					alignItems="center"
+					paddingHorizontal="md"
+					paddingVertical="sm"
+					style={{
+						height: theme.sizes.headerHeight,
+					}}
+				>
+					<Text variant="xl" weight="semibold" numberOfLines={1}>
+						{currentDateString}
+					</Text>
+				</Box>
 
-	const scrollHandler = useAnimatedScrollHandler((event) => {
-		const offsetY = event.contentOffset.y;
-		scrollY.value = withTiming(offsetY, { duration: 150 });
-	});
-
-	const headerAnimatedStyle = useAnimatedStyle(() => {
-		return {
-			backgroundColor: theme.colors.background,
-			shadowColor: theme.colors.shadow,
-			// shadowOffset: { width: 0, height: 1 },
-			shadowRadius: 3,
-			shadowOpacity: scrollY.value > 2 ? (theme.isDark ? 0.3 : 0.1) : 0,
-			borderBottomWidth: scrollY.value > 2 ? StyleSheet.hairlineWidth : 0,
-			borderBottomColor: theme.colors.divider,
-			elevation: scrollY.value > 2 ? 3 : 0,
-			zIndex: 1000,
-		};
-	});
-
-	const renderHeader = useCallback(
-		() => (
-			<>
-				<Box marginHorizontal="md" marginBottom="lg">
+				<AnimatedBox
+					marginHorizontal="md"
+					gap="lg"
+					entering={FadeInUp.delay(50).duration(400).springify().damping(15)}
+				>
 					<Tabs
 						tabs={tabItems}
 						selectedTab={selectedTab}
@@ -153,19 +142,23 @@ const HomeScreen: React.FC = () => {
 						theme={theme}
 						labelRender={(tab) => t(`dashboard.${tab.toLowerCase()}`)}
 					/>
-				</Box>
-				<StatsGrid stats={currentStats} theme={theme} key={selectedTab} />
-				<Text
-					variant="lg"
-					weight="semibold"
-					marginHorizontal="md"
-					marginBottom="sm"
+					<StatsGrid stats={currentStats} theme={theme} key={selectedTab} />
+				</AnimatedBox>
+				<Animated.Text
+					entering={FadeInUp.duration(400)}
+					style={{
+						fontSize: theme.typography.sizes.lg,
+						fontWeight: theme.typography.weights.semibold,
+						color: theme.colors.text,
+						marginHorizontal: theme.spacing.md,
+						marginBottom: theme.spacing.sm,
+						alignSelf: "flex-start",
+					}}
 				>
 					{t("dashboard.todaysPrep")}
-				</Text>
-				<Animated.View
-					entering={FadeInUp.delay(300).duration(400).springify().damping(15)}
-				>
+				</Animated.Text>
+
+				<Animated.View entering={FadeInUp.delay(300).duration(400).damping(15)}>
 					<FlatList
 						horizontal
 						data={TODAY_PREP_SUMMARY}
@@ -195,59 +188,7 @@ const HomeScreen: React.FC = () => {
 					onViewAlert={handleViewAlert}
 					onViewAllAlerts={handleViewAllAlerts}
 				/>
-			</>
-		),
-		[
-			selectedTab,
-			currentStats,
-			theme,
-			handleSelectTab,
-			handleViewSchedule,
-			handleViewAlert,
-			handleViewAllAlerts,
-			t,
-			tabItems,
-		],
-	);
-
-	return (
-		<View style={[{ flex: 1, backgroundColor: theme.colors.background }]}>
-			<DashboardHeader
-				theme={theme}
-				insets={insets}
-				animatedStyle={headerAnimatedStyle}
-				currentDateString={currentDateString}
-				onSettingsPress={handleSettingsPress}
-				headerHeight={HEADER_HEIGHT}
-			/>
-			<Animated.FlatList
-				ref={scrollRef}
-				data={[1]}
-				keyExtractor={() => "main"}
-				showsVerticalScrollIndicator={false}
-				contentContainerStyle={{
-					paddingTop: HEADER_HEIGHT + insets.top + theme.spacing.md,
-					paddingBottom: insets.bottom + theme.spacing.xxl,
-				}}
-				getItemLayout={(_, index) => ({
-					length: PREP_CARD_WIDTH + theme.spacing.sm,
-					offset: (PREP_CARD_WIDTH + theme.spacing.sm) * index,
-					index,
-				})}
-				renderItem={() => renderHeader()}
-				onScroll={scrollHandler}
-				scrollEventThrottle={16}
-				refreshControl={
-					<RefreshControl
-						refreshing={refreshing}
-						onRefresh={handleRefresh}
-						tintColor={theme.colors.primary}
-						colors={[theme.colors.primary]}
-						progressBackgroundColor={theme.colors.card}
-						progressViewOffset={HEADER_HEIGHT + insets.top + theme.spacing.sm}
-					/>
-				}
-			/>
+			</ScrollView>
 		</View>
 	);
 };

@@ -29,8 +29,8 @@ export const AlertsCard: React.FC<AlertsCardProps> = React.memo(
 			<AnimatedBox
 				entering={FadeInUp.delay(350).duration(400).springify().damping(15)}
 				exiting={FadeOutDown.duration(200)}
-				bg="card"
-				rounded="lg"
+				card
+				rounded="sm"
 				marginHorizontal="md"
 				marginBottom="lg"
 				elevation="small"
@@ -150,12 +150,13 @@ const AlertItem: React.FC<AlertItemProps> = React.memo(
 				transform: [
 					{
 						scale: withTiming(pressed.value === 1 ? 0.98 : 1, {
-							duration: pressed.value === 1 ? 100 : 200,
+							duration: pressed.value === 1 ? 50 : 200,
 						}),
 					},
 				],
-				backgroundColor:
-					pressed.value === 1 ? theme.colors.backgroundAlt : "transparent",
+				opacity: withTiming(pressed.value === 1 ? 0.5 : 1, {
+					duration: pressed.value === 1 ? 50 : 200,
+				}),
 			};
 		});
 
