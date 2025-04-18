@@ -5,7 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { useTheme } from "@/hooks/useTheme";
 import { Text, Button } from "@/components/ui";
-import { ScreenContainer } from "@/components/layout";
+import { ScreenContainer } from "@/components/layout/ScreenContainer";
 
 export default function NotFoundScreen() {
 	const theme = useTheme();
