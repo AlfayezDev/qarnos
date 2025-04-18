@@ -88,24 +88,8 @@ export const TodayPrepCard: React.FC<TodayPrepCardProps> = React.memo(
 				Extrapolation.CLAMP,
 			);
 
-			const shadowOpacity = interpolate(
-				pressed.value,
-				[0, 1],
-				[0.15, 0.05],
-				Extrapolation.CLAMP,
-			);
-
-			const elevation = interpolate(
-				pressed.value,
-				[0, 1],
-				[4, 1],
-				Extrapolation.CLAMP,
-			);
-
 			return {
 				transform: [{ scale }, { translateY }],
-				shadowOpacity: shadowOpacity,
-				elevation: elevation,
 				opacity,
 			};
 		});
@@ -120,15 +104,11 @@ export const TodayPrepCard: React.FC<TodayPrepCardProps> = React.memo(
 				style={[
 					{
 						width: PREP_CARD_WIDTH,
-						shadowColor: theme.colors.shadow,
-						shadowOffset: { width: 0, height: theme.spacing.xs / 2 },
-						shadowRadius: theme.radius.sm,
 						margin: theme.spacing.xs / 2,
 						borderRadius: theme.radius.lg,
 					},
 					animatedCardStyle,
 				]}
-				android_ripple={{ color: theme.colors.overlay }}
 			>
 				<Box
 					card
