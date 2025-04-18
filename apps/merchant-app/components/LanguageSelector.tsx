@@ -1,7 +1,6 @@
 import { Text } from "@/components/ui/Text";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useTheme } from "@/hooks/useTheme";
-import { useTranslation } from "@/hooks/useTranslation";
 import { Ionicons } from "@expo/vector-icons";
 import React, { memo, useCallback } from "react";
 import { TouchableOpacity, View } from "react-native";
@@ -9,7 +8,6 @@ import { TouchableOpacity, View } from "react-native";
 export const LanguageSelector: React.FC = memo(() => {
 	const { language, changeLanguage } = useLanguage();
 	const theme = useTheme();
-	const { t } = useTranslation();
 
 	const handleLanguageChange = useCallback((newLanguage: "en" | "ar") => {
 		changeLanguage(newLanguage);
@@ -17,9 +15,6 @@ export const LanguageSelector: React.FC = memo(() => {
 
 	return (
 		<View style={{ alignItems: "flex-start" }}>
-			<Text align="auto" variant="md" weight="semibold" marginBottom="md">
-				{t("settings.language")}
-			</Text>
 			<View
 				style={{
 					flexDirection: "row",

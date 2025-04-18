@@ -1,6 +1,14 @@
+import { AlertsCard } from "@/components/dashboard/AlertsCard";
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+import { TodayPrepCard } from "@/components/dashboard/PrepCard";
+import { StatsGrid } from "@/components/dashboard/StatsGrid";
 import { Box, Text } from "@/components/ui";
+import { Tabs } from "@/components/ui/Tabs";
+import { ALERTS, TODAY_PREP_SUMMARY } from "@/data";
 import { useTheme } from "@/hooks/useTheme";
+import { useTranslation } from "@/hooks/useTranslation";
 import * as Haptics from "expo-haptics";
+import { router } from "expo-router";
 import React, { useState, useCallback, useRef, useMemo } from "react";
 import { FlatList, RefreshControl, StyleSheet, View } from "react-native";
 import Animated, {
@@ -11,69 +19,6 @@ import Animated, {
 	withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
-import { TodayPrepCard } from "@/components/dashboard/PrepCard";
-import { StatsGrid } from "@/components/dashboard/StatsGrid";
-import { Tabs } from "@/components/ui/Tabs";
-import { AlertsCard } from "@/components/dashboard/AlertsCard";
-import { Alert, MealPrepSummary, StatItem } from "@/types";
-import { router } from "expo-router";
-import { useTranslation } from "@/hooks/useTranslation";
-
-const TODAY_PREP_SUMMARY: MealPrepSummary[] = [
-	{
-		period: "Breakfast",
-		totalMeals: 25,
-		mealsToPrep: [
-			{ id: "shashuka", name: "Shashuka", count: 15 },
-			{ id: "oats", name: "Overnight Oats", count: 7 },
-			{ id: "smoothie", name: "Green Smoothie", count: 3 },
-		],
-	},
-	{
-		period: "Lunch",
-		totalMeals: 32,
-		mealsToPrep: [
-			{ id: "salad_x", name: "Quinoa Salad", count: 18 },
-			{ id: "wrap_y", name: "Falafel Wrap", count: 10 },
-			{ id: "soup_z", name: "Lentil Soup", count: 4 },
-			{ id: "extra1", name: "Side Salad", count: 2 },
-		],
-	},
-	{
-		period: "Dinner",
-		totalMeals: 28,
-		mealsToPrep: [
-			{ id: "salmon", name: "Grilled Salmon", count: 12 },
-			{ id: "tofu_stirfry", name: "Tofu Stir-fry", count: 9 },
-			{ id: "pasta_veg", name: "Veggie Pasta", count: 7 },
-		],
-	},
-];
-
-const ALERTS: Alert[] = [
-	{
-		id: 1,
-		type: "info",
-		title: "New 'Keto Weekly' subscriber",
-		icon: "person-add-outline",
-		timestamp: "3h ago",
-	},
-	{
-		id: 2,
-		type: "warning",
-		title: "Low inventory: Quinoa",
-		icon: "cube-outline",
-		timestamp: "1h ago",
-	},
-	{
-		id: 3,
-		type: "error",
-		title: "Delivery issue Order #12345",
-		icon: "car-sport-outline",
-		timestamp: "Yesterday",
-	},
-];
 
 const HEADER_HEIGHT = 65;
 const PREP_CARD_WIDTH = 170;
@@ -187,7 +132,7 @@ const HomeScreen: React.FC = () => {
 		return {
 			backgroundColor: theme.colors.background,
 			shadowColor: theme.colors.shadow,
-			shadowOffset: { width: 0, height: 1 },
+			// shadowOffset: { width: 0, height: 1 },
 			shadowRadius: 3,
 			shadowOpacity: scrollY.value > 2 ? (theme.isDark ? 0.3 : 0.1) : 0,
 			borderBottomWidth: scrollY.value > 2 ? StyleSheet.hairlineWidth : 0,
@@ -221,7 +166,7 @@ const HomeScreen: React.FC = () => {
 				<Animated.View
 					entering={FadeInUp.delay(300).duration(400).springify().damping(15)}
 				>
-					<FlatList<MealPrepSummary>
+					<FlatList
 						horizontal
 						data={TODAY_PREP_SUMMARY}
 						keyExtractor={(item) => item.period}

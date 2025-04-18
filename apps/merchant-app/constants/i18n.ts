@@ -29,6 +29,8 @@ export const translations = {
 			lightMode: "Light",
 			darkMode: "Dark",
 			systemTheme: "System",
+			signedInAs: "Signed in as",
+			appInfo: "App Information",
 		},
 		dashboard: {
 			title: "Dashboard",
@@ -87,6 +89,8 @@ export const translations = {
 			lightMode: "فاتح",
 			darkMode: "داكن",
 			systemTheme: "النظام",
+			signedInAs: "مسجل الدخول كـ",
+			appInfo: "معلومات التطبيق",
 		},
 		dashboard: {
 			title: "لوحة التحكم",
