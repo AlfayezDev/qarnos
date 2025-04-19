@@ -14,70 +14,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { MEALS } from "@/data";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Meal } from "@/types";
-
-const MealCard = ({ item, theme }: { item: Meal; theme: any }) => {
-	const { language } = useTranslation();
-	const isArabic = language === "ar";
-
-	return (
-		<Animated.View
-			layout={LinearTransition.springify().damping(15)}
-			entering={FadeIn.duration(300)}
-			style={{ marginBottom: theme.spacing.md }}
-		>
-			<Pressable
-				onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
-				style={({ pressed }) => ({
-					opacity: pressed ? 0.9 : 1,
-					transform: [{ scale: pressed ? 0.98 : 1 }],
-				})}
-			>
-				<Card padding="none" elevation="small">
-					{item.image && (
-						<Image
-							source={{ uri: item.image }}
-							style={{
-								height: 140,
-								width: "100%",
-								borderTopLeftRadius: theme.radius.card,
-								borderTopRightRadius: theme.radius.card,
-							}}
-							resizeMode="cover"
-						/>
-					)}
-					<Box padding="md" gap={"sm"} alignItems="flex-start">
-						<Text variant="lg" weight="semibold">
-							{isArabic && item.name_ar ? item.name_ar : item.name}
-						</Text>
-						<Text
-							variant="sm"
-							color="textSecondary"
-							marginBottom="md"
-							numberOfLines={2}
-						>
-							{isArabic && item.description_ar
-								? item.description_ar
-								: item.description}
-						</Text>
-						<Box row marginBottom="sm">
-							<Box row alignCenter>
-								<Ionicons
-									name="flame-outline"
-									size={theme.sizes.iconSm}
-									color={theme.colors.textSecondary}
-									style={{ marginEnd: theme.spacing.xs }}
-								/>
-								<Text variant="sm" color="textSecondary">
-									{item.calories} cal
-								</Text>
-							</Box>
-						</Box>
-					</Box>
-				</Card>
-			</Pressable>
-		</Animated.View>
-	);
-};
+import { Link } from "expo-router";
 
 const MealScreen = () => {
 	const theme = useTheme();
@@ -168,7 +105,7 @@ const MealScreen = () => {
 					<FlatList
 						data={filteredMeals}
 						keyExtractor={(item) => item.id}
-						renderItem={({ item }) => <MealCard item={item} theme={theme} />}
+						renderItem={({ item }) => <MealCard item={item} />}
 						showsVerticalScrollIndicator={false}
 						contentContainerStyle={{
 							padding: theme.spacing.md,
@@ -183,4 +120,71 @@ const MealScreen = () => {
 	);
 };
 
+const MealCard = (props: { item: Meal }) => {
+	const { item } = props;
+	const { language } = useTranslation();
+	const theme = useTheme();
+	const isArabic = language === "ar";
+
+	return (
+		<Animated.View
+			layout={LinearTransition.springify().damping(15)}
+			entering={FadeIn.duration(300)}
+			style={{ marginBottom: theme.spacing.md }}
+		>
+			<Link asChild href={`/meals/${item.id}`}>
+				<Pressable
+					onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
+					style={({ pressed }) => ({
+						opacity: pressed ? 0.9 : 1,
+						transform: [{ scale: pressed ? 0.98 : 1 }],
+					})}
+				>
+					<Card padding="none" elevation="small">
+						{item.image && (
+							<Image
+								source={{ uri: item.image }}
+								style={{
+									height: 140,
+									width: "100%",
+									borderTopLeftRadius: theme.radius.card,
+									borderTopRightRadius: theme.radius.card,
+								}}
+								resizeMode="cover"
+							/>
+						)}
+						<Box padding="md" gap={"sm"} alignItems="flex-start">
+							<Text variant="lg" weight="semibold">
+								{isArabic && item.name_ar ? item.name_ar : item.name}
+							</Text>
+							<Text
+								variant="sm"
+								color="textSecondary"
+								marginBottom="md"
+								numberOfLines={2}
+							>
+								{isArabic && item.description_ar
+									? item.description_ar
+									: item.description}
+							</Text>
+							<Box row marginBottom="sm">
+								<Box row alignCenter>
+									<Ionicons
+										name="flame-outline"
+										size={theme.sizes.iconSm}
+										color={theme.colors.textSecondary}
+										style={{ marginEnd: theme.spacing.xs }}
+									/>
+									<Text variant="sm" color="textSecondary">
+										{item.calories} cal
+									</Text>
+								</Box>
+							</Box>
+						</Box>
+					</Card>
+				</Pressable>
+			</Link>
+		</Animated.View>
+	);
+};
 export default MealScreen;
