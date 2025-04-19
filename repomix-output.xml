@@ -50,11 +50,13 @@ The content is organized as follows:
 apps/
   merchant-app/
     app/
+      meals/
+        _layout.tsx
+        [meal-id].tsx
+        index.tsx
       _layout.tsx
       index.tsx
-      meals.tsx
       settings.tsx
-      tab-example.tsx
     components/
       dashboard/
         AlertRow.tsx
@@ -84,6 +86,7 @@ apps/
       useLanguage.ts
       useTheme.ts
       useTranslation.ts
+    .gitignore
     data.ts
     types.ts
 .gitignore
@@ -95,321 +98,57 @@ pnpm-workspace.yaml
 <files>
 This section contains the contents of the repository's files.
 
-<file path="apps/merchant-app/app/tab-example.tsx">
-import * as React from "react";
-import {
-	FlatList,
-	LayoutRectangle,
-	SafeAreaView,
-	StyleSheet,
-	Text,
-	TouchableOpacity,
-	View,
-	useWindowDimensions,
-	I18nManager,
-} from "react-native";
-import Constants from "expo-constants";
-import Animated, {
-	FadeInDown,
-	LinearTransition,
-	SharedValue,
-	interpolate,
-	interpolateColor,
-	runOnUI,
-	scrollTo,
-	useAnimatedReaction,
-	useAnimatedRef,
-	useAnimatedStyle,
-	useSharedValue,
-	withDelay,
-	withTiming,
-} from "react-native-reanimated";
-function timeout(ms: number) {
-	return new Promise((resolve) => setTimeout(resolve, ms));
-}
-export async function sleep(ms = 1000, value = true) {
-	await timeout(ms);
-	return value;
-}
-const mockedTabs = [
-	"Animation",
-	"Branding",
-	"Illustration",
-	"Calligraphy",
-	"Doodling",
-	"Game development",
-	"Drawing",
-	"Development",
-];
-const sections = mockedTabs.map((tab) => {
-	return {
-		key: tab,
-		data: [...Array(10).keys()].map((i) => ({
-			key: `color_${i}`,
-			color: "black",
-		})),
-	};
-}, {});
-const _spacing = 20;
-type MenuLayout = {
-	[key: number]: LayoutRectangle;
-};
-type MenuProps = {
-	menu: string[];
-	onChange: (index: number) => void;
-	initialIndex?: number;
-	animationDuration?: number;
-};
-function clamp(n: number, min: number, max: number) {
-	"worklet";
-	return Math.max(Math.min(n, max), min);
-}
-const Indicator = ({
-	menuLayout,
-	activeMenu,
-	animationDuration = 300,
-	containerWidth,
-}: {
-	menuLayout: MenuLayout;
-	activeMenu: SharedValue<number>;
-	animationDuration?: number;
-	containerWidth: number;
-}) => {
-	const anim = useSharedValue(0);
-	const isRTL = I18nManager.isRTL;
-	useAnimatedReaction(
-		() => activeMenu.value,
-		(v, oldV) => {
-			if (typeof oldV !== "number") return;
-			anim.value = 0;
-			const movingRight = v > oldV;
-			const direction =
-				(movingRight && !isRTL) || (!movingRight && isRTL) ? 1 : -1;
-			anim.value = withDelay(
-				0,
-				withTiming(direction, { duration: animationDuration }),
-			);
-		},
-		[activeMenu, isRTL],
-	);
-	const stylez = useAnimatedStyle(() => {
-		const itemLayout = menuLayout[activeMenu.value];
-		if (!itemLayout) return {};
-		const newWidth = clamp(itemLayout.width - _spacing, 20, itemLayout.width);
-		let left;
-		if (isRTL) {
-			const itemRight = containerWidth - (itemLayout.x + itemLayout.width);
-			left = containerWidth - itemRight - itemLayout.width / 2 - newWidth / 2;
-		} else {
-			left = itemLayout.x + itemLayout.width / 2 - newWidth / 2;
-		}
-		return {
-			position: "absolute",
-			left,
-			top: itemLayout.y + itemLayout.height + _spacing / 4,
-			width: newWidth,
-			transform: [
-				{ scaleX: interpolate(Math.abs(anim.value), [0, 0.5, 1], [1, 2.2, 1]) },
-				{ scaleY: interpolate(Math.abs(anim.value), [0, 0.5, 1], [1, 0.5, 1]) },
-			],
-			backgroundColor: interpolateColor(
-				Math.abs(anim.value),
-				[0, 0.3, 0.7, 1],
-				["#333", "#999", "#999", "#333"],
-			),
-		};
-	});
+<file path="apps/merchant-app/app/meals/_layout.tsx">
+import { Stack } from "expo-router";
+export default function MealsLayout() {
 	return (
-		<Animated.View
-			layout={LinearTransition}
-			entering={FadeInDown.duration(animationDuration)}
-			style={[
-				{ height: 4, width: 40, backgroundColor: "#333", borderRadius: 2 },
-				stylez,
-			]}
-		/>
-	);
-};
-const Menu = React.memo(
-	({
-		menu,
-		initialIndex = 0,
-		onChange,
-		animationDuration = 300,
-	}: MenuProps) => {
-		const _menuLayout = React.useRef<MenuLayout>({});
-		const [isVisible, setIsVisible] = React.useState(false);
-		const activeMenu = useSharedValue(0);
-		const aRef = useAnimatedRef<Animated.ScrollView>();
-		const isRTL = I18nManager.isRTL;
-		const { width: windowWidth } = useWindowDimensions();
-		const [containerWidth, setContainerWidth] = React.useState(windowWidth);
-		const scrollToIndex = React.useCallback(
-			async (index: number, animated = true) => {
-				await sleep(animationDuration / 2, true);
-				activeMenu.value = index;
-				const itemLayout = _menuLayout.current[index];
-				if (!itemLayout) return;
-				const itemCenter = itemLayout.x + itemLayout.width / 2;
-				const offset = itemCenter - windowWidth / 2;
-				runOnUI(scrollTo)(aRef, offset, 0, animated);
-			},
-			[windowWidth, animationDuration],
-		);
-		const handleContainerLayout = React.useCallback((event) => {
-			const { width } = event.nativeEvent.layout;
-			setContainerWidth(width);
-		}, []);
-		React.useEffect(() => {
-			if (isVisible && initialIndex < menu.length) {
-				activeMenu.value = initialIndex;
-				scrollToIndex(initialIndex, true);
-			} else {
-				activeMenu.value = initialIndex;
-			}
-		}, [initialIndex, isVisible, scrollToIndex, menu.length]);
-		return (
-			<View onLayout={handleContainerLayout}>
-				<Animated.ScrollView
-					ref={aRef}
-					horizontal
-					inverted={isRTL}
-					style={{ flexGrow: 0 }}
-					contentContainerStyle={{
-						paddingHorizontal: _spacing,
-						paddingBottom: _spacing / 4 + 4,
-					}}
-					showsHorizontalScrollIndicator={false}
-				>
-					{menu.map((m, index) => {
-						return (
-							<TouchableOpacity
-								key={m}
-								onPress={async () => {
-									if (index === activeMenu.value) return;
-									activeMenu.value = index;
-									onChange(index);
-									await sleep(animationDuration / 2, true);
-								}}
-								style={{ marginRight: _spacing }}
-								onLayout={(ev) => {
-									_menuLayout.current[index] = {
-										...ev.nativeEvent.layout,
-									};
-									if (
-										Object.keys(_menuLayout.current).length === menu.length &&
-										!isVisible
-									) {
-										setIsVisible(true);
-									}
-								}}
-							>
-								<View>
-									<Text>{m}</Text>
-								</View>
-							</TouchableOpacity>
-						);
-					})}
-					{isVisible && (
-						<Indicator
-							menuLayout={_menuLayout.current}
-							activeMenu={activeMenu}
-							animationDuration={animationDuration}
-							containerWidth={containerWidth}
-						/>
-					)}
-				</Animated.ScrollView>
-			</View>
-		);
-	},
-);
-export default function App() {
-	const { width } = useWindowDimensions();
-	const [activeIndex, setActiveIndex] = React.useState(0);
-	const ref = React.useRef<FlatList>(null);
-	const isRTL = I18nManager.isRTL;
-	return (
-		<SafeAreaView style={styles.container}>
-			<Menu
-				menu={mockedTabs}
-				initialIndex={activeIndex}
-				animationDuration={300}
-				onChange={(index) => {
-					setActiveIndex(index);
-					ref.current?.scrollToIndex({
-						index,
-						animated: true,
-					});
-				}}
-			/>
-			<FlatList
-				ref={ref}
-				data={mockedTabs}
-				horizontal
-				inverted={isRTL}
-				pagingEnabled
-				initialScrollIndex={activeIndex}
-				onMomentumScrollEnd={(ev) => {
-					const index = Math.round(ev.nativeEvent.contentOffset.x / width);
-					setActiveIndex(index);
-				}}
-				renderItem={({ item, index }) => {
-					return (
-						<View style={{ width }}>
-							<Tab item={item} index={index} />
-						</View>
-					);
-				}}
-			/>
-		</SafeAreaView>
+		<Stack screenOptions={{ headerShown: false }}>
+			<Stack.Screen name="index" />
+			<Stack.Screen name="[meal-id]" />
+		</Stack>
 	);
 }
-const Tab = ({ item, index }: { item: string; index: number }) => {
-	const isRTL = I18nManager.isRTL;
-	return (
-		<FlatList
-			data={sections[index].data}
-			inverted={isRTL}
-			contentContainerStyle={{ padding: _spacing }}
-			renderItem={({ item }) => {
-				return (
-					<View
-						style={{
-							backgroundColor: item.color,
-							height: 100,
-							marginBottom: _spacing / 2,
-							borderRadius: _spacing,
-							justifyContent: "flex-end",
-							alignItems: "flex-end",
-							padding: _spacing / 2,
-						}}
-					>
-						<Text
-							style={{
-								fontFamily: "Menlo",
-								color: "white",
-								fontWeight: "700",
-							}}
-						>
-							{item.color}
-						</Text>
-					</View>
-				);
-			}}
-		/>
-	);
-};
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		justifyContent: "center",
-		paddingTop: Constants.statusBarHeight,
-		backgroundColor: "#fff",
-	},
-});
 </file>
 
-<file path="apps/merchant-app/app/meals.tsx">
+<file path="apps/merchant-app/app/meals/[meal-id].tsx">
+import React from "react";
+import { View } from "react-native";
+import { Box, Text } from "@/components/ui";
+import { useTheme } from "@/hooks/useTheme";
+import { useTranslation } from "@/hooks/useTranslation";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+const MealFormScreen = () => {
+	const theme = useTheme();
+	const { t } = useTranslation();
+	const insets = useSafeAreaInsets();
+	return (
+		<View
+			style={{
+				flex: 1,
+				backgroundColor: theme.colors.background,
+				paddingTop: insets.top,
+			}}
+		>
+			<Box
+				row
+				alignItems="center"
+				paddingHorizontal="md"
+				paddingVertical="sm"
+				style={{
+					height: theme.sizes.headerHeight,
+				}}
+			>
+				<Text variant="xl" weight="semibold" numberOfLines={1}>
+					{t("meals.title")}
+				</Text>
+			</Box>
+		</View>
+	);
+};
+export default MealFormScreen;
+</file>
+
+<file path="apps/merchant-app/app/meals/index.tsx">
 import React, { useState, useCallback, useMemo } from "react";
 import { FlatList, View, Image, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -426,68 +165,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { MEALS } from "@/data";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Meal } from "@/types";
-const MealCard = ({ item, theme }: { item: Meal; theme: any }) => {
-	const { language } = useTranslation();
-	const isArabic = language === "ar";
-	return (
-		<Animated.View
-			layout={LinearTransition.springify().damping(15)}
-			entering={FadeIn.duration(300)}
-			style={{ marginBottom: theme.spacing.md }}
-		>
-			<Pressable
-				onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
-				style={({ pressed }) => ({
-					opacity: pressed ? 0.9 : 1,
-					transform: [{ scale: pressed ? 0.98 : 1 }],
-				})}
-			>
-				<Card padding="none" elevation="small">
-					{item.image && (
-						<Image
-							source={{ uri: item.image }}
-							style={{
-								height: 140,
-								width: "100%",
-								borderTopLeftRadius: theme.radius.card,
-								borderTopRightRadius: theme.radius.card,
-							}}
-							resizeMode="cover"
-						/>
-					)}
-					<Box padding="md" gap={"sm"} alignItems="flex-start">
-						<Text variant="lg" weight="semibold">
-							{isArabic && item.name_ar ? item.name_ar : item.name}
-						</Text>
-						<Text
-							variant="sm"
-							color="textSecondary"
-							marginBottom="md"
-							numberOfLines={2}
-						>
-							{isArabic && item.description_ar
-								? item.description_ar
-								: item.description}
-						</Text>
-						<Box row marginBottom="sm">
-							<Box row alignCenter>
-								<Ionicons
-									name="flame-outline"
-									size={theme.sizes.iconSm}
-									color={theme.colors.textSecondary}
-									style={{ marginEnd: theme.spacing.xs }}
-								/>
-								<Text variant="sm" color="textSecondary">
-									{item.calories} cal
-								</Text>
-							</Box>
-						</Box>
-					</Box>
-				</Card>
-			</Pressable>
-		</Animated.View>
-	);
-};
+import { Link } from "expo-router";
 const MealScreen = () => {
 	const theme = useTheme();
 	const { t } = useTranslation();
@@ -571,7 +249,7 @@ const MealScreen = () => {
 					<FlatList
 						data={filteredMeals}
 						keyExtractor={(item) => item.id}
-						renderItem={({ item }) => <MealCard item={item} theme={theme} />}
+						renderItem={({ item }) => <MealCard item={item} />}
 						showsVerticalScrollIndicator={false}
 						contentContainerStyle={{
 							padding: theme.spacing.md,
@@ -583,6 +261,72 @@ const MealScreen = () => {
 				)}
 			</Animated.View>
 		</View>
+	);
+};
+const MealCard = (props: { item: Meal }) => {
+	const { item } = props;
+	const { language } = useTranslation();
+	const theme = useTheme();
+	const isArabic = language === "ar";
+	return (
+		<Animated.View
+			layout={LinearTransition.springify().damping(15)}
+			entering={FadeIn.duration(300)}
+			style={{ marginBottom: theme.spacing.md }}
+		>
+			<Link asChild href={`/meals/${item.id}`}>
+				<Pressable
+					onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
+					style={({ pressed }) => ({
+						opacity: pressed ? 0.9 : 1,
+						transform: [{ scale: pressed ? 0.98 : 1 }],
+					})}
+				>
+					<Card padding="none" elevation="small">
+						{item.image && (
+							<Image
+								source={{ uri: item.image }}
+								style={{
+									height: 140,
+									width: "100%",
+									borderTopLeftRadius: theme.radius.card,
+									borderTopRightRadius: theme.radius.card,
+								}}
+								resizeMode="cover"
+							/>
+						)}
+						<Box padding="md" gap={"sm"} alignItems="flex-start">
+							<Text variant="lg" weight="semibold">
+								{isArabic && item.name_ar ? item.name_ar : item.name}
+							</Text>
+							<Text
+								variant="sm"
+								color="textSecondary"
+								marginBottom="md"
+								numberOfLines={2}
+							>
+								{isArabic && item.description_ar
+									? item.description_ar
+									: item.description}
+							</Text>
+							<Box row marginBottom="sm">
+								<Box row alignCenter>
+									<Ionicons
+										name="flame-outline"
+										size={theme.sizes.iconSm}
+										color={theme.colors.textSecondary}
+										style={{ marginEnd: theme.spacing.xs }}
+									/>
+									<Text variant="sm" color="textSecondary">
+										{item.calories} cal
+									</Text>
+								</Box>
+							</Box>
+						</Box>
+					</Card>
+				</Pressable>
+			</Link>
+		</Animated.View>
 	);
 };
 export default MealScreen;
@@ -1425,6 +1169,14 @@ export const LanguageSelector: React.FC = memo(() => {
 		</View>
 	);
 });
+</file>
+
+<file path="apps/merchant-app/.gitignore">
+# @generated expo-cli sync-2b81b286409207a5da26e14c78851eb30d8ccbdb
+# The following patterns were generated by expo-cli
+
+expo-env.d.ts
+# @end expo-cli
 </file>
 
 <file path="apps/merchant-app/data.ts">

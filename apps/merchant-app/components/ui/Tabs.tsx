@@ -1,6 +1,5 @@
 import React from "react";
 import { Pressable } from "react-native";
-import Animated from "react-native-reanimated";
 import { Box } from "./Box";
 import { Text } from "./Text";
 import { AppTheme } from "@/hooks/useTheme";
