@@ -1,3 +1,11 @@
+import React from "react";
+import {
+	Text as RNText,
+	TextProps as RNTextProps,
+	StyleProp,
+	TextStyle,
+	AccessibilityRole,
+} from "react-native";
 import {
 	ColorToken,
 	FontSizeVariant,
@@ -5,13 +13,6 @@ import {
 	SpacingToken,
 	useTheme,
 } from "@/hooks/useTheme";
-import React, { memo } from "react";
-import {
-	Text as RNText,
-	TextProps as RNTextProps,
-	StyleProp,
-	TextStyle,
-} from "react-native";
 
 interface TextProps extends RNTextProps {
 	variant?: FontSizeVariant;
@@ -35,9 +36,19 @@ interface TextProps extends RNTextProps {
 	padding?: SpacingToken | number;
 	style?: StyleProp<TextStyle>;
 	align?: TextStyle["textAlign"];
+	accessibilityRole?: AccessibilityRole;
+	accessibilityLabel?: string;
+	accessibilityHint?: string;
+	accessibilityState?: {
+		disabled?: boolean;
+		selected?: boolean;
+		checked?: boolean | "mixed";
+		busy?: boolean;
+		expanded?: boolean;
+	};
 }
 
-export const Text: React.FC<TextProps> = memo(
+export const Text: React.FC<TextProps> = React.memo(
 	({
 		children,
 		variant = "md",
@@ -61,17 +72,19 @@ export const Text: React.FC<TextProps> = memo(
 		padding,
 		style,
 		align,
+		accessibilityRole,
+		accessibilityLabel,
+		accessibilityHint,
+		accessibilityState,
 		...props
 	}) => {
 		const theme = useTheme();
-
 		const getSpacingValue = (
 			value: SpacingToken | number | undefined,
 		): number | undefined => {
 			if (value === undefined) return undefined;
 			return typeof value === "number" ? value : theme.spacing[value];
 		};
-
 		const getColorValue = (
 			colorProp: ColorToken | string | undefined,
 		): string => {
@@ -83,9 +96,7 @@ export const Text: React.FC<TextProps> = memo(
 			}
 			return colorProp;
 		};
-
 		const textAlign = center ? "center" : align;
-
 		const textStyle: TextStyle = {
 			fontSize: theme.typography.sizes[variant],
 			fontWeight: theme.typography.weights[weight],
@@ -106,13 +117,33 @@ export const Text: React.FC<TextProps> = memo(
 			paddingBottom: getSpacingValue(paddingBottom),
 			padding: getSpacingValue(padding),
 		};
-
 		return (
-			<RNText style={[textStyle, style]} {...props}>
+			<RNText
+				style={[textStyle, style]}
+				accessibilityRole={accessibilityRole}
+				accessibilityLabel={accessibilityLabel}
+				accessibilityHint={accessibilityHint}
+				accessibilityState={accessibilityState}
+				{...props}
+			>
 				{children}
 			</RNText>
 		);
 	},
-);
+	(prevProps, nextProps) => {
+		// Custom equality check for Text component
+		const equalChildren = prevProps.children === nextProps.children;
+		const equalVariant = prevProps.variant === nextProps.variant;
+		const equalWeight = prevProps.weight === nextProps.weight;
+		const equalColor = prevProps.color === nextProps.color;
 
-export default Text;
+		return (
+			equalChildren &&
+			equalVariant &&
+			equalWeight &&
+			equalColor &&
+			prevProps.numberOfLines === nextProps.numberOfLines &&
+			prevProps.center === nextProps.center
+		);
+	},
+);

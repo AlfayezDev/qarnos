@@ -15,6 +15,7 @@ import {
 	TextInputFocusEventData,
 	TouchableWithoutFeedback,
 	View,
+	AccessibilityRole,
 } from "react-native";
 import Animated, {
 	useAnimatedStyle,
@@ -26,10 +27,14 @@ import Animated, {
 import * as Haptics from "expo-haptics";
 import { useTheme } from "@/hooks/useTheme";
 import { Text } from "@/components/ui";
+import { z } from "zod";
 
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
-
-export interface FocusableInputProps {
+interface ValidationProps {
+	schema?: z.ZodType<any>;
+	onValidation?: (isValid: boolean, error?: string) => void;
+}
+export interface FocusableInputProps extends ValidationProps {
 	inputRef?: React.RefObject<TextInput | null>;
 	style?: StyleProp<TextStyle>;
 	value?: string;
@@ -53,6 +58,9 @@ export interface FocusableInputProps {
 	label?: string;
 	error?: string;
 	required?: boolean;
+	accessibilityLabel?: string;
+	accessibilityHint?: string;
+	accessibilityRole?: AccessibilityRole;
 }
 
 const FocusableInput = forwardRef<TextInput, FocusableInputProps>(
@@ -81,6 +89,11 @@ const FocusableInput = forwardRef<TextInput, FocusableInputProps>(
 			label,
 			error,
 			required,
+			schema,
+			onValidation,
+			accessibilityLabel,
+			accessibilityHint,
+			accessibilityRole,
 		},
 		ref,
 	) => {
@@ -198,9 +211,31 @@ const FocusableInput = forwardRef<TextInput, FocusableInputProps>(
 				onFocus(e);
 			}
 		};
+		const validateInput = (text: string) => {
+			if (!schema) return true;
+
+			try {
+				schema.parse(text);
+				if (onValidation) {
+					onValidation(true);
+				}
+				return true;
+			} catch (error) {
+				if (error instanceof z.ZodError) {
+					const errorMessage = error.errors[0]?.message || "Invalid input";
+					if (onValidation) {
+						onValidation(false, errorMessage);
+					}
+				}
+				return false;
+			}
+		};
 
 		const handleBlur = (e: NativeSyntheticEvent<TextInputFocusEventData>) => {
 			setIsFocused(false);
+			if (schema && value !== undefined) {
+				validateInput(value);
+			}
 			if (onBlur) {
 				onBlur(e);
 			}
@@ -251,6 +286,9 @@ const FocusableInput = forwardRef<TextInput, FocusableInputProps>(
 							autoCorrect={autoCorrect}
 							editable={editable}
 							secureTextEntry={secureTextEntry}
+							accessibilityHint={accessibilityHint}
+							accessibilityRole={accessibilityRole}
+							accessibilityLabel={accessibilityLabel}
 						/>
 					</Animated.View>
 				</TouchableWithoutFeedback>

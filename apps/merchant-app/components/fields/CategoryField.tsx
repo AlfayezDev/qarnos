@@ -33,6 +33,8 @@ export interface CategoryFieldProps {
 	error?: string;
 	required?: boolean;
 	disabled?: boolean;
+	accessibilityLabel?: string;
+	accessibilityHint?: string;
 }
 
 export const CategoryField = React.memo(

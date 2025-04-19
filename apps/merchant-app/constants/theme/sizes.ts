@@ -1,0 +1,17 @@
+export const sizes = {
+	touchTarget: 44,
+	smallTouchTarget: 36,
+	iconXs: 16,
+	iconSm: 20,
+	iconMd: 24,
+	iconLg: 32,
+	buttonSm: 36,
+	buttonMd: 44,
+	buttonLg: 52,
+	inputHeight: 48,
+	headerHeight: 56,
+	tabBarHeight: 49,
+	avatarSm: 32,
+	avatarMd: 44,
+	avatarLg: 64,
+} as const;

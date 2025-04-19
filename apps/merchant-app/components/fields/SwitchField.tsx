@@ -28,6 +28,8 @@ export interface SwitchFieldProps {
 	leftIcon?: string;
 	style?: StyleProp<ViewStyle>;
 	error?: string;
+	accessibilityLabel?: string;
+	accessibilityHint?: string;
 }
 
 export const SwitchField = React.memo(

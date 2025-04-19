@@ -5,6 +5,7 @@ import {
 	ActivityIndicator,
 	TouchableOpacity,
 	TouchableOpacityProps,
+	AccessibilityState,
 } from "react-native";
 import { Text } from "./Text";
 
@@ -18,6 +19,8 @@ interface ButtonProps extends TouchableOpacityProps {
 	rounded?: boolean;
 	fullWidth?: boolean;
 	textColor?: string;
+	accessibilityLabel?: string;
+	accessibilityHint?: string;
 }
 
 export const Button = React.memo(
@@ -32,6 +35,8 @@ export const Button = React.memo(
 		fullWidth = false,
 		style,
 		textColor: textColorOverride,
+		accessibilityLabel,
+		accessibilityHint,
 		...props
 	}: ButtonProps) => {
 		const theme = useTheme();
@@ -104,10 +109,13 @@ export const Button = React.memo(
 		const variantStyle = getVariantStyles();
 		const sizeStyle = getSizeStyles();
 		const finalTextColor = textColorOverride || variantStyle.textColorToken;
-
 		const iconStyle = {
 			marginEnd: leftIcon && title ? theme.spacing.xs : 0,
 			marginStart: rightIcon && title ? theme.spacing.xs : 0,
+		};
+
+		const accessibilityState: AccessibilityState = {
+			disabled: loading || props.disabled,
 		};
 
 		return (
@@ -120,15 +128,19 @@ export const Button = React.memo(
 						backgroundColor: variantStyle.backgroundColor,
 						borderWidth: variantStyle.borderWidth || 0,
 						borderColor: variantStyle.borderColor,
-						flexDirection: "row" as const,
-						alignItems: "center" as const,
-						justifyContent: "center" as const,
+						flexDirection: "row",
+						alignItems: "center",
+						justifyContent: "center",
 						width: fullWidth ? "100%" : undefined,
 					},
 					style,
 				]}
 				activeOpacity={0.7}
 				disabled={loading || props.disabled}
+				accessibilityRole="button"
+				accessibilityLabel={accessibilityLabel || title}
+				accessibilityHint={accessibilityHint}
+				accessibilityState={accessibilityState}
 				{...props}
 			>
 				{loading ? (
@@ -161,6 +173,20 @@ export const Button = React.memo(
 					</>
 				)}
 			</TouchableOpacity>
+		);
+	},
+	(prevProps, nextProps) => {
+		// Optimize memo comparison
+		return (
+			prevProps.title === nextProps.title &&
+			prevProps.variant === nextProps.variant &&
+			prevProps.size === nextProps.size &&
+			prevProps.leftIcon === nextProps.leftIcon &&
+			prevProps.rightIcon === nextProps.rightIcon &&
+			prevProps.loading === nextProps.loading &&
+			prevProps.disabled === nextProps.disabled &&
+			prevProps.rounded === nextProps.rounded &&
+			prevProps.fullWidth === nextProps.fullWidth
 		);
 	},
 );

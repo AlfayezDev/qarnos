@@ -29,6 +29,8 @@ export interface RadioFieldProps {
 	error?: string;
 	required?: boolean;
 	disabled?: boolean;
+	accessibilityLabel?: string;
+	accessibilityHint?: string;
 }
 
 export const RadioField = React.memo(

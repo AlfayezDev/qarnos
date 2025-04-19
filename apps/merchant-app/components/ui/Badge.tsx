@@ -1,5 +1,5 @@
 import React from "react";
-import { View, ViewProps } from "react-native";
+import { View, ViewProps, AccessibilityState } from "react-native";
 import { useTheme } from "@/hooks/useTheme";
 import { Text } from "./Text";
 
@@ -7,10 +7,18 @@ export interface BadgeProps extends ViewProps {
 	text: string | number;
 	variant?: "primary" | "success" | "warning" | "info" | "error" | "default";
 	size?: "sm" | "md";
+	accessibilityLabel?: string;
 }
 
 export const Badge = React.memo(
-	({ text, variant = "default", size = "md", style, ...props }: BadgeProps) => {
+	({
+		text,
+		variant = "default",
+		size = "md",
+		style,
+		accessibilityLabel,
+		...props
+	}: BadgeProps) => {
 		const theme = useTheme();
 
 		const getBadgeStyles = () => {
@@ -80,8 +88,17 @@ export const Badge = React.memo(
 			alignSelf: "flex-start" as const,
 		};
 
+		// Accessibility properties
+		const accessibilityState: AccessibilityState = {};
+
 		return (
-			<View style={[badgeStyles, style]} {...props}>
+			<View
+				style={[badgeStyles, style]}
+				accessibilityRole="text"
+				accessibilityLabel={accessibilityLabel || `${text} ${variant}`}
+				accessibilityState={accessibilityState}
+				{...props}
+			>
 				<Text
 					variant={sizeStyle.fontSize}
 					weight="medium"
@@ -90,6 +107,14 @@ export const Badge = React.memo(
 					{text}
 				</Text>
 			</View>
+		);
+	},
+	(prevProps, nextProps) => {
+		// Custom equality check to optimize re-renders
+		return (
+			prevProps.text === nextProps.text &&
+			prevProps.variant === nextProps.variant &&
+			prevProps.size === nextProps.size
 		);
 	},
 );

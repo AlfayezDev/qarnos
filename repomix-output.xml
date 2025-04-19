@@ -58,10 +58,18 @@ apps/
       index.tsx
       settings.tsx
     components/
+      common/
+        ErrorBoundary.tsx
+      compound/
+        form/
+          FormCategory.tsx
+          FormInput.tsx
+          FormRadio.tsx
+          FormSwitch.tsx
+          index.tsx
       dashboard/
         AlertRow.tsx
         AlertsCard.tsx
-        DashboardHeader.tsx
         PrepCard.tsx
         StatsGrid.tsx
       fields/
@@ -69,8 +77,13 @@ apps/
         FocusableInput.tsx
         RadioField.tsx
         SwitchField.tsx
-      layout/
+      layouts/
+        ResponsiveContainer.tsx
         ScreenContainer.tsx
+      meal/
+        MealFormBasicInfo.tsx
+        MealFormHeader.tsx
+        MealImagePreview.tsx
       ui/
         Avatar.tsx
         Badge.tsx
@@ -82,15 +95,30 @@ apps/
         Text.tsx
       LanguageSelector.tsx
     constants/
+      theme/
+        colors.ts
+        index.ts
+        platform.ts
+        radius.ts
+        shadows.ts
+        sizes.ts
+        spacing.ts
+        typography.ts
       i18n.ts
-      theme.ts
     hooks/
       useColorScheme/
         index.ts
         useColorScheme.web.ts
       useLanguage.ts
+      useResponsiveLayout.ts
+      useResponsiveStyles.ts
       useTheme.ts
       useTranslation.ts
+      useZodForm.ts
+    schemas/
+      mealSchema.ts
+    utils/
+      validation.ts
     .gitignore
     data.ts
     types.ts
@@ -102,6 +130,1449 @@ pnpm-workspace.yaml
 
 <files>
 This section contains the contents of the repository's files.
+
+<file path="apps/merchant-app/components/common/ErrorBoundary.tsx">
+import React, { Component, ErrorInfo, ReactNode } from "react";
+import { View, StyleSheet } from "react-native";
+import { Text, Button } from "@/components/ui";
+import { useTheme } from "@/hooks/useTheme";
+interface Props {
+	children: ReactNode;
+	fallback?: ReactNode;
+	onError?: (error: Error, errorInfo: ErrorInfo) => void;
+}
+interface State {
+	hasError: boolean;
+	error?: Error;
+}
+export class ErrorBoundary extends Component<Props, State> {
+	constructor(props: Props) {
+		super(props);
+		this.state = { hasError: false };
+	}
+	static getDerivedStateFromError(error: Error): State {
+		return { hasError: true, error };
+	}
+	componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+		if (this.props.onError) {
+			this.props.onError(error, errorInfo);
+		}
+		console.error("Error caught by ErrorBoundary:", error, errorInfo);
+	}
+	resetError = () => {
+		this.setState({ hasError: false, error: undefined });
+	};
+	render() {
+		if (this.state.hasError) {
+			if (this.props.fallback) {
+				return this.props.fallback;
+			}
+			return (
+				<ErrorFallback error={this.state.error} resetError={this.resetError} />
+			);
+		}
+		return this.props.children;
+	}
+}
+interface ErrorFallbackProps {
+	error?: Error;
+	resetError: () => void;
+}
+const ErrorFallback: React.FC<ErrorFallbackProps> = ({ error, resetError }) => {
+	const theme = useTheme();
+	return (
+		<View
+			style={[styles.container, { backgroundColor: theme.colors.background }]}
+		>
+			<Text variant="lg" weight="semibold" color="error" marginBottom="md">
+				Something went wrong
+			</Text>
+			<Text variant="md" color="textSecondary" marginBottom="lg">
+				{error?.message || "An unexpected error occurred"}
+			</Text>
+			<Button
+				title="Try Again"
+				onPress={resetError}
+				accessibilityLabel="Try again button"
+			/>
+		</View>
+	);
+};
+const styles = StyleSheet.create({
+	container: {
+		flex: 1,
+		justifyContent: "center",
+		alignItems: "center",
+		padding: 20,
+	},
+});
+</file>
+
+<file path="apps/merchant-app/components/compound/form/FormCategory.tsx">
+import React from "react";
+import { Form } from ".";
+import {
+	CategoryField,
+	CategoryOption,
+} from "@/components/fields/CategoryField";
+interface FormCategoryProps {
+	name: string;
+	label?: string;
+	options: CategoryOption[];
+	required?: boolean;
+	disabled?: boolean;
+	accessibilityLabel?: string;
+	accessibilityHint?: string;
+}
+export const FormCategory: React.FC<FormCategoryProps> = ({
+	name,
+	label,
+	options,
+	required = false,
+	disabled = false,
+	accessibilityLabel,
+	accessibilityHint,
+}) => {
+	return (
+		<Form.Field name={name}>
+			{({ value, error, onChange }) => (
+				<CategoryField
+					options={options}
+					value={value || ""}
+					onChange={onChange}
+					label={label}
+					error={error}
+					required={required}
+					disabled={disabled}
+					accessibilityLabel={accessibilityLabel || label}
+					accessibilityHint={accessibilityHint}
+				/>
+			)}
+		</Form.Field>
+	);
+};
+</file>
+
+<file path="apps/merchant-app/components/compound/form/FormInput.tsx">
+import React from "react";
+import { z } from "zod";
+import { Form } from ".";
+import FocusableInput from "@/components/fields/FocusableInput";
+import { useTheme } from "@/hooks/useTheme";
+interface FormInputProps {
+	name: string;
+	label?: string;
+	placeholder?: string;
+	required?: boolean;
+	multiline?: boolean;
+	numberOfLines?: number;
+	keyboardType?: "default" | "numeric" | "email-address" | "phone-pad";
+	secureTextEntry?: boolean;
+	schema?: z.ZodType<any, any>;
+	inputRef?: React.RefObject<any>;
+	onSubmitEditing?: () => void;
+	autoCapitalize?: "none" | "sentences" | "words" | "characters";
+	textAlign?: "left" | "center" | "right";
+	textAlignVertical?: "top" | "center" | "bottom";
+	accessibilityLabel?: string;
+	accessibilityHint?: string;
+}
+export const FormInput: React.FC<FormInputProps> = ({
+	name,
+	label,
+	placeholder,
+	required = false,
+	multiline = false,
+	numberOfLines = 1,
+	keyboardType = "default",
+	secureTextEntry = false,
+	schema,
+	inputRef,
+	onSubmitEditing,
+	autoCapitalize = "sentences",
+	textAlign,
+	textAlignVertical,
+	accessibilityLabel,
+	accessibilityHint,
+}) => {
+	const theme = useTheme();
+	return (
+		<Form.Field name={name}>
+			{({ value, error, onChange, onBlur, touched }) => (
+				<FocusableInput
+					inputRef={inputRef}
+					label={label}
+					required={required}
+					value={value || ""}
+					onChangeText={onChange}
+					placeholder={placeholder}
+					placeholderTextColor={theme.colors.textMuted}
+					multiline={multiline}
+					numberOfLines={numberOfLines}
+					keyboardType={keyboardType}
+					secureTextEntry={secureTextEntry}
+					onSubmitEditing={onSubmitEditing}
+					onBlur={onBlur}
+					error={touched && error ? error : undefined}
+					autoCapitalize={autoCapitalize}
+					textAlign={textAlign}
+					textAlignVertical={textAlignVertical}
+					accessibilityLabel={accessibilityLabel || label}
+					accessibilityHint={accessibilityHint}
+					schema={schema}
+				/>
+			)}
+		</Form.Field>
+	);
+};
+</file>
+
+<file path="apps/merchant-app/components/compound/form/FormRadio.tsx">
+import React from "react";
+import { Form } from ".";
+import { RadioField, RadioOption } from "@/components/fields/RadioField";
+interface FormRadioProps {
+	name: string;
+	label?: string;
+	options: RadioOption[];
+	horizontal?: boolean;
+	required?: boolean;
+	disabled?: boolean;
+	accessibilityLabel?: string;
+	accessibilityHint?: string;
+}
+export const FormRadio: React.FC<FormRadioProps> = ({
+	name,
+	label,
+	options,
+	horizontal = false,
+	required = false,
+	disabled = false,
+	accessibilityLabel,
+	accessibilityHint,
+}) => {
+	return (
+		<Form.Field name={name}>
+			{({ value, error, onChange }) => (
+				<RadioField
+					options={options}
+					value={value || ""}
+					onChange={onChange}
+					label={label}
+					horizontal={horizontal}
+					error={error}
+					required={required}
+					disabled={disabled}
+					accessibilityLabel={accessibilityLabel || label}
+					accessibilityHint={accessibilityHint}
+				/>
+			)}
+		</Form.Field>
+	);
+};
+</file>
+
+<file path="apps/merchant-app/components/compound/form/FormSwitch.tsx">
+import React from "react";
+import { Form } from ".";
+import { SwitchField } from "@/components/fields/SwitchField";
+interface FormSwitchProps {
+	name: string;
+	label?: string;
+	description?: string;
+	leftIcon?: string;
+	disabled?: boolean;
+	accessibilityLabel?: string;
+	accessibilityHint?: string;
+}
+export const FormSwitch: React.FC<FormSwitchProps> = ({
+	name,
+	label,
+	description,
+	leftIcon,
+	disabled = false,
+	accessibilityLabel,
+	accessibilityHint,
+}) => {
+	return (
+		<Form.Field name={name}>
+			{({ value, error, onChange }) => (
+				<SwitchField
+					value={value || false}
+					onValueChange={onChange}
+					label={label}
+					description={description}
+					leftIcon={leftIcon}
+					disabled={disabled}
+					error={error}
+					accessibilityLabel={accessibilityLabel || label}
+					accessibilityHint={accessibilityHint}
+				/>
+			)}
+		</Form.Field>
+	);
+};
+</file>
+
+<file path="apps/merchant-app/components/compound/form/index.tsx">
+import { useZodForm } from "@/hooks/useZodForm";
+import React, { createContext, useContext, useMemo } from "react";
+import { StyleSheet, View, ViewStyle } from "react-native";
+import { z } from "zod";
+interface FormContextType<T extends z.ZodType<any, any>> {
+	values: Partial<z.infer<T>>;
+	errors: Record<string, string>;
+	touched: Record<string, boolean>;
+	setValue: (field: keyof z.infer<T>, value: any) => void;
+	handleBlur: (field: keyof z.infer<T>) => void;
+	validateForm: () => boolean;
+	resetForm: (newValues?: Partial<z.infer<T>>) => void;
+	isDirty: boolean;
+	isValid: boolean;
+}
+const FormContext = createContext<FormContextType<any> | null>(null);
+interface FormProps<T extends z.ZodType<any, any>> {
+	schema: T;
+	initialValues?: Partial<z.infer<T>>;
+	onSubmit?: (values: z.infer<T>) => void;
+	children: React.ReactNode;
+	style?: ViewStyle;
+}
+function Form<T extends z.ZodType<any, any>>({
+	schema,
+	initialValues = {},
+	onSubmit,
+	children,
+	style,
+}: FormProps<T>) {
+	const {
+		values,
+		errors,
+		touched,
+		setValue,
+		handleBlur,
+		validateForm,
+		resetForm,
+		isDirty,
+		isValid,
+	} = useZodForm(schema, initialValues);
+	const contextValue = useMemo(
+		() => ({
+			values,
+			errors,
+			touched,
+			setValue,
+			handleBlur,
+			validateForm,
+			resetForm,
+			isDirty,
+			isValid,
+		}),
+		[
+			values,
+			errors,
+			touched,
+			setValue,
+			handleBlur,
+			validateForm,
+			resetForm,
+			isDirty,
+			isValid,
+		],
+	);
+	const handleSubmit = () => {
+		if (validateForm() && onSubmit) {
+			onSubmit(values as z.infer<T>);
+		}
+	};
+	return (
+		<FormContext.Provider value={contextValue}>
+			<View style={[styles.container, style]}>
+				{typeof children === "function"
+					? children({
+							values,
+							errors,
+							touched,
+							handleSubmit,
+							isValid,
+							isDirty,
+						})
+					: children}
+			</View>
+		</FormContext.Provider>
+	);
+}
+export function useForm<T extends z.ZodType<any, any>>() {
+	const context = useContext(FormContext);
+	if (!context) {
+		throw new Error("useForm must be used within a Form component");
+	}
+	return context as FormContextType<T>;
+}
+interface FieldProps<T extends z.ZodType<any, any>> {
+	name: keyof z.infer<T>;
+	children: (fieldProps: {
+		value: any;
+		error?: string;
+		onChange: (value: any) => void;
+		onBlur: () => void;
+		touched: boolean;
+	}) => React.ReactNode;
+}
+function Field<T extends z.ZodType<any, any>>({
+	name,
+	children,
+}: FieldProps<T>) {
+	const { values, errors, touched, setValue, handleBlur } = useForm<T>();
+	const fieldProps = {
+		value: values[name],
+		error: errors[name as string],
+		onChange: (value: any) => setValue(name, value),
+		onBlur: () => handleBlur(name),
+		touched: !!touched[name as string],
+	};
+	return <>{children(fieldProps)}</>;
+}
+interface SubmitButtonProps {
+	children: (props: {
+		onPress: () => void;
+		isValid: boolean;
+		isDirty: boolean;
+		isSubmitting?: boolean;
+	}) => React.ReactNode;
+	onSubmit?: () => void;
+}
+function SubmitButton({ children, onSubmit }: SubmitButtonProps) {
+	const { validateForm, isValid, isDirty } = useForm<any>();
+	const handlePress = () => {
+		if (validateForm() && onSubmit) {
+			onSubmit();
+		}
+	};
+	return <>{children({ onPress: handlePress, isValid, isDirty })}</>;
+}
+const styles = StyleSheet.create({
+	container: {
+		width: "100%",
+	},
+});
+Form.Field = Field;
+Form.SubmitButton = SubmitButton;
+export { Form };
+export * from "./FormInput";
+export * from "./FormSwitch";
+export * from "./FormRadio";
+export * from "./FormCategory";
+</file>
+
+<file path="apps/merchant-app/components/layouts/ResponsiveContainer.tsx">
+import React from "react";
+import { View, StyleSheet } from "react-native";
+import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
+import { useTheme } from "@/hooks/useTheme";
+interface ResponsiveContainerProps {
+	children: React.ReactNode;
+	padded?: boolean;
+	centered?: boolean;
+	maxWidth?: number;
+	style?: any;
+}
+export const ResponsiveContainer: React.FC<ResponsiveContainerProps> = ({
+	children,
+	padded = true,
+	centered = false,
+	maxWidth,
+	style,
+}) => {
+	const { isTablet, deviceType } = useResponsiveLayout();
+	const theme = useTheme();
+	const getMaxWidth = () => {
+		if (maxWidth) return maxWidth;
+		if (deviceType === "tablet") return 700;
+		return undefined;
+	};
+	const containerStyle = {
+		flex: 1,
+		width: "100%",
+		maxWidth: getMaxWidth(),
+		paddingHorizontal: padded ? theme.spacing.md : 0,
+		alignSelf: isTablet ? "center" : undefined,
+		alignItems: centered ? "center" : undefined,
+	};
+	return <View style={[containerStyle, style]}>{children}</View>;
+};
+</file>
+
+<file path="apps/merchant-app/components/meal/MealFormBasicInfo.tsx">
+import React from "react";
+import { TextInput } from "react-native";
+import { Box, Text } from "@/components/ui";
+import { Ionicons } from "@expo/vector-icons";
+import { useTheme } from "@/hooks/useTheme";
+import { useTranslation } from "@/hooks/useTranslation";
+import FocusableInput from "@/components/fields/FocusableInput";
+import { CategoryField } from "@/components/fields/CategoryField";
+import { RadioField } from "@/components/fields/RadioField";
+import { Meal } from "@/types";
+interface MealFormBasicInfoProps {
+	meal: Partial<Meal>;
+	errors: Record<string, string>;
+	updateField: (field: keyof Meal, value: any) => void;
+	nameInputRef: React.RefObject<TextInput>;
+	nameArInputRef: React.RefObject<TextInput>;
+	descInputRef: React.RefObject<TextInput>;
+	descArInputRef: React.RefObject<TextInput>;
+	handleSubmitEditing: (nextInput: React.RefObject<TextInput | null>) => void;
+	periodOptions: Array<{
+		value: string;
+		label: string;
+		icon: string;
+	}>;
+	dietaryOptions: Array<{
+		value: string;
+		label: string;
+		description: string;
+	}>;
+}
+export const MealFormBasicInfo: React.FC<MealFormBasicInfoProps> = ({
+	meal,
+	errors,
+	updateField,
+	nameInputRef,
+	nameArInputRef,
+	descInputRef,
+	descArInputRef,
+	handleSubmitEditing,
+	periodOptions,
+	dietaryOptions,
+}) => {
+	const theme = useTheme();
+	const { t, language, isRTL } = useTranslation();
+	const isArabic = language === "ar";
+	return (
+		<Box card rounded="md" padding="lg" elevation="small">
+			<Box row alignItems="center" marginBottom="md">
+				<Ionicons
+					name="information-circle-outline"
+					size={theme.sizes.iconSm}
+					color={theme.colors.primary}
+					style={{ marginEnd: theme.spacing.sm }}
+				/>
+				<Text variant="lg" weight="semibold">
+					{t("meals.basicInfo")}
+				</Text>
+			</Box>
+			<Box marginBottom="md">
+				<FocusableInput
+					inputRef={nameInputRef}
+					label={t("meals.mealName")}
+					required
+					value={meal.name}
+					onChangeText={(text) => updateField("name", text)}
+					placeholder={t("meals.mealName")}
+					placeholderTextColor={theme.colors.textMuted}
+					returnKeyType="next"
+					onSubmitEditing={() => handleSubmitEditing(nameArInputRef)}
+					style={{ marginBottom: theme.spacing.sm }}
+					error={errors.name}
+					accessibilityLabel={t("meals.mealName")}
+					accessibilityRole="none"
+				/>
+				<FocusableInput
+					inputRef={nameArInputRef}
+					label={`${t("meals.mealName")} (العربية)`}
+					value={meal.name_ar}
+					onChangeText={(text) => updateField("name_ar", text)}
+					placeholder={`${t("meals.mealName")} (العربية)`}
+					placeholderTextColor={theme.colors.textMuted}
+					returnKeyType="next"
+					onSubmitEditing={() => handleSubmitEditing(descInputRef)}
+					textAlign={isArabic ? "right" : "left"}
+					accessibilityLabel={`${t("meals.mealName")} (العربية)`}
+					accessibilityRole="none"
+				/>
+			</Box>
+			<Box marginBottom="md">
+				<FocusableInput
+					inputRef={descInputRef}
+					label={t("meals.description")}
+					required
+					value={meal.description}
+					onChangeText={(text) => updateField("description", text)}
+					placeholder={t("meals.description")}
+					placeholderTextColor={theme.colors.textMuted}
+					multiline={true}
+					numberOfLines={4}
+					returnKeyType="next"
+					onSubmitEditing={() => handleSubmitEditing(descArInputRef)}
+					textAlignVertical="top"
+					style={{ marginBottom: theme.spacing.sm }}
+					error={errors.description}
+					accessibilityLabel={t("meals.description")}
+					accessibilityRole="none"
+				/>
+				<FocusableInput
+					inputRef={descArInputRef}
+					label={`${t("meals.description")} (العربية)`}
+					value={meal.description_ar}
+					onChangeText={(text) => updateField("description_ar", text)}
+					placeholder={`${t("meals.description")} (العربية)`}
+					placeholderTextColor={theme.colors.textMuted}
+					multiline={true}
+					numberOfLines={4}
+					returnKeyType="done"
+					textAlign={isArabic ? "right" : "left"}
+					textAlignVertical="top"
+					accessibilityLabel={`${t("meals.description")} (العربية)`}
+					accessibilityRole="none"
+				/>
+			</Box>
+			<Box marginBottom="md">
+				<CategoryField
+					label={t("meals.mealPeriod")}
+					options={periodOptions}
+					value={meal.period || "Breakfast"}
+					onChange={(value) => updateField("period", value)}
+					error={errors.period}
+					required
+				/>
+			</Box>
+			<Box marginBottom="md">
+				<RadioField
+					label="Dietary Restrictions"
+					options={dietaryOptions}
+					value={meal.dietaryRestriction || "none"}
+					onChange={(value) => updateField("dietaryRestriction", value)}
+					error={errors.dietaryRestriction}
+				/>
+			</Box>
+		</Box>
+	);
+};
+</file>
+
+<file path="apps/merchant-app/components/meal/MealFormHeader.tsx">
+import React from "react";
+import { useRouter } from "expo-router";
+import { Box, AnimatedBox, Text, Button, Badge } from "@/components/ui";
+import { useTheme } from "@/hooks/useTheme";
+import { useTranslation } from "@/hooks/useTranslation";
+import { FadeIn } from "react-native-reanimated";
+interface MealFormHeaderProps {
+	title: string;
+	isEdit: boolean;
+	mealName?: string;
+	mealNameAr?: string;
+	available?: boolean;
+	onDelete: () => void;
+}
+export const MealFormHeader: React.FC<MealFormHeaderProps> = ({
+	title,
+	isEdit,
+	mealName,
+	mealNameAr,
+	available,
+	onDelete,
+}) => {
+	const theme = useTheme();
+	const router = useRouter();
+	const { t, language, isRTL } = useTranslation();
+	const isArabic = language === "ar";
+	return (
+		<AnimatedBox
+			row
+			alignItems="center"
+			justifyContent="space-between"
+			paddingHorizontal="md"
+			paddingVertical="sm"
+			style={{
+				height: theme.sizes.headerHeight,
+				borderBottomWidth: 1,
+				borderBottomColor: theme.colors.divider,
+			}}
+			entering={FadeIn.duration(300)}
+		>
+			<Box row alignItems="center">
+				<Button
+					title=""
+					variant="ghost"
+					leftIcon={isRTL ? "chevron-forward" : "chevron-back"}
+					size="sm"
+					onPress={() => router.back()}
+					style={{ marginEnd: theme.spacing.sm }}
+					accessibilityLabel={t("common.back")}
+					accessibilityRole="button"
+				/>
+				<Text variant="xl" weight="semibold" numberOfLines={1}>
+					{isEdit ? (isArabic && mealNameAr ? mealNameAr : mealName) : title}
+				</Text>
+				{isEdit && available !== undefined && (
+					<Badge
+						text={t(available ? "meals.available" : "meals.unavailable")}
+						variant={available ? "success" : "warning"}
+						size="sm"
+						style={{ marginStart: theme.spacing.sm }}
+					/>
+				)}
+			</Box>
+			{isEdit && (
+				<Button
+					title=""
+					variant="ghost"
+					leftIcon="trash-outline"
+					size="sm"
+					onPress={onDelete}
+					textColor={theme.colors.error}
+					accessibilityLabel={t("common.delete")}
+					accessibilityRole="button"
+				/>
+			)}
+		</AnimatedBox>
+	);
+};
+</file>
+
+<file path="apps/merchant-app/components/meal/MealImagePreview.tsx">
+import React from "react";
+import { Image, TouchableOpacity } from "react-native";
+import { Box, Text, AnimatedBox } from "@/components/ui";
+import { Ionicons } from "@expo/vector-icons";
+import { useTheme } from "@/hooks/useTheme";
+import { useTranslation } from "@/hooks/useTranslation";
+import { FadeInUp } from "react-native-reanimated";
+interface MealImagePreviewProps {
+	image?: string;
+	name?: string;
+	nameAr?: string;
+	calories?: number;
+	prepTime?: number;
+	onSelectImage?: () => void;
+}
+export const MealImagePreview: React.FC<MealImagePreviewProps> = React.memo(
+	({ image, name, nameAr, calories, prepTime, onSelectImage }) => {
+		const theme = useTheme();
+		const { t, language } = useTranslation();
+		const isArabic = language === "ar";
+		return (
+			<AnimatedBox
+				entering={FadeInUp.delay(100).duration(400)}
+				marginBottom="md"
+				style={{
+					borderRadius: theme.radius.lg,
+					overflow: "hidden",
+					height: 240,
+				}}
+			>
+				{image ? (
+					<Box style={{ height: "100%", width: "100%", position: "relative" }}>
+						<Image
+							source={{ uri: image }}
+							style={{ width: "100%", height: "100%" }}
+							resizeMode="cover"
+							accessibilityLabel={
+								isArabic && nameAr ? nameAr : name || t("meals.mealName")
+							}
+						/>
+						<Box
+							style={{
+								position: "absolute",
+								bottom: 0,
+								left: 0,
+								right: 0,
+								height: 80,
+								backgroundColor: "rgba(0,0,0,0.3)",
+								padding: theme.spacing.md,
+								justifyContent: "flex-end",
+							}}
+						>
+							<Text
+								variant="lg"
+								weight="semibold"
+								color="#fff"
+								numberOfLines={1}
+							>
+								{isArabic && nameAr ? nameAr : name || t("meals.mealName")}
+							</Text>
+							<Box row alignItems="center" marginTop="xs">
+								<Ionicons
+									name="flame-outline"
+									size={theme.sizes.iconSm}
+									color="#fff"
+									style={{ marginEnd: theme.spacing.xs }}
+								/>
+								<Text variant="sm" color="#fff">
+									{calories ? `${calories} cal` : "0 cal"}
+								</Text>
+								<Text
+									variant="sm"
+									color="#fff"
+									style={{ marginHorizontal: theme.spacing.xs }}
+								>
+									•
+								</Text>
+								<Ionicons
+									name="time-outline"
+									size={theme.sizes.iconSm}
+									color="#fff"
+									style={{ marginEnd: theme.spacing.xs }}
+								/>
+								<Text variant="sm" color="#fff">
+									{prepTime ? `${prepTime} min` : "0 min"}
+								</Text>
+							</Box>
+						</Box>
+						<TouchableOpacity
+							style={{
+								position: "absolute",
+								top: theme.spacing.sm,
+								right: theme.spacing.sm,
+								backgroundColor: "rgba(0,0,0,0.5)",
+								borderRadius: theme.radius.round,
+								padding: theme.spacing.xs,
+							}}
+							onPress={onSelectImage}
+							accessibilityLabel={t("meals.addImage")}
+							accessibilityRole="button"
+						>
+							<Ionicons
+								name="camera-outline"
+								size={theme.sizes.iconMd}
+								color="#fff"
+							/>
+						</TouchableOpacity>
+					</Box>
+				) : (
+					<TouchableOpacity
+						style={{
+							height: "100%",
+							width: "100%",
+							backgroundColor: theme.colors.cardAlt,
+							alignItems: "center",
+							justifyContent: "center",
+						}}
+						onPress={onSelectImage}
+						accessibilityLabel={t("meals.addImage")}
+						accessibilityRole="button"
+					>
+						<Ionicons
+							name="camera-outline"
+							size={theme.sizes.iconLg}
+							color={theme.colors.primary}
+							style={{ marginBottom: theme.spacing.sm }}
+						/>
+						<Text variant="md" weight="semibold" color="primary">
+							{t("meals.addImage")}
+						</Text>
+					</TouchableOpacity>
+				)}
+			</AnimatedBox>
+		);
+	},
+	(prevProps, nextProps) => {
+		return (
+			prevProps.image === nextProps.image &&
+			prevProps.name === nextProps.name &&
+			prevProps.nameAr === nextProps.nameAr &&
+			prevProps.calories === nextProps.calories &&
+			prevProps.prepTime === nextProps.prepTime
+		);
+	},
+);
+</file>
+
+<file path="apps/merchant-app/constants/theme/colors.ts">
+export const colorPalette = {
+	primary: {
+		50: "#EBFFF9",
+		100: "#C3FFF0",
+		200: "#9BFFE6",
+		300: "#5FF6D8",
+		400: "#22E5C8",
+		500: "#0AC5AB",
+		600: "#09A98F",
+		700: "#07866F",
+		800: "#056952",
+		900: "#034C3A",
+	},
+	secondary: {
+		50: "#F2EFFF",
+		100: "#E4DFFF",
+		200: "#CABFFF",
+		300: "#A799FF",
+		400: "#8E7AFF",
+		500: "#7559FF",
+		600: "#6038FF",
+		700: "#4E1AFF",
+		800: "#3C00FB",
+		900: "#2F00C2",
+	},
+	neutral: {
+		0: "#FFFFFF",
+		50: "#F9FAFB",
+		100: "#F1F5F9",
+		200: "#E2E8F0",
+		300: "#CBD5E1",
+		400: "#94A3B8",
+		500: "#64748B",
+		600: "#475569",
+		700: "#334155",
+		800: "#1E293B",
+		900: "#0F172A",
+		950: "#0A0D14",
+		1000: "#000000",
+	},
+	semantic: {
+		success: "#22C55E",
+		warning: "#FFBE0B",
+		info: "#3B82F6",
+		error: "#FF5E5B",
+	},
+};
+export const getRgba = (hex: string, alpha: number): string => {
+	const r = Number.parseInt(hex.slice(1, 3), 16);
+	const g = Number.parseInt(hex.slice(3, 5), 16);
+	const b = Number.parseInt(hex.slice(5, 7), 16);
+	return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+export const colors = {
+	light: {
+		primary: colorPalette.primary[500],
+		primaryDark: colorPalette.primary[600],
+		primaryLight: getRgba(colorPalette.primary[500], 0.1),
+		secondary: colorPalette.secondary[500],
+		secondaryLight: getRgba(colorPalette.secondary[500], 0.1),
+		background: colorPalette.neutral[50],
+		backgroundAlt: colorPalette.neutral[100],
+		card: colorPalette.neutral[0],
+		cardAlt: colorPalette.neutral[100],
+		text: colorPalette.neutral[900],
+		textSecondary: colorPalette.neutral[600],
+		textMuted: colorPalette.neutral[400],
+		success: colorPalette.semantic.success,
+		warning: colorPalette.semantic.warning,
+		info: colorPalette.semantic.info,
+		error: colorPalette.semantic.error,
+		divider: colorPalette.neutral[200],
+		overlay: getRgba(colorPalette.neutral[950], 0.3),
+		shadow: getRgba(colorPalette.neutral[900], 0.08),
+		tabBar: colorPalette.neutral[0],
+		tabIconDefault: colorPalette.neutral[400],
+		tabIconSelected: colorPalette.primary[500],
+	},
+	dark: {
+		primary: colorPalette.primary[400],
+		primaryDark: colorPalette.primary[500],
+		primaryLight: getRgba(colorPalette.primary[400], 0.15),
+		secondary: colorPalette.secondary[400],
+		secondaryLight: getRgba(colorPalette.secondary[400], 0.15),
+		background: colorPalette.neutral[950],
+		backgroundAlt: colorPalette.neutral[800],
+		card: colorPalette.neutral[900],
+		cardAlt: colorPalette.neutral[800],
+		text: colorPalette.neutral[50],
+		textSecondary: colorPalette.neutral[300],
+		textMuted: colorPalette.neutral[500],
+		success: colorPalette.semantic.success,
+		warning: colorPalette.semantic.warning,
+		info: colorPalette.semantic.info,
+		error: colorPalette.semantic.error,
+		divider: getRgba(colorPalette.neutral[0], 0.1),
+		overlay: getRgba(colorPalette.neutral[950], 0.6),
+		shadow: getRgba(colorPalette.neutral[1000], 0.3),
+		tabBar: colorPalette.neutral[900],
+		tabIconDefault: colorPalette.neutral[500],
+		tabIconSelected: colorPalette.primary[400],
+	},
+};
+</file>
+
+<file path="apps/merchant-app/constants/theme/index.ts">
+import { colors } from "./colors";
+import { spacing } from "./spacing";
+import { radius } from "./radius";
+import { typography } from "./typography";
+import { sizes } from "./sizes";
+import { shadows } from "./shadows";
+import { platform } from "./platform";
+export type ThemeColors = typeof colors.light;
+export type ThemeMode = "light" | "dark";
+export const theme = {
+	colors,
+	spacing,
+	radius,
+	typography,
+	sizes,
+	shadows,
+	platform,
+};
+</file>
+
+<file path="apps/merchant-app/constants/theme/platform.ts">
+import { Platform } from "react-native";
+import { DefaultTheme } from "@react-navigation/native";
+export const platform = {
+	topInset: Platform.OS === "ios" ? (DefaultTheme.dark ? 44 : 50) : 16,
+	bottomInset: Platform.OS === "ios" ? 34 : 16,
+	isIOS: Platform.OS === "ios",
+	isAndroid: Platform.OS === "android",
+};
+</file>
+
+<file path="apps/merchant-app/constants/theme/radius.ts">
+export const radius = {
+	none: 0,
+	xs: 4,
+	sm: 8,
+	md: 12,
+	lg: 16,
+	xl: 24,
+	round: 999,
+	button: 12,
+	card: 16,
+	input: 12,
+	badge: 12,
+} as const;
+</file>
+
+<file path="apps/merchant-app/constants/theme/shadows.ts">
+export const shadows = {
+	small: {
+		shadowOffset: { width: 0, height: 1 },
+		shadowOpacity: 0.8,
+		shadowRadius: 2,
+		elevation: 2,
+	},
+	medium: {
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.8,
+		shadowRadius: 4,
+		elevation: 4,
+	},
+	large: {
+		shadowOffset: { width: 0, height: 4 },
+		shadowOpacity: 0.8,
+		shadowRadius: 8,
+		elevation: 8,
+	},
+};
+</file>
+
+<file path="apps/merchant-app/constants/theme/sizes.ts">
+export const sizes = {
+	touchTarget: 44,
+	smallTouchTarget: 36,
+	iconXs: 16,
+	iconSm: 20,
+	iconMd: 24,
+	iconLg: 32,
+	buttonSm: 36,
+	buttonMd: 44,
+	buttonLg: 52,
+	inputHeight: 48,
+	headerHeight: 56,
+	tabBarHeight: 49,
+	avatarSm: 32,
+	avatarMd: 44,
+	avatarLg: 64,
+} as const;
+</file>
+
+<file path="apps/merchant-app/constants/theme/spacing.ts">
+export const spacing = {
+	none: 0,
+	xs: 4,
+	sm: 8,
+	md: 16,
+	lg: 24,
+	xl: 32,
+	xxl: 48,
+	screenPadding: 16,
+	cardPadding: 16,
+	itemSpacing: 12,
+	sectionSpacing: 24,
+} as const;
+</file>
+
+<file path="apps/merchant-app/constants/theme/typography.ts">
+export const typography = {
+	sizes: {
+		xs: 12,
+		sm: 14,
+		md: 16,
+		lg: 18,
+		xl: 20,
+		xxl: 24,
+		xxxl: 30,
+	} as const,
+	weights: {
+		regular: "400",
+		medium: "500",
+		semibold: "600",
+		bold: "700",
+		extrabold: "800",
+	} as const,
+	lineHeights: {
+		tight: 1.2,
+		normal: 1.5,
+		loose: 1.8,
+	} as const,
+};
+</file>
+
+<file path="apps/merchant-app/hooks/useResponsiveLayout.ts">
+import { useEffect, useState } from "react";
+import { Dimensions, ScaledSize } from "react-native";
+export type DeviceType = "phone" | "tablet" | "desktop";
+export type OrientationType = "portrait" | "landscape";
+export const BREAKPOINTS = {
+	PHONE_MAX_WIDTH: 767,
+	TABLET_MIN_WIDTH: 768,
+	TABLET_MAX_WIDTH: 1023,
+	DESKTOP_MIN_WIDTH: 1024,
+};
+interface ResponsiveLayout {
+	deviceType: DeviceType;
+	orientation: OrientationType;
+	isPhone: boolean;
+	isTablet: boolean;
+	isLandscape: boolean;
+	isPortrait: boolean;
+	windowWidth: number;
+	windowHeight: number;
+	scale: number;
+	fontScale: number;
+}
+export function useResponsiveLayout(): ResponsiveLayout {
+	const [layout, setLayout] = useState<ResponsiveLayout>(() => {
+		const window = Dimensions.get("window");
+		return getLayoutInfo(window);
+	});
+	useEffect(() => {
+		function handleDimensionsChange({ window }: { window: ScaledSize }) {
+			setLayout(getLayoutInfo(window));
+		}
+		const subscription = Dimensions.addEventListener(
+			"change",
+			handleDimensionsChange,
+		);
+		return () => {
+			if (typeof subscription?.remove === "function") {
+				subscription.remove();
+			}
+		};
+	}, []);
+	return layout;
+}
+function getLayoutInfo(window: ScaledSize): ResponsiveLayout {
+	const { width, height, scale, fontScale } = window;
+	const isPortrait = height > width;
+	const isLandscape = !isPortrait;
+	let deviceType: DeviceType = "phone";
+	if (
+		width >= BREAKPOINTS.TABLET_MIN_WIDTH &&
+		width <= BREAKPOINTS.TABLET_MAX_WIDTH
+	) {
+		deviceType = "tablet";
+	} else if (width > BREAKPOINTS.DESKTOP_MIN_WIDTH) {
+		deviceType = "desktop";
+	}
+	return {
+		deviceType,
+		orientation: isPortrait ? "portrait" : "landscape",
+		isPhone: deviceType === "phone",
+		isTablet: deviceType === "tablet",
+		isLandscape,
+		isPortrait,
+		windowWidth: width,
+		windowHeight: height,
+		scale,
+		fontScale,
+	};
+}
+</file>
+
+<file path="apps/merchant-app/hooks/useResponsiveStyles.ts">
+import { useMemo } from "react";
+import { StyleSheet, ViewStyle, TextStyle, ImageStyle } from "react-native";
+import { useResponsiveLayout } from "./useResponsiveLayout";
+import { useTheme } from "./useTheme";
+type NamedStyles<T> = { [P in keyof T]: ViewStyle | TextStyle | ImageStyle };
+interface ResponsiveStyleOptions<T extends NamedStyles<T>> {
+	base: T;
+	tablet?: Partial<T>;
+	phone?: Partial<T>;
+	landscape?: Partial<T>;
+	portrait?: Partial<T>;
+	tabletLandscape?: Partial<T>;
+	tabletPortrait?: Partial<T>;
+	phoneLandscape?: Partial<T>;
+	phonePortrait?: Partial<T>;
+}
+export function useResponsiveStyles<T extends NamedStyles<T>>(
+	styleOptions: ResponsiveStyleOptions<T>,
+): T {
+	const { deviceType, orientation } = useResponsiveLayout();
+	const theme = useTheme();
+	return useMemo(() => {
+		const {
+			base,
+			tablet,
+			phone,
+			landscape,
+			portrait,
+			tabletLandscape,
+			tabletPortrait,
+			phoneLandscape,
+			phonePortrait,
+		} = styleOptions;
+		let combinedStyles = { ...base };
+		if (deviceType === "tablet" && tablet) {
+			combinedStyles = mergeStyles(combinedStyles, tablet);
+		} else if (deviceType === "phone" && phone) {
+			combinedStyles = mergeStyles(combinedStyles, phone);
+		}
+		if (orientation === "landscape" && landscape) {
+			combinedStyles = mergeStyles(combinedStyles, landscape);
+		} else if (orientation === "portrait" && portrait) {
+			combinedStyles = mergeStyles(combinedStyles, portrait);
+		}
+		if (
+			deviceType === "tablet" &&
+			orientation === "landscape" &&
+			tabletLandscape
+		) {
+			combinedStyles = mergeStyles(combinedStyles, tabletLandscape);
+		} else if (
+			deviceType === "tablet" &&
+			orientation === "portrait" &&
+			tabletPortrait
+		) {
+			combinedStyles = mergeStyles(combinedStyles, tabletPortrait);
+		} else if (
+			deviceType === "phone" &&
+			orientation === "landscape" &&
+			phoneLandscape
+		) {
+			combinedStyles = mergeStyles(combinedStyles, phoneLandscape);
+		} else if (
+			deviceType === "phone" &&
+			orientation === "portrait" &&
+			phonePortrait
+		) {
+			combinedStyles = mergeStyles(combinedStyles, phonePortrait);
+		}
+		return StyleSheet.create(combinedStyles);
+	}, [styleOptions, deviceType, orientation, theme]);
+}
+function mergeStyles<T extends NamedStyles<T>>(
+	base: T,
+	overrides: Partial<T>,
+): T {
+	const merged = { ...base };
+	Object.keys(overrides).forEach((key) => {
+		const baseStyle = base[key as keyof T];
+		const overrideStyle = overrides[key as keyof T];
+		if (baseStyle && overrideStyle) {
+			merged[key as keyof T] = {
+				...baseStyle,
+				...overrideStyle,
+			};
+		}
+	});
+	return merged;
+}
+</file>
+
+<file path="apps/merchant-app/hooks/useZodForm.ts">
+import { useState, useCallback, useMemo } from "react";
+import { z } from "zod";
+import { createFormSchema } from "@/utils/validation";
+export function useZodForm<T extends z.ZodType<any, any>>(
+	schema: T,
+	initialValues: Partial<z.infer<T>> = {},
+) {
+	const [values, setValues] = useState<Partial<z.infer<T>>>(initialValues);
+	const [errors, setErrors] = useState<Record<string, string>>({});
+	const [touched, setTouched] = useState<Record<string, boolean>>({});
+	const formSchema = useMemo(() => createFormSchema(schema), [schema]);
+	const setValue = useCallback(
+		(field: keyof z.infer<T>, value: any) => {
+			setValues((prev) => ({ ...prev, [field]: value }));
+			const validation = formSchema.validateField(field, value);
+			if (!validation.valid && validation.error) {
+				setErrors((prev) => ({ ...prev, [field]: validation.error! }));
+			} else {
+				setErrors((prev) => {
+					const newErrors = { ...prev };
+					delete newErrors[field as string];
+					return newErrors;
+				});
+			}
+		},
+		[formSchema],
+	);
+	const handleBlur = useCallback(
+		(field: keyof z.infer<T>) => {
+			setTouched((prev) => ({ ...prev, [field]: true }));
+			const value = values[field];
+			const validation = formSchema.validateField(field, value);
+			if (!validation.valid && validation.error) {
+				setErrors((prev) => ({ ...prev, [field]: validation.error! }));
+			}
+		},
+		[values, formSchema],
+	);
+	const validateForm = useCallback(() => {
+		const result = formSchema.validateForm(values);
+		setErrors(result.errors);
+		return result.valid;
+	}, [values, formSchema]);
+	const resetForm = useCallback(
+		(newValues: Partial<z.infer<T>> = initialValues) => {
+			setValues(newValues);
+			setErrors({});
+			setTouched({});
+		},
+		[initialValues],
+	);
+	return {
+		values,
+		errors,
+		touched,
+		setValue,
+		handleBlur,
+		validateForm,
+		resetForm,
+		isDirty: Object.keys(touched).length > 0,
+		isValid: Object.keys(errors).length === 0,
+	};
+}
+</file>
+
+<file path="apps/merchant-app/schemas/mealSchema.ts">
+import { z } from "zod";
+import {
+	nameSchema,
+	priceSchema,
+	caloriesSchema,
+	descriptionSchema,
+	ingredientsSchema,
+	imageUrlSchema,
+	createFormSchema,
+} from "@/utils/validation";
+export const mealSchema = z.object({
+	id: z.string().optional(),
+	name: nameSchema,
+	name_ar: z.string().optional(),
+	description: descriptionSchema,
+	description_ar: z.string().optional(),
+	price: priceSchema,
+	calories: caloriesSchema,
+	prepTime: z
+		.number()
+		.positive("Prep time must be greater than 0")
+		.int("Prep time must be a whole number")
+		.or(z.string().regex(/^\d+$/).transform(Number)),
+	period: z.enum(["Breakfast", "Lunch", "Dinner"], {
+		errorMap: () => ({ message: "Please select a valid meal period" }),
+	}),
+	ingredients: ingredientsSchema,
+	ingredients_ar: z.array(z.string()).optional(),
+	available: z.boolean().default(true),
+	featured: z.boolean().default(false),
+	isVegan: z.boolean().default(false),
+	image: imageUrlSchema.optional(),
+	dietaryRestriction: z
+		.enum(["none", "vegetarian", "vegan", "glutenFree", "dairyFree"])
+		.optional(),
+});
+export type MealSchemaType = z.infer<typeof mealSchema>;
+export const mealFormSchema = createFormSchema(mealSchema);
+</file>
+
+<file path="apps/merchant-app/utils/validation.ts">
+import { z } from "zod";
+export const createFormSchema = <T extends z.ZodType<any, any>>(schema: T) => {
+	return {
+		schema,
+		validateField: (
+			field: keyof z.infer<T>,
+			value: any,
+		): { valid: boolean; error?: string } => {
+			const fieldSchema = schema.shape[field] as z.ZodType<any>;
+			if (!fieldSchema) {
+				return { valid: true };
+			}
+			const result = fieldSchema.safeParse(value);
+			if (result.success) {
+				return { valid: true };
+			}
+			const [error] = result.error.errors;
+			return {
+				valid: false,
+				error: error?.message,
+			};
+		},
+		validateForm: (
+			values: Partial<z.infer<T>>,
+		): {
+			valid: boolean;
+			errors: Record<string, string>;
+		} => {
+			const result = schema.safeParse(values);
+			if (result.success) {
+				return { valid: true, errors: {} };
+			}
+			const errors: Record<string, string> = {};
+			result.error.errors.forEach((error) => {
+				const field = error.path[0] as string;
+				errors[field] = error.message;
+			});
+			return { valid: false, errors };
+		},
+	};
+};
+export const nameSchema = z
+	.string()
+	.min(1, "Name is required")
+	.max(100, "Name is too long");
+export const priceSchema = z
+	.number({
+		invalid_type_error: "Price must be a number",
+		required_error: "Price is required",
+	})
+	.positive("Price must be greater than 0")
+	.or(
+		z
+			.string()
+			.regex(/^\d+(\.\d{1,2})?$/, "Invalid price format")
+			.transform(Number),
+	);
+export const caloriesSchema = z
+	.number({
+		invalid_type_error: "Calories must be a number",
+		required_error: "Calories are required",
+	})
+	.nonnegative("Calories cannot be negative")
+	.int("Calories must be a whole number")
+	.or(
+		z
+			.string()
+			.regex(/^\d+$/, "Calories must be a whole number")
+			.transform(Number),
+	);
+export const descriptionSchema = z
+	.string()
+	.min(10, "Description must be at least 10 characters")
+	.max(1000, "Description must be less than 1000 characters");
+export const ingredientsSchema = z
+	.array(z.string().min(1, "Ingredient must not be empty"))
+	.min(1, "At least one ingredient is required");
+export const imageUrlSchema = z
+	.string()
+	.url("Image must be a valid URL")
+	.or(z.string().length(0));
+</file>
 
 <file path="apps/merchant-app/app/meals/_layout.tsx">
 import { Stack } from "expo-router";
@@ -299,6 +1770,85 @@ const MealCard = (props: { item: Meal }) => {
 export default MealScreen;
 </file>
 
+<file path="apps/merchant-app/components/layouts/ScreenContainer.tsx">
+import { useTheme } from "@/hooks/useTheme";
+import { Screen } from "expo-router/build/views/Screen";
+import React from "react";
+import { RefreshControlProps, ScrollView, StatusBar, View } from "react-native";
+import {
+	SafeAreaView,
+	useSafeAreaInsets,
+} from "react-native-safe-area-context";
+interface ScreenContainerProps {
+	children: React.ReactNode;
+	scrollable?: boolean;
+	screenOptions?: any;
+	header?: React.ReactNode;
+	padded?: boolean;
+	refreshControl?: React.ReactElement<RefreshControlProps>;
+	contentContainerStyle?: any;
+	bottomInset?: boolean;
+}
+export const ScreenContainer = React.memo(
+	({
+		children,
+		scrollable = true,
+		screenOptions = { headerShown: false },
+		header,
+		padded = true,
+		refreshControl,
+		contentContainerStyle,
+		bottomInset = true,
+	}: ScreenContainerProps) => {
+		const theme = useTheme();
+		const insets = useSafeAreaInsets();
+		const containerStyle = {
+			flex: 1,
+			backgroundColor: theme.colors.background,
+		};
+		const contentStyle = {
+			flex: 1,
+			paddingHorizontal: padded ? theme.spacing.screenPadding : 0,
+		};
+		const scrollContentStyle = {
+			flexGrow: 1,
+			paddingBottom: bottomInset
+				? insets.bottom || theme.spacing.xl
+				: theme.spacing.xl,
+		};
+		const Container = header ? View : SafeAreaView;
+		return (
+			<>
+				<Screen options={screenOptions} />
+				<StatusBar
+					barStyle={theme.isDark ? "light-content" : "dark-content"}
+					backgroundColor={theme.colors.background}
+				/>
+				<Container style={containerStyle}>
+					{header}
+					{scrollable ? (
+						<ScrollView
+							style={contentStyle}
+							contentContainerStyle={[
+								scrollContentStyle,
+								contentContainerStyle,
+							]}
+							showsVerticalScrollIndicator={false}
+							refreshControl={refreshControl}
+							keyboardShouldPersistTaps="handled"
+						>
+							{children}
+						</ScrollView>
+					) : (
+						<View style={contentStyle}>{children}</View>
+					)}
+				</Container>
+			</>
+		);
+	},
+);
+</file>
+
 <file path="apps/merchant-app/hooks/useColorScheme/index.ts">
 export { useColorScheme } from 'react-native';
 </file>
@@ -322,6 +1872,171 @@ export function useColorScheme() {
 <file path=".npmrc">
 node-linker=hoisted
 engine-strict=true
+</file>
+
+<file path="apps/merchant-app/components/ui/index.ts">
+export * from "./Box";
+export * from "./Text";
+export * from "./Button";
+export * from "./Avatar";
+export * from "./Card";
+export * from "./Badge";
+export * from "./Tabs";
+</file>
+
+<file path="apps/merchant-app/hooks/useLanguage.ts">
+import { useState, useEffect } from "react";
+import { I18nManager } from "react-native";
+import { Language } from "@/constants/i18n";
+const DEFAULT_LANGUAGE: Language = "ar";
+export function useLanguage() {
+	const [language, setLanguage] = useState<Language>(DEFAULT_LANGUAGE);
+	useEffect(() => {
+		const loadLanguage = async () => {
+			const savedLanguage = DEFAULT_LANGUAGE;
+			if (savedLanguage === "en" || savedLanguage === "ar") {
+				setLanguage(savedLanguage);
+				const shouldBeRTL = savedLanguage === "ar";
+				if (shouldBeRTL !== I18nManager.isRTL) {
+					I18nManager.forceRTL(shouldBeRTL);
+				} else if (!shouldBeRTL && I18nManager.isRTL) {
+					I18nManager.forceRTL(false);
+				}
+			}
+		};
+		loadLanguage();
+	}, []);
+	const changeLanguage = async (newLanguage: Language) => {
+		try {
+			setLanguage(newLanguage);
+			const shouldBeRTL = newLanguage === "ar";
+			if (shouldBeRTL !== I18nManager.isRTL) {
+				I18nManager.allowRTL(shouldBeRTL);
+				I18nManager.forceRTL(shouldBeRTL);
+			}
+		} catch (error) {
+			console.error("Failed to save language setting:", error);
+		}
+	};
+	return { language, changeLanguage };
+}
+</file>
+
+<file path="apps/merchant-app/hooks/useTheme.ts">
+import { useColorScheme } from "react-native";
+import { theme, ThemeMode } from "@/constants/theme";
+import { DarkTheme, DefaultTheme } from "@react-navigation/native";
+export const useTheme = () => {
+	const colorScheme = useColorScheme() || "light";
+	const isDark = colorScheme === "dark";
+	const mode: ThemeMode = isDark ? "dark" : "light";
+	const navTheme = isDark ? DarkTheme : DefaultTheme;
+	return {
+		colors: theme.colors[mode],
+		isDark,
+		mode,
+		spacing: theme.spacing,
+		radius: theme.radius,
+		sizes: theme.sizes,
+		typography: theme.typography,
+		shadows: theme.shadows,
+		platform: theme.platform,
+		navTheme: {
+			...navTheme,
+			colors: {
+				...navTheme.colors,
+				primary: theme.colors[mode].primary,
+				background: theme.colors[mode].background,
+				card: theme.colors[mode].card,
+				text: theme.colors[mode].text,
+				border: theme.colors[mode].divider,
+				notification: theme.colors[mode].primary,
+			},
+		},
+	};
+};
+export type AppTheme = ReturnType<typeof useTheme>;
+export type SpacingToken = keyof typeof theme.spacing;
+export type RadiusToken = keyof typeof theme.radius;
+export type ColorToken = keyof typeof theme.colors.light;
+export type SizeToken = keyof typeof theme.sizes;
+export type ShadowToken = keyof typeof theme.shadows;
+export type FontSizeVariant = keyof typeof theme.typography.sizes;
+export type FontWeightVariant = keyof typeof theme.typography.weights;
+export type LineHeightVariant = keyof typeof theme.typography.lineHeights;
+export type ThemeTokens = {
+	spacing: SpacingToken;
+	radius: RadiusToken;
+	colors: ColorToken;
+	sizes: SizeToken;
+	shadows: ShadowToken;
+	typography: {
+		sizes: FontSizeVariant;
+		weights: FontWeightVariant;
+		lineHeights: LineHeightVariant;
+	};
+};
+</file>
+
+<file path="apps/merchant-app/hooks/useTranslation.ts">
+import { translations } from "@/constants/i18n";
+import { useCallback } from "react";
+import { useLanguage } from "./useLanguage";
+import { I18nManager } from "react-native";
+type TranslationsType = typeof translations.en;
+type Primitive = string | number | boolean | null | undefined;
+type Join<K, P> = K extends string | number
+	? P extends string | number
+		? `${K}${"" extends P ? "" : "."}${P}`
+		: never
+	: never;
+type Paths<T, D extends number = 10> = [D] extends [never]
+	? never
+	: T extends Primitive
+		? ""
+		:
+				| {
+						[K in keyof T]: K extends string | number
+							? K | Join<K, Paths<T[K], Prev[D]>>
+							: never;
+				  }[keyof T & (string | number)]
+				| "";
+type Prev = [never, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+export type TranslationPath = Paths<TranslationsType, 4>;
+export function useTranslation() {
+	const { language } = useLanguage();
+	const isRTL = I18nManager.isRTL;
+	const t = useCallback(
+		(path: string, params?: Record<string, string | number>): string => {
+			const keys = path.split(".");
+			let translation: any = translations[language];
+			for (const key of keys) {
+				translation = translation?.[key];
+				if (translation === undefined) {
+					let fallback: any = translations.en;
+					for (const k of keys) {
+						fallback = fallback?.[k];
+						if (fallback === undefined) break;
+					}
+					translation = fallback;
+					break;
+				}
+			}
+			if (typeof translation !== "string") {
+				return path;
+			}
+			if (params) {
+				return Object.entries(params).reduce(
+					(result, [key, value]) => result.replace(`{{${key}}}`, String(value)),
+					translation,
+				);
+			}
+			return translation;
+		},
+		[language],
+	);
+	return { t, language, isRTL };
+}
 </file>
 
 <file path="apps/merchant-app/components/fields/CategoryField.tsx">
@@ -620,8 +2335,13 @@ import Animated, {
 import * as Haptics from "expo-haptics";
 import { useTheme } from "@/hooks/useTheme";
 import { Text } from "@/components/ui";
+import { z } from "zod";
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
-export interface FocusableInputProps {
+interface ValidationProps {
+	schema?: z.ZodType<any>;
+	onValidation?: (isValid: boolean, error?: string) => void;
+}
+export interface FocusableInputProps extends ValidationProps {
 	inputRef?: React.RefObject<TextInput | null>;
 	style?: StyleProp<TextStyle>;
 	value?: string;
@@ -672,6 +2392,8 @@ const FocusableInput = forwardRef<TextInput, FocusableInputProps>(
 			label,
 			error,
 			required,
+			schema,
+			onValidation,
 		},
 		ref,
 	) => {
@@ -781,8 +2503,29 @@ const FocusableInput = forwardRef<TextInput, FocusableInputProps>(
 				onFocus(e);
 			}
 		};
+		const validateInput = (text: string) => {
+			if (!schema) return true;
+			try {
+				schema.parse(text);
+				if (onValidation) {
+					onValidation(true);
+				}
+				return true;
+			} catch (error) {
+				if (error instanceof z.ZodError) {
+					const errorMessage = error.errors[0]?.message || "Invalid input";
+					if (onValidation) {
+						onValidation(false, errorMessage);
+					}
+				}
+				return false;
+			}
+		};
 		const handleBlur = (e: NativeSyntheticEvent<TextInputFocusEventData>) => {
 			setIsFocused(false);
+			if (schema && value !== undefined) {
+				validateInput(value);
+			}
 			if (onBlur) {
 				onBlur(e);
 			}
@@ -1395,85 +3138,6 @@ export const SwitchField = React.memo(
 );
 </file>
 
-<file path="apps/merchant-app/components/layout/ScreenContainer.tsx">
-import { useTheme } from "@/hooks/useTheme";
-import { Screen } from "expo-router/build/views/Screen";
-import React from "react";
-import { RefreshControlProps, ScrollView, StatusBar, View } from "react-native";
-import {
-	SafeAreaView,
-	useSafeAreaInsets,
-} from "react-native-safe-area-context";
-interface ScreenContainerProps {
-	children: React.ReactNode;
-	scrollable?: boolean;
-	screenOptions?: any;
-	header?: React.ReactNode;
-	padded?: boolean;
-	refreshControl?: React.ReactElement<RefreshControlProps>;
-	contentContainerStyle?: any;
-	bottomInset?: boolean;
-}
-export const ScreenContainer = React.memo(
-	({
-		children,
-		scrollable = true,
-		screenOptions = { headerShown: false },
-		header,
-		padded = true,
-		refreshControl,
-		contentContainerStyle,
-		bottomInset = true,
-	}: ScreenContainerProps) => {
-		const theme = useTheme();
-		const insets = useSafeAreaInsets();
-		const containerStyle = {
-			flex: 1,
-			backgroundColor: theme.colors.background,
-		};
-		const contentStyle = {
-			flex: 1,
-			paddingHorizontal: padded ? theme.spacing.screenPadding : 0,
-		};
-		const scrollContentStyle = {
-			flexGrow: 1,
-			paddingBottom: bottomInset
-				? insets.bottom || theme.spacing.xl
-				: theme.spacing.xl,
-		};
-		const Container = header ? View : SafeAreaView;
-		return (
-			<>
-				<Screen options={screenOptions} />
-				<StatusBar
-					barStyle={theme.isDark ? "light-content" : "dark-content"}
-					backgroundColor={theme.colors.background}
-				/>
-				<Container style={containerStyle}>
-					{header}
-					{scrollable ? (
-						<ScrollView
-							style={contentStyle}
-							contentContainerStyle={[
-								scrollContentStyle,
-								contentContainerStyle,
-							]}
-							showsVerticalScrollIndicator={false}
-							refreshControl={refreshControl}
-							keyboardShouldPersistTaps="handled"
-						>
-							{children}
-						</ScrollView>
-					) : (
-						<View style={contentStyle}>{children}</View>
-					)}
-				</Container>
-			</>
-		);
-	},
-);
-</file>
-
 <file path="apps/merchant-app/components/ui/Avatar.tsx">
 import { ColorToken, useTheme } from "@/hooks/useTheme";
 import React from "react";
@@ -1566,6 +3230,7 @@ import {
 	ActivityIndicator,
 	TouchableOpacity,
 	TouchableOpacityProps,
+	AccessibilityState,
 } from "react-native";
 import { Text } from "./Text";
 interface ButtonProps extends TouchableOpacityProps {
@@ -1578,6 +3243,8 @@ interface ButtonProps extends TouchableOpacityProps {
 	rounded?: boolean;
 	fullWidth?: boolean;
 	textColor?: string;
+	accessibilityLabel?: string;
+	accessibilityHint?: string;
 }
 export const Button = React.memo(
 	({
@@ -1591,6 +3258,8 @@ export const Button = React.memo(
 		fullWidth = false,
 		style,
 		textColor: textColorOverride,
+		accessibilityLabel,
+		accessibilityHint,
 		...props
 	}: ButtonProps) => {
 		const theme = useTheme();
@@ -1664,6 +3333,9 @@ export const Button = React.memo(
 			marginEnd: leftIcon && title ? theme.spacing.xs : 0,
 			marginStart: rightIcon && title ? theme.spacing.xs : 0,
 		};
+		const accessibilityState: AccessibilityState = {
+			disabled: loading || props.disabled,
+		};
 		return (
 			<TouchableOpacity
 				style={[
@@ -1674,15 +3346,19 @@ export const Button = React.memo(
 						backgroundColor: variantStyle.backgroundColor,
 						borderWidth: variantStyle.borderWidth || 0,
 						borderColor: variantStyle.borderColor,
-						flexDirection: "row" as const,
-						alignItems: "center" as const,
-						justifyContent: "center" as const,
+						flexDirection: "row",
+						alignItems: "center",
+						justifyContent: "center",
 						width: fullWidth ? "100%" : undefined,
 					},
 					style,
 				]}
 				activeOpacity={0.7}
 				disabled={loading || props.disabled}
+				accessibilityRole="button"
+				accessibilityLabel={accessibilityLabel || title}
+				accessibilityHint={accessibilityHint}
+				accessibilityState={accessibilityState}
 				{...props}
 			>
 				{loading ? (
@@ -1715,6 +3391,19 @@ export const Button = React.memo(
 					</>
 				)}
 			</TouchableOpacity>
+		);
+	},
+	(prevProps, nextProps) => {
+		return (
+			prevProps.title === nextProps.title &&
+			prevProps.variant === nextProps.variant &&
+			prevProps.size === nextProps.size &&
+			prevProps.leftIcon === nextProps.leftIcon &&
+			prevProps.rightIcon === nextProps.rightIcon &&
+			prevProps.loading === nextProps.loading &&
+			prevProps.disabled === nextProps.disabled &&
+			prevProps.rounded === nextProps.rounded &&
+			prevProps.fullWidth === nextProps.fullWidth
 		);
 	},
 );
@@ -1782,178 +3471,182 @@ export const Card = React.memo(
 );
 </file>
 
-<file path="apps/merchant-app/components/ui/index.ts">
-export * from "./Box";
-export * from "./Text";
-export * from "./Button";
-export * from "./Avatar";
-export * from "./Card";
-export * from "./Badge";
-export * from "./Tabs";
+<file path="apps/merchant-app/.gitignore">
+# @generated expo-cli sync-2b81b286409207a5da26e14c78851eb30d8ccbdb
+# The following patterns were generated by expo-cli
+
+expo-env.d.ts
+# @end expo-cli
 </file>
 
-<file path="apps/merchant-app/hooks/useLanguage.ts">
-import { useState, useEffect } from "react";
-import { I18nManager } from "react-native";
-import { Language } from "@/constants/i18n";
-const DEFAULT_LANGUAGE: Language = "ar";
-export function useLanguage() {
-	const [language, setLanguage] = useState<Language>(DEFAULT_LANGUAGE);
-	useEffect(() => {
-		const loadLanguage = async () => {
-			const savedLanguage = DEFAULT_LANGUAGE;
-			if (savedLanguage === "en" || savedLanguage === "ar") {
-				setLanguage(savedLanguage);
-				const shouldBeRTL = savedLanguage === "ar";
-				if (shouldBeRTL !== I18nManager.isRTL) {
-					I18nManager.forceRTL(shouldBeRTL);
-				} else if (!shouldBeRTL && I18nManager.isRTL) {
-					I18nManager.forceRTL(false);
-				}
-			}
-		};
-		loadLanguage();
-	}, []);
-	const changeLanguage = async (newLanguage: Language) => {
-		try {
-			setLanguage(newLanguage);
-			const shouldBeRTL = newLanguage === "ar";
-			if (shouldBeRTL !== I18nManager.isRTL) {
-				I18nManager.allowRTL(shouldBeRTL);
-				I18nManager.forceRTL(shouldBeRTL);
-			}
-		} catch (error) {
-			console.error("Failed to save language setting:", error);
-		}
-	};
-	return { language, changeLanguage };
+<file path="apps/merchant-app/types.ts">
+export interface BaseModel {
+	id: string;
+	createdAt?: string;
+	updatedAt?: string;
 }
-</file>
-
-<file path="apps/merchant-app/hooks/useTheme.ts">
-import { useColorScheme } from "react-native";
-import { theme, ThemeMode } from "@/constants/theme";
-import { DarkTheme, DefaultTheme } from "@react-navigation/native";
-export const useTheme = () => {
-	const colorScheme = useColorScheme() || "light";
-	const isDark = colorScheme === "dark";
-	const mode: ThemeMode = isDark ? "dark" : "light";
-	const navTheme = isDark ? DarkTheme : DefaultTheme;
-	return {
-		colors: theme.colors[mode],
-		isDark,
-		mode,
-		spacing: theme.spacing,
-		radius: theme.radius,
-		sizes: theme.sizes,
-		typography: theme.typography,
-		shadows: theme.shadows,
-		platform: theme.platform,
-		navTheme: {
-			...navTheme,
-			colors: {
-				...navTheme.colors,
-				primary: theme.colors[mode].primary,
-				background: theme.colors[mode].background,
-				card: theme.colors[mode].card,
-				text: theme.colors[mode].text,
-				border: theme.colors[mode].divider,
-				notification: theme.colors[mode].primary,
-			},
-		},
-	};
-};
-export type AppTheme = ReturnType<typeof useTheme>;
-export type SpacingToken = keyof AppTheme["spacing"];
-export type RadiusToken = keyof AppTheme["radius"];
-export type ColorToken = keyof AppTheme["colors"];
-export type ThemeTokens = {
-	spacing: SpacingToken;
-	radius: RadiusToken;
-	colors: ColorToken;
-};
-export type FontSizeVariant = keyof AppTheme["typography"]["sizes"];
-export type FontWeightVariant = keyof AppTheme["typography"]["weights"];
-</file>
-
-<file path="apps/merchant-app/hooks/useTranslation.ts">
-import { translations } from "@/constants/i18n";
-import { useCallback } from "react";
-import { useLanguage } from "./useLanguage";
-import { I18nManager } from "react-native";
-type TranslationsType = typeof translations.en;
-type Primitive = string | number | boolean | null | undefined;
-type Join<K, P> = K extends string | number
-	? P extends string | number
-		? `${K}${"" extends P ? "" : "."}${P}`
-		: never
-	: never;
-type Paths<T, D extends number = 10> = [D] extends [never]
-	? never
-	: T extends Primitive
-		? ""
-		:
-				| {
-						[K in keyof T]: K extends string | number
-							? K | Join<K, Paths<T[K], Prev[D]>>
-							: never;
-				  }[keyof T & (string | number)]
-				| "";
-type Prev = [never, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-export type TranslationPath = Paths<TranslationsType, 4>;
-export function useTranslation() {
-	const { language } = useLanguage();
-	const isRTL = I18nManager.isRTL;
-	const t = useCallback(
-		(path: string, params?: Record<string, string | number>): string => {
-			const keys = path.split(".");
-			let translation: any = translations[language];
-			for (const key of keys) {
-				translation = translation?.[key];
-				if (translation === undefined) {
-					let fallback: any = translations.en;
-					for (const k of keys) {
-						fallback = fallback?.[k];
-						if (fallback === undefined) break;
-					}
-					translation = fallback;
-					break;
-				}
-			}
-			if (typeof translation !== "string") {
-				return path;
-			}
-			if (params) {
-				return Object.entries(params).reduce(
-					(result, [key, value]) => result.replace(`{{${key}}}`, String(value)),
-					translation,
-				);
-			}
-			return translation;
-		},
-		[language],
-	);
-	return { t, language, isRTL };
+export type Period = "Breakfast" | "Lunch" | "Dinner";
+export type AlertType = "warning" | "info" | "error" | "success";
+export type DietaryRestriction =
+	| "none"
+	| "vegetarian"
+	| "vegan"
+	| "glutenFree"
+	| "dairyFree";
+export interface MealCount {
+	name: string;
+	count: number;
+	id: string;
 }
+export interface MealPrepSummary {
+	period: Period;
+	totalMeals: number;
+	mealsToPrep: MealCount[];
+}
+export interface Alert extends BaseModel {
+	type: AlertType;
+	title: string;
+	icon: string;
+	timestamp?: string;
+	message?: string;
+	read?: boolean;
+}
+export interface StatItem {
+	title: string;
+	value: string | number;
+	icon: string;
+	change?: number;
+	changeDirection?: "up" | "down" | "neutral";
+}
+export interface OverviewStats {
+	activeSubscriptions: number;
+	newThisWeek: number;
+	newThisMonth?: number;
+	totalMeals?: number;
+	revenue?: {
+		daily?: number;
+		weekly?: number;
+		monthly?: number;
+	};
+}
+export interface QuickActionItem {
+	label: string;
+	icon: string;
+	action: () => void;
+	accessibilityLabel?: string;
+	accessibilityHint?: string;
+}
+export interface Ingredient {
+	name: string;
+	quantity?: number;
+	unit?: string;
+}
+export interface Meal extends BaseModel {
+	dietaryRestriction?: DietaryRestriction;
+	featured: boolean;
+	isVegan: boolean;
+	name: string;
+	name_ar?: string;
+	description: string;
+	description_ar?: string;
+	price: number;
+	ingredients: string[];
+	ingredients_ar?: string[];
+	calories: number;
+	prepTime: number;
+	period: Period;
+	available: boolean;
+	image?: string;
+	nutritionalInfo?: {
+		protein?: number;
+		carbs?: number;
+		fat?: number;
+		sugar?: number;
+		sodium?: number;
+	};
+	allergens?: string[];
+	tags?: string[];
+}
+export type RootStackParamList = {
+	Home: undefined;
+	Meals: undefined;
+	MealDetails: {
+		mealId: string;
+	};
+	Settings: undefined;
+};
+export interface ThemeTypography {
+	sizes: {
+		xs: number;
+		sm: number;
+		md: number;
+		lg: number;
+		xl: number;
+		xxl: number;
+		xxxl: number;
+	};
+	weights: {
+		regular: string;
+		medium: string;
+		semibold: string;
+		bold: string;
+		extrabold: string;
+	};
+	lineHeights: {
+		tight: number;
+		normal: number;
+		loose: number;
+	};
+}
+export interface FieldCommonProps {
+	label?: string;
+	error?: string;
+	required?: boolean;
+	disabled?: boolean;
+	accessibilityLabel?: string;
+	accessibilityHint?: string;
+}
+export interface InputFieldProps extends FieldCommonProps {
+	value: string;
+	onChangeText: (text: string) => void;
+	placeholder?: string;
+	keyboardType?: "default" | "numeric" | "email-address" | "phone-pad";
+	secureTextEntry?: boolean;
+	multiline?: boolean;
+	numberOfLines?: number;
+	autoCapitalize?: "none" | "sentences" | "words" | "characters";
+	rightIcon?: string;
+	leftIcon?: string;
+}
+export interface SelectOption {
+	value: string;
+	label: string;
+	icon?: string;
+	description?: string;
+}
+export interface UserProfile {
+	id: string;
+	email: string;
+	name: string;
+	role: "admin" | "staff" | "cook";
+	avatarUrl?: string;
+	preferences?: {
+		language?: "en" | "ar";
+		theme?: "light" | "dark" | "system";
+		notifications?: boolean;
+	};
+}
+export type MealId = Meal["id"];
+export type AlertId = Alert["id"];
+</file>
+
+<file path=".nvimrc">
+23.11.0
 </file>
 
 <file path="apps/merchant-app/app/meals/[meal-id].tsx">
-import { AnimatedBox, Badge, Box, Button, Text } from "@/components/ui";
-import FocusableInput from "@/components/fields/FocusableInput";
-import { SwitchField } from "@/components/fields/SwitchField";
-import { CategoryField } from "@/components/fields/CategoryField";
-import { RadioField } from "@/components/fields/RadioField";
-import { MEALS } from "@/data";
-import { useTheme } from "@/hooks/useTheme";
-import { useTranslation } from "@/hooks/useTranslation";
-import { Meal } from "@/types";
-import { Ionicons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import {
-	Alert,
-	Image,
 	Keyboard,
 	KeyboardAvoidingView,
 	Platform,
@@ -1961,46 +3654,47 @@ import {
 	TextInput,
 	View,
 } from "react-native";
-import Animated, {
-	FadeIn,
-	FadeInRight,
-	FadeInUp,
-} from "react-native-reanimated";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import * as Haptics from "expo-haptics";
+import Animated, { FadeInRight, FadeInUp } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { AnimatedBox, Box, Button, Text } from "@/components/ui";
 import { Tabs, TabType } from "@/components/ui/Tabs";
-const MealFormScreen = React.memo(() => {
+import { MEALS } from "@/data";
+import { useTheme } from "@/hooks/useTheme";
+import { useTranslation } from "@/hooks/useTranslation";
+import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
+import {
+	Form,
+	FormInput,
+	FormSwitch,
+	FormRadio,
+	FormCategory,
+} from "@/components/compound/form";
+import { mealSchema } from "@/schemas/mealSchema";
+import {
+	nameSchema,
+	descriptionSchema,
+	priceSchema,
+	caloriesSchema,
+} from "@/utils/validation";
+import { MealFormHeader } from "@/components/meal/MealFormHeader";
+import { MealImagePreview } from "@/components/meal/MealImagePreview";
+import { ErrorBoundary } from "@/components/common/ErrorBoundary";
+import { Meal } from "@/types";
+const MealFormScreen: React.FC = React.memo(() => {
 	const { "meal-id": mealId } = useLocalSearchParams<{ "meal-id": string }>();
 	const theme = useTheme();
-	const { t, language, isRTL } = useTranslation();
+	const { t, language } = useTranslation();
 	const insets = useSafeAreaInsets();
 	const router = useRouter();
+	const { isTablet, isLandscape } = useResponsiveLayout();
 	const isArabic = language === "ar";
 	const isEdit = mealId !== "new";
-	const sectionTabs: TabType[] = [
-		{
-			key: "basic",
-			label: t("meals.basicInfo"),
-			iconLeft: "information-circle-outline",
-		},
-		{
-			key: "settings",
-			label: t("common.settings"),
-			iconLeft: "settings-outline",
-		},
-	];
-	const [activeSection, setActiveSection] = useState<string>("basic");
-	const [loading, setLoading] = useState(false);
-	const [errors, setErrors] = useState<Record<string, string>>({});
-	const nameInputRef = useRef<TextInput>(null);
-	const nameArInputRef = useRef<TextInput>(null);
-	const descInputRef = useRef<TextInput>(null);
-	const descArInputRef = useRef<TextInput>(null);
-	const priceInputRef = useRef<TextInput>(null);
-	const caloriesInputRef = useRef<TextInput>(null);
-	const prepTimeInputRef = useRef<TextInput>(null);
-	const ingredientsInputRef = useRef<TextInput>(null);
-	const ingredientsArInputRef = useRef<TextInput>(null);
-	const [meal, setMeal] = useState<Partial<Meal>>({
+	const useTwoColumnLayout = isTablet && isLandscape;
+	const [activeSection, setActiveSection] = React.useState<string>("basic");
+	const [loading, setLoading] = React.useState(false);
+	const [meal, setMeal] = React.useState<Partial<Meal>>({
 		id: "",
 		name: "",
 		name_ar: "",
@@ -2016,6 +3710,15 @@ const MealFormScreen = React.memo(() => {
 		image: "",
 		isVegan: false,
 	});
+	const nameInputRef = useRef<TextInput>(null);
+	const nameArInputRef = useRef<TextInput>(null);
+	const descInputRef = useRef<TextInput>(null);
+	const descArInputRef = useRef<TextInput>(null);
+	const priceInputRef = useRef<TextInput>(null);
+	const caloriesInputRef = useRef<TextInput>(null);
+	const prepTimeInputRef = useRef<TextInput>(null);
+	const ingredientsInputRef = useRef<TextInput>(null);
+	const ingredientsArInputRef = useRef<TextInput>(null);
 	const periodOptions = [
 		{ value: "Breakfast", label: t("periods.breakfast"), icon: "cafe-outline" },
 		{ value: "Lunch", label: t("periods.lunch"), icon: "restaurant-outline" },
@@ -2043,6 +3746,20 @@ const MealFormScreen = React.memo(() => {
 			description: "No wheat or gluten",
 		},
 	];
+	const sectionTabs: TabType[] = [
+		{
+			key: "basic",
+			label: t("meals.basicInfo"),
+			iconLeft: "information-circle-outline",
+			accessibilityLabel: t("meals.basicInfo"),
+		},
+		{
+			key: "settings",
+			label: t("common.settings"),
+			iconLeft: "settings-outline",
+			accessibilityLabel: t("common.settings"),
+		},
+	];
 	useEffect(() => {
 		if (isEdit) {
 			const existingMeal = MEALS.find((m) => m.id === mealId);
@@ -2059,670 +3776,486 @@ const MealFormScreen = React.memo(() => {
 		}, 300);
 		return () => clearTimeout(timer);
 	}, [isEdit]);
-	const validateForm = () => {
-		const newErrors: Record<string, string> = {};
-		if (!meal.name?.trim()) {
-			newErrors.name = t("validation.required");
-		}
-		if (!meal.description?.trim()) {
-			newErrors.description = t("validation.required");
-		}
-		if (!meal.price || meal.price <= 0) {
-			newErrors.price = t("validation.invalidPrice");
-		}
-		setErrors(newErrors);
-		return Object.keys(newErrors).length === 0;
-	};
-	const handleSave = () => {
+	const handleFormSubmit = (values: any) => {
 		Keyboard.dismiss();
-		if (!validateForm()) {
-			Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-			return;
-		}
 		Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 		setLoading(true);
+		console.log("Saving meal:", values);
 		setTimeout(() => {
 			setLoading(false);
 			router.back();
 		}, 1000);
 	};
-	const handleSubmitEditing = (
-		nextInput: React.RefObject<TextInput | null>,
-	) => {
-		if (nextInput?.current) {
+	const handleSubmitEditing = (nextRef: React.RefObject<TextInput>) => {
+		if (nextRef.current) {
 			setTimeout(() => {
-				nextInput.current?.focus();
+				nextRef.current?.focus();
 			}, 50);
 		} else {
 			Keyboard.dismiss();
 		}
 	};
 	const handleDelete = () => {
-		Alert.alert(t("meals.confirmDelete"), "", [
-			{ text: t("common.cancel"), style: "cancel" },
-			{
-				text: t("common.delete"),
-				style: "destructive",
-				onPress: () => {
-					Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-					setTimeout(() => router.back(), 500);
-				},
-			},
-		]);
+		router.back();
 	};
-	const updateField = (field: keyof Meal, value: any) => {
-		setMeal((prev) => ({ ...prev, [field]: value }));
-		if (errors[field]) {
-			setErrors((prev) => ({ ...prev, [field]: "" }));
-		}
+	const handleSelectImage = () => {
+		console.log("Select image");
 	};
 	return (
-		<KeyboardAvoidingView
-			style={{ flex: 1 }}
-			behavior={Platform.OS === "ios" ? "padding" : "height"}
-			keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
-		>
-			<View
-				style={{
-					flex: 1,
-					backgroundColor: theme.colors.background,
-					paddingTop: insets.top,
-				}}
+		<ErrorBoundary>
+			<KeyboardAvoidingView
+				style={{ flex: 1 }}
+				behavior={Platform.OS === "ios" ? "padding" : "height"}
+				keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
 			>
-				<Stack.Screen options={{ headerShown: false }} />
-				<AnimatedBox
-					row
-					alignItems="center"
-					justifyContent="space-between"
-					paddingHorizontal="md"
-					paddingVertical="sm"
+				<View
 					style={{
-						height: theme.sizes.headerHeight,
-						borderBottomWidth: 1,
-						borderBottomColor: theme.colors.divider,
+						flex: 1,
+						backgroundColor: theme.colors.background,
+						paddingTop: insets.top,
 					}}
-					entering={FadeIn.duration(300)}
 				>
-					<Box row alignItems="center">
-						<Button
-							title=""
-							variant="ghost"
-							leftIcon={isRTL ? "chevron-forward" : "chevron-back"}
-							size="sm"
-							onPress={() => router.back()}
-							style={{ marginEnd: theme.spacing.sm }}
-						/>
-						<Text variant="xl" weight="semibold" numberOfLines={1}>
-							{isEdit
-								? isArabic && meal.name_ar
-									? meal.name_ar
-									: meal.name
-								: t("meals.addNew")}
-						</Text>
-						{isEdit && (
-							<Badge
-								text={t(
-									meal.available ? "meals.available" : "meals.unavailable",
-								)}
-								variant={meal.available ? "success" : "warning"}
-								size="sm"
-								style={{ marginStart: theme.spacing.sm }}
-							/>
-						)}
-					</Box>
-					{isEdit && (
-						<Button
-							title=""
-							variant="ghost"
-							leftIcon="trash-outline"
-							size="sm"
-							onPress={handleDelete}
-							textColor={theme.colors.error}
-						/>
-					)}
-				</AnimatedBox>
-				<ScrollView
-					style={{ flex: 1 }}
-					contentContainerStyle={{
-						padding: theme.spacing.md,
-						paddingBottom: insets.bottom + theme.spacing.xxl,
-					}}
-					showsVerticalScrollIndicator={false}
-					keyboardShouldPersistTaps="handled"
-				>
-					<AnimatedBox
-						entering={FadeInUp.delay(100).duration(400)}
-						marginBottom="md"
-						style={{
-							borderRadius: theme.radius.lg,
-							overflow: "hidden",
-							height: 240,
+					<Stack.Screen options={{ headerShown: false }} />
+					<MealFormHeader
+						title={t("meals.addNew")}
+						isEdit={isEdit}
+						mealName={meal.name}
+						mealNameAr={meal.name_ar}
+						available={meal.available}
+						onDelete={handleDelete}
+					/>
+					<ScrollView
+						style={{ flex: 1 }}
+						contentContainerStyle={{
+							padding: theme.spacing.md,
+							paddingBottom: insets.bottom + theme.spacing.xxl,
 						}}
+						showsVerticalScrollIndicator={false}
+						keyboardShouldPersistTaps="handled"
 					>
-						{meal.image ? (
-							<Box
-								style={{ height: "100%", width: "100%", position: "relative" }}
-							>
-								<Image
-									source={{ uri: meal.image }}
-									style={{ width: "100%", height: "100%" }}
-									resizeMode="cover"
-								/>
-								<Box
-									style={{
-										position: "absolute",
-										bottom: 0,
-										left: 0,
-										right: 0,
-										height: 80,
-										backgroundColor: "rgba(0,0,0,0.3)",
-										padding: theme.spacing.md,
-										justifyContent: "flex-end",
-									}}
-								>
-									<Text
-										variant="lg"
-										weight="semibold"
-										color="#fff"
-										numberOfLines={1}
-									>
-										{isArabic && meal.name_ar
-											? meal.name_ar
-											: meal.name || t("meals.mealName")}
-									</Text>
-									<Box row alignItems="center" marginTop="xs">
-										<Ionicons
-											name="flame-outline"
-											size={theme.sizes.iconSm}
-											color="#fff"
-											style={{ marginEnd: theme.spacing.xs }}
-										/>
-										<Text variant="sm" color="#fff">
-											{meal.calories ? `${meal.calories} cal` : "0 cal"}
-										</Text>
-										<Text
-											variant="sm"
-											color="#fff"
-											style={{ marginHorizontal: theme.spacing.xs }}
-										>
-											•
-										</Text>
-										<Ionicons
-											name="time-outline"
-											size={theme.sizes.iconSm}
-											color="#fff"
-											style={{ marginEnd: theme.spacing.xs }}
-										/>
-										<Text variant="sm" color="#fff">
-											{meal.prepTime ? `${meal.prepTime} min` : "0 min"}
-										</Text>
-									</Box>
-								</Box>
-								<Box
-									style={{
-										position: "absolute",
-										top: theme.spacing.sm,
-										right: theme.spacing.sm,
-										backgroundColor: "rgba(0,0,0,0.5)",
-										borderRadius: theme.radius.round,
-										padding: theme.spacing.xs,
-									}}
-								>
-									<Ionicons
-										name="camera-outline"
-										size={theme.sizes.iconMd}
-										color="#fff"
-									/>
-								</Box>
-							</Box>
-						) : (
-							<Box
-								style={{
-									height: "100%",
-									width: "100%",
-									backgroundColor: theme.colors.cardAlt,
-									alignItems: "center",
-									justifyContent: "center",
-								}}
-							>
-								<Ionicons
-									name="camera-outline"
-									size={theme.sizes.iconLg}
-									color={theme.colors.primary}
-									style={{ marginBottom: theme.spacing.sm }}
-								/>
-								<Text variant="md" weight="semibold" color="primary">
-									{t("meals.addImage")}
-								</Text>
-							</Box>
-						)}
-					</AnimatedBox>
-					<AnimatedBox
-						entering={FadeInUp.delay(200).duration(400)}
-						bg="backgroundAlt"
-						rounded="lg"
-						marginBottom="md"
-					>
-						<Tabs
-							tabs={sectionTabs}
-							selectedTab={activeSection}
-							onSelectTab={setActiveSection}
+						<MealImagePreview
+							image={meal.image}
+							name={meal.name}
+							nameAr={meal.name_ar}
+							calories={meal.calories}
+							prepTime={meal.prepTime}
+							onSelectImage={handleSelectImage}
 						/>
-					</AnimatedBox>
-					{activeSection === "basic" && (
-						<Animated.View
-							entering={FadeInRight.delay(100).duration(100)}
-							key={activeSection}
-							style={{ gap: theme.spacing.md }}
+						<AnimatedBox
+							entering={FadeInUp.delay(200).duration(400)}
+							bg="backgroundAlt"
+							rounded="lg"
+							marginBottom="md"
 						>
-							<Box card rounded="md" padding="lg" elevation="small">
-								<Box row alignItems="center" marginBottom="md">
-									<Ionicons
-										name="information-circle-outline"
-										size={theme.sizes.iconSm}
-										color={theme.colors.primary}
-										style={{ marginEnd: theme.spacing.sm }}
-									/>
-									<Text variant="lg" weight="semibold">
-										{t("meals.basicInfo")}
-									</Text>
-								</Box>
-								<Box marginBottom="md">
-									<FocusableInput
-										inputRef={nameInputRef}
-										label={t("meals.mealName")}
-										required
-										value={meal.name}
-										onChangeText={(text) => updateField("name", text)}
-										placeholder={t("meals.mealName")}
-										placeholderTextColor={theme.colors.textMuted}
-										returnKeyType="next"
-										onSubmitEditing={() => handleSubmitEditing(nameArInputRef)}
-										style={{ marginBottom: theme.spacing.sm }}
-										error={errors.name}
-									/>
-									<FocusableInput
-										inputRef={nameArInputRef}
-										label={`${t("meals.mealName")} (العربية)`}
-										value={meal.name_ar}
-										onChangeText={(text) => updateField("name_ar", text)}
-										placeholder={`${t("meals.mealName")} (العربية)`}
-										placeholderTextColor={theme.colors.textMuted}
-										returnKeyType="next"
-										onSubmitEditing={() => handleSubmitEditing(descInputRef)}
-										textAlign={isArabic ? "right" : "left"}
-									/>
-								</Box>
-								<Box marginBottom="md">
-									<FocusableInput
-										inputRef={descInputRef}
-										label={t("meals.description")}
-										required
-										value={meal.description}
-										onChangeText={(text) => updateField("description", text)}
-										placeholder={t("meals.description")}
-										placeholderTextColor={theme.colors.textMuted}
-										multiline={true}
-										numberOfLines={4}
-										returnKeyType="next"
-										onSubmitEditing={() => handleSubmitEditing(descArInputRef)}
-										textAlignVertical="top"
-										style={{ marginBottom: theme.spacing.sm }}
-										error={errors.description}
-									/>
-									<FocusableInput
-										inputRef={descArInputRef}
-										label={`${t("meals.description")} (العربية)`}
-										value={meal.description_ar}
-										onChangeText={(text) => updateField("description_ar", text)}
-										placeholder={`${t("meals.description")} (العربية)`}
-										placeholderTextColor={theme.colors.textMuted}
-										multiline={true}
-										numberOfLines={4}
-										returnKeyType="done"
-										textAlign={isArabic ? "right" : "left"}
-										textAlignVertical="top"
-									/>
-								</Box>
-								<Box marginBottom="md">
-									<CategoryField
-										label={t("meals.mealPeriod")}
-										options={periodOptions}
-										value={meal.period || "Breakfast"}
-										onChange={(value) => updateField("period", value)}
-										error={errors.period}
-									/>
-								</Box>
-								<Box marginBottom="md">
-									<RadioField
-										label="Dietary Restrictions"
-										options={dietaryOptions}
-										value={meal.dietaryRestriction || "none"}
-										onChange={(value) =>
-											updateField("dietaryRestriction", value)
-										}
-										error={errors.dietaryRestriction}
-									/>
-								</Box>
-							</Box>
-							<Box card rounded="md" padding="lg" elevation="small">
-								<Box row alignItems="center" marginBottom="md">
-									<Ionicons
-										name="list-outline"
-										size={theme.sizes.iconSm}
-										color={theme.colors.primary}
-										style={{ marginEnd: theme.spacing.sm }}
-									/>
-									<Text variant="lg" weight="semibold">
-										{t("meals.details")}
-									</Text>
-								</Box>
-								<Box row gap="md" marginBottom="md">
-									<Box flex={1}>
-										<FocusableInput
-											inputRef={priceInputRef}
-											label={t("meals.price")}
-											required
-											value={meal.price ? meal.price.toString() : ""}
-											onChangeText={(text) => {
-												const numValue = Number.parseFloat(text) || 0;
-												updateField("price", numValue);
-											}}
-											placeholder="0.00"
-											placeholderTextColor={theme.colors.textMuted}
-											keyboardType="numeric"
-											returnKeyType="next"
-											onSubmitEditing={() =>
-												handleSubmitEditing(caloriesInputRef)
-											}
-											style={{
-												paddingLeft: 36,
-												fontSize: theme.typography.sizes.lg,
-												fontWeight: theme.typography.weights.semibold as any,
-											}}
-											error={errors.price}
-										/>
-										<Box
-											style={{
-												position: "absolute",
-												left: theme.spacing.md,
-												top: 28,
-												bottom: 0,
-												justifyContent: "center",
-												zIndex: 1,
-											}}
-										>
-											<Text variant="md" color="textSecondary">
-												$
-											</Text>
-										</Box>
-									</Box>
-									<Box flex={1}>
-										<FocusableInput
-											inputRef={caloriesInputRef}
-											label={t("meals.calories")}
-											value={meal.calories ? meal.calories.toString() : ""}
-											onChangeText={(text) => {
-												const numValue = Number.parseInt(text) || 0;
-												updateField("calories", numValue);
-											}}
-											placeholder="0"
-											placeholderTextColor={theme.colors.textMuted}
-											keyboardType="numeric"
-											returnKeyType="next"
-											onSubmitEditing={() =>
-												handleSubmitEditing(prepTimeInputRef)
-											}
-											style={{
-												paddingRight: 40,
-												fontSize: theme.typography.sizes.lg,
-												fontWeight: theme.typography.weights.semibold as any,
-											}}
-										/>
-										<Box
-											style={{
-												position: "absolute",
-												right: theme.spacing.md,
-												top: 28,
-												bottom: 0,
-												justifyContent: "center",
-												zIndex: 1,
-											}}
-										>
-											<Text variant="md" color="textSecondary">
-												cal
-											</Text>
-										</Box>
-									</Box>
-								</Box>
-								<Box marginBottom="md">
-									<FocusableInput
-										inputRef={prepTimeInputRef}
-										label={t("meals.prepTime")}
-										value={meal.prepTime ? meal.prepTime.toString() : ""}
-										onChangeText={(text) => {
-											const numValue = Number.parseInt(text) || 0;
-											updateField("prepTime", numValue);
-										}}
-										placeholder="0"
-										placeholderTextColor={theme.colors.textMuted}
-										keyboardType="numeric"
-										returnKeyType="next"
-										onSubmitEditing={() =>
-											handleSubmitEditing(ingredientsInputRef)
-										}
-										style={{
-											paddingRight: 42,
-											fontSize: theme.typography.sizes.lg,
-											fontWeight: theme.typography.weights.semibold as any,
-											maxWidth: "50%",
-										}}
-									/>
-									<Box
-										style={{
-											position: "absolute",
-											right: theme.spacing.md,
-											top: 28,
-											bottom: 0,
-											justifyContent: "center",
-											zIndex: 1,
-										}}
-									>
-										<Text variant="md" color="textSecondary">
-											min
-										</Text>
-									</Box>
-								</Box>
-								<Box marginBottom="md">
-									<FocusableInput
-										inputRef={ingredientsInputRef}
-										label={t("meals.ingredients")}
-										value={meal.ingredients ? meal.ingredients.join(", ") : ""}
-										onChangeText={(text) => {
-											const ingredients = text
-												.split(",")
-												.map((item) => item.trim())
-												.filter(Boolean);
-											updateField("ingredients", ingredients);
-										}}
-										placeholder={t("meals.ingredients")}
-										placeholderTextColor={theme.colors.textMuted}
-										multiline={true}
-										numberOfLines={2}
-										returnKeyType="next"
-										textAlignVertical="top"
-										onSubmitEditing={() =>
-											handleSubmitEditing(ingredientsArInputRef)
-										}
-										style={{ marginBottom: theme.spacing.sm }}
-									/>
-									<FocusableInput
-										inputRef={ingredientsArInputRef}
-										label={`${t("meals.ingredients")} (العربية)`}
-										value={
-											meal.ingredients_ar ? meal.ingredients_ar.join(", ") : ""
-										}
-										onChangeText={(text) => {
-											const ingredients = text
-												.split(",")
-												.map((item) => item.trim())
-												.filter(Boolean);
-											updateField("ingredients_ar", ingredients);
-										}}
-										placeholder={`${t("meals.ingredients")} (العربية)`}
-										placeholderTextColor={theme.colors.textMuted}
-										multiline={true}
-										numberOfLines={2}
-										returnKeyType="done"
-										textAlign={isArabic ? "right" : "left"}
-										textAlignVertical="top"
-										onSubmitEditing={() => Keyboard.dismiss()}
-									/>
-								</Box>
-								{meal.ingredients && meal.ingredients.length > 0 && (
-									<Box
-										row
-										gap="xs"
-										marginTop="md"
-										padding="md"
-										bg="backgroundAlt"
-										rounded="md"
-										style={{ flexWrap: "wrap" }}
-									>
-										{meal.ingredients.map((ingredient, idx) => (
-											<Badge
-												key={`ing-${idx.toString()}`}
-												text={ingredient}
-												variant="info"
-												size="sm"
-											/>
-										))}
-									</Box>
-								)}
-							</Box>
-						</Animated.View>
-					)}
-					{activeSection === "settings" && (
-						<Animated.View
-							entering={FadeInRight.delay(100).duration(100)}
-							key={activeSection}
-						>
-							<Box
-								card
-								rounded="md"
-								padding="lg"
-								marginBottom="md"
-								elevation="small"
-							>
-								<Box row alignItems="center" marginBottom="md">
-									<Ionicons
-										name="settings-outline"
-										size={theme.sizes.iconSm}
-										color={theme.colors.primary}
-										style={{ marginEnd: theme.spacing.sm }}
-									/>
-									<Text variant="lg" weight="semibold">
-										{t("common.settings")}
-									</Text>
-								</Box>
-								<SwitchField
-									value={meal.available || false}
-									onValueChange={(value) => updateField("available", value)}
-									label={
-										meal.available
-											? t("meals.available")
-											: t("meals.unavailable")
-									}
-									description={
-										meal.available
-											? t("meals.availableDesc")
-											: t("meals.unavailableDesc")
-									}
-									leftIcon={
-										meal.available
-											? "checkmark-circle-outline"
-											: "close-circle-outline"
-									}
-									style={{ marginBottom: theme.spacing.md }}
-								/>
-								<SwitchField
-									value={meal.featured || false}
-									onValueChange={(value) => updateField("featured", value)}
-									label={t("meals.featured")}
-									description={t("meals.featuredDesc")}
-									leftIcon="star-outline"
-									style={{ marginBottom: theme.spacing.md }}
-								/>
-								<SwitchField
-									value={meal.isVegan || false}
-									onValueChange={(value) => updateField("isVegan", value)}
-									label="Vegan"
-									description="This meal contains no animal products"
-									leftIcon="leaf-outline"
-								/>
-							</Box>
-							{isEdit && (
-								<Box
-									bg="error"
-									padding="md"
-									rounded="md"
-									marginBottom="md"
-									style={{ opacity: 0.9 }}
-								>
-									<Box row alignItems="center" marginBottom="sm">
-										<Ionicons
-											name="warning-outline"
-											size={theme.sizes.iconMd}
-											color="#fff"
-											style={{ marginEnd: theme.spacing.sm }}
-										/>
-										<Text variant="md" weight="semibold" color="#fff">
-											{t("meals.dangerZone")}
-										</Text>
-									</Box>
-									<Text variant="sm" color="#fff" marginBottom="md">
-										{t("meals.deleteMealWarning")}
-									</Text>
-									<Button
-										title={t("common.delete")}
-										variant="outline"
-										size="md"
-										style={{ borderColor: "#fff" }}
-										textColor="#fff"
-										onPress={handleDelete}
-									/>
-								</Box>
-							)}
-						</Animated.View>
-					)}
-					<AnimatedBox
-						entering={FadeInUp.delay(300).duration(400)}
-						marginTop="lg"
-					>
-						<Button
-							title={isEdit ? t("meals.saveChanges") : t("meals.createMeal")}
-							variant="primary"
-							size="lg"
-							loading={loading}
-							fullWidth
-							rounded
-							leftIcon="save-outline"
-							onPress={handleSave}
-						/>
-						{!isEdit && (
-							<Button
-								title={t("common.cancel")}
-								variant="ghost"
-								size="lg"
-								fullWidth
-								style={{ marginTop: theme.spacing.md }}
-								onPress={() => router.back()}
+							<Tabs
+								tabs={sectionTabs}
+								selectedTab={activeSection}
+								onSelectTab={setActiveSection}
+								accessibilityLabel="Section Tabs"
+								accessibilityHint="Select between basic info and settings"
 							/>
-						)}
-					</AnimatedBox>
-				</ScrollView>
-			</View>
-		</KeyboardAvoidingView>
+						</AnimatedBox>
+						<Form
+							schema={mealSchema}
+							initialValues={meal}
+							onSubmit={handleFormSubmit}
+						>
+							{({ handleSubmit, isValid, isDirty }) => (
+								<>
+									{activeSection === "basic" && (
+										<Animated.View
+											entering={FadeInRight.delay(100).duration(100)}
+											key={activeSection}
+											style={
+												useTwoColumnLayout
+													? {
+															flexDirection: "row",
+															flexWrap: "wrap",
+															justifyContent: "space-between",
+														}
+													: {
+															gap: theme.spacing.md,
+														}
+											}
+										>
+											<View
+												style={
+													useTwoColumnLayout
+														? { width: "48%" }
+														: { width: "100%" }
+												}
+											>
+												<Box card rounded="md" padding="lg" elevation="small">
+													<Box row alignItems="center" marginBottom="md">
+														<Ionicons
+															name="information-circle-outline"
+															size={theme.sizes.iconSm}
+															color={theme.colors.primary}
+															style={{ marginEnd: theme.spacing.sm }}
+														/>
+														<Text variant="lg" weight="semibold">
+															{t("meals.basicInfo")}
+														</Text>
+													</Box>
+													<Box marginBottom="md">
+														<FormInput
+															name="name"
+															label={t("meals.mealName")}
+															required
+															placeholder={t("meals.mealName")}
+															inputRef={nameInputRef}
+															onSubmitEditing={() =>
+																handleSubmitEditing(nameArInputRef)
+															}
+															schema={nameSchema}
+														/>
+														<FormInput
+															name="name_ar"
+															label={`${t("meals.mealName")} (العربية)`}
+															placeholder={`${t("meals.mealName")} (العربية)`}
+															inputRef={nameArInputRef}
+															onSubmitEditing={() =>
+																handleSubmitEditing(descInputRef)
+															}
+															textAlign={isArabic ? "right" : "left"}
+														/>
+													</Box>
+													<Box marginBottom="md">
+														<FormInput
+															name="description"
+															label={t("meals.description")}
+															required
+															placeholder={t("meals.description")}
+															multiline={true}
+															numberOfLines={4}
+															inputRef={descInputRef}
+															onSubmitEditing={() =>
+																handleSubmitEditing(descArInputRef)
+															}
+															textAlignVertical="top"
+															schema={descriptionSchema}
+														/>
+														<FormInput
+															name="description_ar"
+															label={`${t("meals.description")} (العربية)`}
+															placeholder={`${t("meals.description")} (العربية)`}
+															multiline={true}
+															numberOfLines={4}
+															inputRef={descArInputRef}
+															textAlign={isArabic ? "right" : "left"}
+															textAlignVertical="top"
+														/>
+													</Box>
+													<FormCategory
+														name="period"
+														label={t("meals.mealPeriod")}
+														options={periodOptions}
+														required
+													/>
+													<FormRadio
+														name="dietaryRestriction"
+														label="Dietary Restrictions"
+														options={dietaryOptions}
+													/>
+												</Box>
+											</View>
+											<View
+												style={
+													useTwoColumnLayout
+														? {
+																width: "48%",
+																marginTop: 0,
+															}
+														: {
+																width: "100%",
+																marginTop: theme.spacing.md,
+															}
+												}
+											>
+												<Box card rounded="md" padding="lg" elevation="small">
+													<Box row alignItems="center" marginBottom="md">
+														<Ionicons
+															name="list-outline"
+															size={theme.sizes.iconSm}
+															color={theme.colors.primary}
+															style={{ marginEnd: theme.spacing.sm }}
+														/>
+														<Text variant="lg" weight="semibold">
+															{t("meals.details")}
+														</Text>
+													</Box>
+													<Box row gap="md" marginBottom="md">
+														<Box flex={1}>
+															<FormInput
+																name="price"
+																label={t("meals.price")}
+																required
+																placeholder="0.00"
+																keyboardType="numeric"
+																inputRef={priceInputRef}
+																onSubmitEditing={() =>
+																	handleSubmitEditing(caloriesInputRef)
+																}
+																schema={priceSchema}
+																style={{
+																	paddingLeft: 36,
+																	fontSize: theme.typography.sizes.lg,
+																	fontWeight: theme.typography.weights
+																		.semibold as any,
+																}}
+															/>
+															<Box
+																style={{
+																	position: "absolute",
+																	left: theme.spacing.md,
+																	top: 28,
+																	bottom: 0,
+																	justifyContent: "center",
+																	zIndex: 1,
+																}}
+															>
+																<Text variant="md" color="textSecondary">
+																	$
+																</Text>
+															</Box>
+														</Box>
+														<Box flex={1}>
+															<FormInput
+																name="calories"
+																label={t("meals.calories")}
+																placeholder="0"
+																keyboardType="numeric"
+																inputRef={caloriesInputRef}
+																onSubmitEditing={() =>
+																	handleSubmitEditing(prepTimeInputRef)
+																}
+																schema={caloriesSchema}
+																style={{
+																	paddingRight: 40,
+																	fontSize: theme.typography.sizes.lg,
+																	fontWeight: theme.typography.weights
+																		.semibold as any,
+																}}
+															/>
+															<Box
+																style={{
+																	position: "absolute",
+																	right: theme.spacing.md,
+																	top: 28,
+																	bottom: 0,
+																	justifyContent: "center",
+																	zIndex: 1,
+																}}
+															>
+																<Text variant="md" color="textSecondary">
+																	cal
+																</Text>
+															</Box>
+														</Box>
+													</Box>
+													<Box marginBottom="md">
+														<FormInput
+															name="prepTime"
+															label={t("meals.prepTime")}
+															placeholder="0"
+															keyboardType="numeric"
+															inputRef={prepTimeInputRef}
+															onSubmitEditing={() =>
+																handleSubmitEditing(ingredientsInputRef)
+															}
+															style={{
+																paddingRight: 42,
+																fontSize: theme.typography.sizes.lg,
+																fontWeight: theme.typography.weights
+																	.semibold as any,
+																maxWidth: "50%",
+															}}
+														/>
+														<Box
+															style={{
+																position: "absolute",
+																right: theme.spacing.md,
+																top: 28,
+																bottom: 0,
+																justifyContent: "center",
+																zIndex: 1,
+															}}
+														>
+															<Text variant="md" color="textSecondary">
+																min
+															</Text>
+														</Box>
+													</Box>
+													<Box marginBottom="md">
+														<FormInput
+															name="ingredients"
+															label={t("meals.ingredients")}
+															placeholder={t("meals.ingredients")}
+															multiline={true}
+															numberOfLines={2}
+															inputRef={ingredientsInputRef}
+															onSubmitEditing={() =>
+																handleSubmitEditing(ingredientsArInputRef)
+															}
+															textAlignVertical="top"
+														/>
+														<FormInput
+															name="ingredients_ar"
+															label={`${t("meals.ingredients")} (العربية)`}
+															placeholder={`${t("meals.ingredients")} (العربية)`}
+															multiline={true}
+															numberOfLines={2}
+															inputRef={ingredientsArInputRef}
+															textAlign={isArabic ? "right" : "left"}
+															textAlignVertical="top"
+														/>
+													</Box>
+												</Box>
+											</View>
+										</Animated.View>
+									)}
+									{activeSection === "settings" && (
+										<Animated.View
+											entering={FadeInRight.delay(100).duration(100)}
+											key={activeSection}
+										>
+											<Box
+												card
+												rounded="md"
+												padding="lg"
+												marginBottom="md"
+												elevation="small"
+											>
+												<Box row alignItems="center" marginBottom="md">
+													<Ionicons
+														name="settings-outline"
+														size={theme.sizes.iconSm}
+														color={theme.colors.primary}
+														style={{ marginEnd: theme.spacing.sm }}
+													/>
+													<Text variant="lg" weight="semibold">
+														{t("common.settings")}
+													</Text>
+												</Box>
+												<FormSwitch
+													name="available"
+													label={
+														meal?.available
+															? t("meals.available")
+															: t("meals.unavailable")
+													}
+													description={
+														meal?.available
+															? t("meals.availableDesc")
+															: t("meals.unavailableDesc")
+													}
+													leftIcon={
+														meal?.available
+															? "checkmark-circle-outline"
+															: "close-circle-outline"
+													}
+												/>
+												<FormSwitch
+													name="featured"
+													label={t("meals.featured")}
+													description={t("meals.featuredDesc")}
+													leftIcon="star-outline"
+												/>
+												<FormSwitch
+													name="isVegan"
+													label="Vegan"
+													description="This meal contains no animal products"
+													leftIcon="leaf-outline"
+												/>
+											</Box>
+											{isEdit && (
+												<Box
+													bg="error"
+													padding="md"
+													rounded="md"
+													marginBottom="md"
+													style={{ opacity: 0.9 }}
+												>
+													<Box row alignItems="center" marginBottom="sm">
+														<Ionicons
+															name="warning-outline"
+															size={theme.sizes.iconMd}
+															color="#fff"
+															style={{ marginEnd: theme.spacing.sm }}
+														/>
+														<Text variant="md" weight="semibold" color="#fff">
+															{t("meals.dangerZone")}
+														</Text>
+													</Box>
+													<Text variant="sm" color="#fff" marginBottom="md">
+														{t("meals.deleteMealWarning")}
+													</Text>
+													<Button
+														title={t("common.delete")}
+														variant="outline"
+														size="md"
+														style={{ borderColor: "#fff" }}
+														textColor="#fff"
+														onPress={handleDelete}
+														accessibilityLabel={t("common.delete")}
+														accessibilityRole="button"
+														accessibilityHint={t("meals.deleteMealWarning")}
+													/>
+												</Box>
+											)}
+										</Animated.View>
+									)}
+									<AnimatedBox
+										entering={FadeInUp.delay(300).duration(400)}
+										marginTop="lg"
+									>
+										<Form.SubmitButton onSubmit={handleSubmit}>
+											{({
+												onPress,
+												isValid: formIsValid,
+												isDirty: formIsDirty,
+											}) => (
+												<Button
+													title={
+														isEdit
+															? t("meals.saveChanges")
+															: t("meals.createMeal")
+													}
+													variant="primary"
+													size="lg"
+													loading={loading}
+													fullWidth
+													rounded
+													leftIcon="save-outline"
+													onPress={onPress}
+													disabled={!formIsValid || !formIsDirty}
+													accessibilityLabel={
+														isEdit
+															? t("meals.saveChanges")
+															: t("meals.createMeal")
+													}
+												/>
+											)}
+										</Form.SubmitButton>
+										{!isEdit && (
+											<Button
+												title={t("common.cancel")}
+												variant="ghost"
+												size="lg"
+												fullWidth
+												style={{ marginTop: theme.spacing.md }}
+												onPress={() => router.back()}
+												accessibilityLabel={t("common.cancel")}
+											/>
+										)}
+									</AnimatedBox>
+								</>
+							)}
+						</Form>
+					</ScrollView>
+				</View>
+			</KeyboardAvoidingView>
+		</ErrorBoundary>
 	);
 });
 export default MealFormScreen;
@@ -2730,16 +4263,24 @@ export default MealFormScreen;
 
 <file path="apps/merchant-app/components/ui/Badge.tsx">
 import React from "react";
-import { View, ViewProps } from "react-native";
+import { View, ViewProps, AccessibilityState } from "react-native";
 import { useTheme } from "@/hooks/useTheme";
 import { Text } from "./Text";
 export interface BadgeProps extends ViewProps {
 	text: string | number;
 	variant?: "primary" | "success" | "warning" | "info" | "error" | "default";
 	size?: "sm" | "md";
+	accessibilityLabel?: string;
 }
 export const Badge = React.memo(
-	({ text, variant = "default", size = "md", style, ...props }: BadgeProps) => {
+	({
+		text,
+		variant = "default",
+		size = "md",
+		style,
+		accessibilityLabel,
+		...props
+	}: BadgeProps) => {
 		const theme = useTheme();
 		const getBadgeStyles = () => {
 			const base = {
@@ -2803,8 +4344,15 @@ export const Badge = React.memo(
 			justifyContent: "center" as const,
 			alignSelf: "flex-start" as const,
 		};
+		const accessibilityState: AccessibilityState = {};
 		return (
-			<View style={[badgeStyles, style]} {...props}>
+			<View
+				style={[badgeStyles, style]}
+				accessibilityRole="text"
+				accessibilityLabel={accessibilityLabel || `${text} ${variant}`}
+				accessibilityState={accessibilityState}
+				{...props}
+			>
 				<Text
 					variant={sizeStyle.fontSize}
 					weight="medium"
@@ -2813,6 +4361,13 @@ export const Badge = React.memo(
 					{text}
 				</Text>
 			</View>
+		);
+	},
+	(prevProps, nextProps) => {
+		return (
+			prevProps.text === nextProps.text &&
+			prevProps.variant === nextProps.variant &&
+			prevProps.size === nextProps.size
 		);
 	},
 );
@@ -2933,68 +4488,172 @@ export const LanguageSelector = React.memo(() => {
 });
 </file>
 
-<file path="apps/merchant-app/.gitignore">
-# @generated expo-cli sync-2b81b286409207a5da26e14c78851eb30d8ccbdb
-# The following patterns were generated by expo-cli
-
-expo-env.d.ts
-# @end expo-cli
-</file>
-
-<file path="apps/merchant-app/types.ts">
-export interface MealCount {
-	name: string;
-	count: number;
-	id: string | number;
-}
-export interface MealPrepSummary {
-	period: "Breakfast" | "Lunch" | "Dinner";
-	totalMeals: number;
-	mealsToPrep: MealCount[];
-}
-export interface Alert {
-	id: string | number;
-	type: "warning" | "info" | "error";
-	title: string;
-	icon: string;
-	timestamp?: string;
-}
-export interface StatItem {
-	title: string;
-	value: string | number;
-	icon: string;
-}
-export interface OverviewStats {
-	activeSubscriptions: number;
-	newThisWeek: number;
-}
-export interface QuickActionItem {
-	label: string;
-	icon: string;
-	action: () => void;
-}
-export interface Meal {
-	dietaryRestriction?: string;
-	featured: boolean;
-	isVegan: boolean;
-	id: string;
-	name: string;
-	name_ar?: string;
-	description: string;
-	description_ar?: string;
-	price: number;
-	ingredients: string[];
-	ingredients_ar?: string[];
-	calories: number;
-	prepTime: number;
-	period: string;
-	available: boolean;
-	image?: string;
-}
-</file>
-
-<file path=".nvimrc">
-23.11.0
+<file path="apps/merchant-app/data.ts">
+import { Feather } from "@expo/vector-icons";
+import { Alert, Meal, MealPrepSummary } from "./types";
+export const TODAY_PREP_SUMMARY: MealPrepSummary[] = [
+	{
+		period: "Breakfast",
+		totalMeals: 25,
+		mealsToPrep: [
+			{ id: "shashuka", name: "Shashuka", count: 15 },
+			{ id: "oats", name: "Overnight Oats", count: 7 },
+			{ id: "smoothie", name: "Green Smoothie", count: 3 },
+		],
+	},
+	{
+		period: "Lunch",
+		totalMeals: 32,
+		mealsToPrep: [
+			{ id: "salad_x", name: "Quinoa Salad", count: 18 },
+			{ id: "wrap_y", name: "Falafel Wrap", count: 10 },
+			{ id: "soup_z", name: "Lentil Soup", count: 4 },
+			{ id: "extra1", name: "Side Salad", count: 2 },
+		],
+	},
+	{
+		period: "Dinner",
+		totalMeals: 28,
+		mealsToPrep: [
+			{ id: "salmon", name: "Grilled Salmon", count: 12 },
+			{ id: "tofu_stirfry", name: "Tofu Stir-fry", count: 9 },
+			{ id: "pasta_veg", name: "Veggie Pasta", count: 7 },
+		],
+	},
+];
+export const ALERTS: Alert[] = [
+	{
+		id: 1,
+		type: "info",
+		title: "New 'Keto Weekly' subscriber",
+		icon: "person-add-outline",
+		timestamp: "3h ago",
+	},
+	{
+		id: 2,
+		type: "warning",
+		title: "Low inventory: Quinoa",
+		icon: "cube-outline",
+		timestamp: "1h ago",
+	},
+	{
+		id: 3,
+		type: "error",
+		title: "Delivery issue Order #12345",
+		icon: "car-sport-outline",
+		timestamp: "Yesterday",
+	},
+];
+export const MEALS: Meal[] = [
+	{
+		featured: false,
+		isVegan: false,
+		id: "b1",
+		name: "Shakshuka",
+		name_ar: "شكشوكة",
+		description: "Eggs poached in spiced tomato sauce",
+		description_ar: "بيض مطبوخ في صلصة طماطم متبلة",
+		price: 12.99,
+		ingredients: ["Eggs", "Tomatoes", "Bell Peppers", "Onions", "Spices"],
+		ingredients_ar: ["بيض", "طماطم", "فلفل حلو", "بصل", "توابل"],
+		calories: 380,
+		prepTime: 25,
+		period: "Breakfast",
+		available: true,
+		image:
+			"https://images.unsplash.com/photo-1590412200988-a436970781fa?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8c2hha3NodWthfGVufDB8fDB8fHww",
+	},
+	{
+		featured: false,
+		isVegan: false,
+		id: "b2",
+		name: "Overnight Oats",
+		name_ar: "شوفان مبيت",
+		description: "Oats soaked with yogurt and fruits",
+		description_ar: "شوفان منقوع مع الزبادي والفواكه",
+		price: 8.99,
+		ingredients: ["Oats", "Yogurt", "Berries", "Honey", "Nuts"],
+		ingredients_ar: ["شوفان", "زبادي", "توت", "عسل", "مكسرات"],
+		calories: 320,
+		prepTime: 10,
+		period: "Breakfast",
+		available: true,
+		image:
+			"https://images.unsplash.com/photo-1614961233913-a5113a4a34ed?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fG92ZXJuaWdodCUyMG9hdHN8ZW58MHx8MHx8fDA%3D",
+	},
+	{
+		featured: false,
+		isVegan: false,
+		id: "l1",
+		name: "Quinoa Salad",
+		name_ar: "سلطة الكينوا",
+		description: "Fresh salad with quinoa and vegetables",
+		description_ar: "سلطة طازجة مع الكينوا والخضروات",
+		price: 14.99,
+		ingredients: ["Quinoa", "Cucumber", "Tomato", "Avocado", "Lemon Dressing"],
+		ingredients_ar: ["كينوا", "خيار", "طماطم", "أفوكادو", "صلصة ليمون"],
+		calories: 420,
+		prepTime: 20,
+		period: "Lunch",
+		available: true,
+		image:
+			"https://images.unsplash.com/photo-1505253716362-afaea1d3d1af?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8cXVpbm9hJTIwc2FsYWR8ZW58MHx8MHx8fDA%3D",
+	},
+	{
+		featured: false,
+		isVegan: false,
+		id: "l2",
+		name: "Falafel Wrap",
+		name_ar: "لفائف الفلافل",
+		description: "Falafel with vegetables in a whole wheat wrap",
+		description_ar: "فلافل مع الخضروات في خبز القمح الكامل",
+		price: 10.99,
+		ingredients: ["Falafel", "Lettuce", "Tomato", "Cucumber", "Tahini"],
+		ingredients_ar: ["فلافل", "خس", "طماطم", "خيار", "طحينة"],
+		calories: 480,
+		prepTime: 15,
+		period: "Lunch",
+		available: true,
+		image:
+			"https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8ZmFsYWZlbHxlbnwwfHwwfHx8MA%3D%3D",
+	},
+	{
+		featured: false,
+		isVegan: false,
+		id: "d1",
+		name: "Grilled Salmon",
+		name_ar: "سلمون مشوي",
+		description: "Fresh salmon with herbs and lemon",
+		description_ar: "سلمون طازج مع الأعشاب والليمون",
+		price: 18.99,
+		ingredients: ["Salmon", "Lemon", "Herbs", "Olive Oil", "Garlic"],
+		ingredients_ar: ["سلمون", "ليمون", "أعشاب", "زيت زيتون", "ثوم"],
+		calories: 520,
+		prepTime: 30,
+		period: "Dinner",
+		available: true,
+		image:
+			"https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Z3JpbGxlZCUyMHNhbG1vbnxlbnwwfHwwfHx8MA%3D%3D",
+	},
+	{
+		featured: false,
+		isVegan: false,
+		id: "d2",
+		name: "Tofu Stir-fry",
+		name_ar: "توفو مقلي",
+		description: "Tofu and vegetables in a savory sauce",
+		description_ar: "توفو وخضروات في صلصة لذيذة",
+		price: 13.99,
+		ingredients: ["Tofu", "Broccoli", "Carrots", "Bell Peppers", "Soy Sauce"],
+		ingredients_ar: ["توفو", "بروكلي", "جزر", "فلفل حلو", "صلصة الصويا"],
+		calories: 380,
+		prepTime: 25,
+		period: "Dinner",
+		available: true,
+		image:
+			"https://images.unsplash.com/photo-1512003867696-6d5ce6835040?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8dG9mdSUyMHN0aXIlMjBmcnl8ZW58MHx8MHx8fDA%3D",
+	},
+];
 </file>
 
 <file path="apps/merchant-app/app/settings.tsx">
@@ -3284,46 +4943,63 @@ interface AlertRowProps {
 	alert: Alert;
 	onPress: () => void;
 }
-export const AlertRow = React.memo(({ alert, onPress }: AlertRowProps) => {
-	const theme = useTheme();
-	const iconColor = theme.colors[alert.type];
-	return (
-		<Pressable
-			onPress={onPress}
-			style={({ pressed }) => ({
-				paddingHorizontal: theme.spacing.sm,
-				flexDirection: "row",
-				alignItems: "center",
-				paddingVertical: theme.spacing.md,
-				borderRadius: theme.radius.sm,
-				backgroundColor: pressed ? theme.colors.backgroundAlt : undefined,
-			})}
-			android_ripple={{ color: theme.colors.overlay }}
-		>
-			<Ionicons
-				name={alert.icon as any}
-				size={theme.sizes.iconSm}
-				color={iconColor}
-				style={{ marginStart: theme.spacing.md }}
-			/>
-			<Box flex={1}>
-				<Text variant="sm" numberOfLines={1}>
-					{alert.title}
-				</Text>
-				{alert.timestamp && (
-					<Text variant="xs" color="textMuted" marginTop={theme.spacing.xs / 2}>
-						{alert.timestamp}
+export const AlertRow = React.memo(
+	({ alert, onPress }: AlertRowProps) => {
+		const theme = useTheme();
+		const iconColor = theme.colors[alert.type];
+		return (
+			<Pressable
+				onPress={onPress}
+				style={({ pressed }) => ({
+					paddingHorizontal: theme.spacing.sm,
+					flexDirection: "row",
+					alignItems: "center",
+					paddingVertical: theme.spacing.md,
+					borderRadius: theme.radius.sm,
+					backgroundColor: pressed ? theme.colors.backgroundAlt : undefined,
+				})}
+				android_ripple={{ color: theme.colors.overlay }}
+				accessibilityRole="button"
+				accessibilityLabel={alert.title}
+			>
+				<Ionicons
+					name={alert.icon as any}
+					size={theme.sizes.iconSm}
+					color={iconColor}
+					style={{ marginStart: theme.spacing.md }}
+				/>
+				<Box flex={1}>
+					<Text variant="sm" numberOfLines={1}>
+						{alert.title}
 					</Text>
-				)}
-			</Box>
-			<Ionicons
-				name="chevron-back"
-				size={theme.sizes.iconSm}
-				color={theme.colors.textMuted}
-			/>
-		</Pressable>
-	);
-});
+					{alert.timestamp && (
+						<Text
+							variant="xs"
+							color="textMuted"
+							marginTop={theme.spacing.xs / 2}
+						>
+							{alert.timestamp}
+						</Text>
+					)}
+				</Box>
+				<Ionicons
+					name="chevron-back"
+					size={theme.sizes.iconSm}
+					color={theme.colors.textMuted}
+				/>
+			</Pressable>
+		);
+	},
+	(prevProps, nextProps) => {
+		return (
+			prevProps.alert.id === nextProps.alert.id &&
+			prevProps.alert.title === nextProps.alert.title &&
+			prevProps.alert.type === nextProps.alert.type &&
+			prevProps.alert.timestamp === nextProps.alert.timestamp &&
+			prevProps.alert.icon === nextProps.alert.icon
+		);
+	},
+);
 </file>
 
 <file path="apps/merchant-app/components/dashboard/AlertsCard.tsx">
@@ -3723,591 +5399,6 @@ export const TodayPrepCard = React.memo(
 );
 </file>
 
-<file path="apps/merchant-app/components/ui/Text.tsx">
-import {
-	ColorToken,
-	FontSizeVariant,
-	FontWeightVariant,
-	SpacingToken,
-	useTheme,
-} from "@/hooks/useTheme";
-import React, { memo } from "react";
-import {
-	Text as RNText,
-	TextProps as RNTextProps,
-	StyleProp,
-	TextStyle,
-} from "react-native";
-interface TextProps extends RNTextProps {
-	variant?: FontSizeVariant;
-	weight?: FontWeightVariant;
-	color?: ColorToken | string;
-	center?: boolean;
-	muted?: boolean;
-	marginBottom?: SpacingToken | number;
-	marginTop?: SpacingToken | number;
-	marginStart?: SpacingToken | number;
-	marginEnd?: SpacingToken | number;
-	marginHorizontal?: SpacingToken | number;
-	marginVertical?: SpacingToken | number;
-	margin?: SpacingToken | number;
-	paddingStart?: SpacingToken | number;
-	paddingEnd?: SpacingToken | number;
-	paddingHorizontal?: SpacingToken | number;
-	paddingVertical?: SpacingToken | number;
-	paddingTop?: SpacingToken | number;
-	paddingBottom?: SpacingToken | number;
-	padding?: SpacingToken | number;
-	style?: StyleProp<TextStyle>;
-	align?: TextStyle["textAlign"];
-}
-export const Text: React.FC<TextProps> = memo(
-	({
-		children,
-		variant = "md",
-		weight = "regular",
-		color,
-		center,
-		muted,
-		marginBottom,
-		marginTop,
-		marginStart,
-		marginEnd,
-		marginHorizontal,
-		marginVertical,
-		margin,
-		paddingStart,
-		paddingEnd,
-		paddingHorizontal,
-		paddingVertical,
-		paddingTop,
-		paddingBottom,
-		padding,
-		style,
-		align,
-		...props
-	}) => {
-		const theme = useTheme();
-		const getSpacingValue = (
-			value: SpacingToken | number | undefined,
-		): number | undefined => {
-			if (value === undefined) return undefined;
-			return typeof value === "number" ? value : theme.spacing[value];
-		};
-		const getColorValue = (
-			colorProp: ColorToken | string | undefined,
-		): string => {
-			if (colorProp === undefined) {
-				return muted ? theme.colors.textSecondary : theme.colors.text;
-			}
-			if (typeof colorProp === "string" && colorProp in theme.colors) {
-				return theme.colors[colorProp as ColorToken];
-			}
-			return colorProp;
-		};
-		const textAlign = center ? "center" : align;
-		const textStyle: TextStyle = {
-			fontSize: theme.typography.sizes[variant],
-			fontWeight: theme.typography.weights[weight],
-			color: getColorValue(color),
-			textAlign,
-			marginBottom: getSpacingValue(marginBottom),
-			marginTop: getSpacingValue(marginTop),
-			marginStart: getSpacingValue(marginStart),
-			marginEnd: getSpacingValue(marginEnd),
-			marginHorizontal: getSpacingValue(marginHorizontal),
-			marginVertical: getSpacingValue(marginVertical),
-			margin: getSpacingValue(margin),
-			paddingStart: getSpacingValue(paddingStart),
-			paddingEnd: getSpacingValue(paddingEnd),
-			paddingHorizontal: getSpacingValue(paddingHorizontal),
-			paddingVertical: getSpacingValue(paddingVertical),
-			paddingTop: getSpacingValue(paddingTop),
-			paddingBottom: getSpacingValue(paddingBottom),
-			padding: getSpacingValue(padding),
-		};
-		return (
-			<RNText style={[textStyle, style]} {...props}>
-				{children}
-			</RNText>
-		);
-	},
-);
-export default Text;
-</file>
-
-<file path="apps/merchant-app/constants/theme.ts">
-import { Platform } from "react-native";
-import { DefaultTheme } from "@react-navigation/native";
-const colorPalette = {
-	primary: {
-		50: "#EBFFF9",
-		100: "#C3FFF0",
-		200: "#9BFFE6",
-		300: "#5FF6D8",
-		400: "#22E5C8",
-		500: "#0AC5AB",
-		600: "#09A98F",
-		700: "#07866F",
-		800: "#056952",
-		900: "#034C3A",
-	},
-	secondary: {
-		50: "#F2EFFF",
-		100: "#E4DFFF",
-		200: "#CABFFF",
-		300: "#A799FF",
-		400: "#8E7AFF",
-		500: "#7559FF",
-		600: "#6038FF",
-		700: "#4E1AFF",
-		800: "#3C00FB",
-		900: "#2F00C2",
-	},
-	neutral: {
-		0: "#FFFFFF",
-		50: "#F9FAFB",
-		100: "#F1F5F9",
-		200: "#E2E8F0",
-		300: "#CBD5E1",
-		400: "#94A3B8",
-		500: "#64748B",
-		600: "#475569",
-		700: "#334155",
-		800: "#1E293B",
-		900: "#0F172A",
-		950: "#0A0D14",
-		1000: "#000000",
-	},
-	semantic: {
-		success: "#22C55E",
-		warning: "#FFBE0B",
-		info: "#3B82F6",
-		error: "#FF5E5B",
-	},
-};
-const getRgba = (hex: string, alpha: number) => {
-	const r = Number.parseInt(hex.slice(1, 3), 16);
-	const g = Number.parseInt(hex.slice(3, 5), 16);
-	const b = Number.parseInt(hex.slice(5, 7), 16);
-	return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-};
-export const theme = {
-	colors: {
-		light: {
-			primary: colorPalette.primary[500],
-			primaryDark: colorPalette.primary[600],
-			primaryLight: getRgba(colorPalette.primary[500], 0.1),
-			secondary: colorPalette.secondary[500],
-			secondaryLight: getRgba(colorPalette.secondary[500], 0.1),
-			background: colorPalette.neutral[50],
-			backgroundAlt: colorPalette.neutral[100],
-			card: colorPalette.neutral[0],
-			cardAlt: colorPalette.neutral[100],
-			text: colorPalette.neutral[900],
-			textSecondary: colorPalette.neutral[600],
-			textMuted: colorPalette.neutral[400],
-			success: colorPalette.semantic.success,
-			warning: colorPalette.semantic.warning,
-			info: colorPalette.semantic.info,
-			error: colorPalette.semantic.error,
-			divider: colorPalette.neutral[200],
-			overlay: getRgba(colorPalette.neutral[950], 0.3),
-			shadow: getRgba(colorPalette.neutral[900], 0.08),
-			tabBar: colorPalette.neutral[0],
-			tabIconDefault: colorPalette.neutral[400],
-			tabIconSelected: colorPalette.primary[500],
-		},
-		dark: {
-			primary: colorPalette.primary[400],
-			primaryDark: colorPalette.primary[500],
-			primaryLight: getRgba(colorPalette.primary[400], 0.15),
-			secondary: colorPalette.secondary[400],
-			secondaryLight: getRgba(colorPalette.secondary[400], 0.15),
-			background: colorPalette.neutral[950],
-			backgroundAlt: colorPalette.neutral[800],
-			card: colorPalette.neutral[900],
-			cardAlt: colorPalette.neutral[800],
-			text: colorPalette.neutral[50],
-			textSecondary: colorPalette.neutral[300],
-			textMuted: colorPalette.neutral[500],
-			success: colorPalette.semantic.success,
-			warning: colorPalette.semantic.warning,
-			info: colorPalette.semantic.info,
-			error: colorPalette.semantic.error,
-			divider: getRgba(colorPalette.neutral[0], 0.1),
-			overlay: getRgba(colorPalette.neutral[950], 0.6),
-			shadow: getRgba(colorPalette.neutral[1000], 0.3),
-			tabBar: colorPalette.neutral[900],
-			tabIconDefault: colorPalette.neutral[500],
-			tabIconSelected: colorPalette.primary[400],
-		},
-	},
-	spacing: {
-		none: 0,
-		xs: 4,
-		sm: 8,
-		md: 16,
-		lg: 24,
-		xl: 32,
-		xxl: 48,
-		screenPadding: 16,
-		cardPadding: 16,
-		itemSpacing: 12,
-		sectionSpacing: 24,
-	} as const,
-	radius: {
-		none: 0,
-		xs: 4,
-		sm: 8,
-		md: 12,
-		lg: 16,
-		xl: 24,
-		round: 999,
-		button: 12,
-		card: 16,
-		input: 12,
-		badge: 12,
-	} as const,
-	sizes: {
-		touchTarget: 44,
-		smallTouchTarget: 36,
-		iconXs: 16,
-		iconSm: 20,
-		iconMd: 24,
-		iconLg: 32,
-		buttonSm: 36,
-		buttonMd: 44,
-		buttonLg: 52,
-		inputHeight: 48,
-		headerHeight: 56,
-		tabBarHeight: 49,
-		avatarSm: 32,
-		avatarMd: 44,
-		avatarLg: 64,
-	} as const,
-	typography: {
-		sizes: {
-			xs: 12,
-			sm: 14,
-			md: 16,
-			lg: 18,
-			xl: 20,
-			xxl: 24,
-			xxxl: 30,
-		} as const,
-		weights: {
-			regular: "400",
-			medium: "500",
-			semibold: "600",
-			bold: "700",
-			extrabold: "800",
-		} as const,
-		lineHeights: {
-			tight: 1.2,
-			normal: 1.5,
-			loose: 1.8,
-		} as const,
-	} as const,
-	shadows: {
-		small: {
-			shadowOffset: { width: 0, height: 1 },
-			shadowOpacity: 0.8,
-			shadowRadius: 2,
-			elevation: 2,
-		},
-		medium: {
-			shadowOffset: { width: 0, height: 2 },
-			shadowOpacity: 0.8,
-			shadowRadius: 4,
-			elevation: 4,
-		},
-		large: {
-			shadowOffset: { width: 0, height: 4 },
-			shadowOpacity: 0.8,
-			shadowRadius: 8,
-			elevation: 8,
-		},
-	},
-	platform: {
-		topInset: Platform.OS === "ios" ? (DefaultTheme.dark ? 44 : 50) : 16,
-		bottomInset: Platform.OS === "ios" ? 34 : 16,
-		isIOS: Platform.OS === "ios",
-		isAndroid: Platform.OS === "android",
-	},
-};
-export type ThemeColors = typeof theme.colors.light;
-export type ThemeMode = "light" | "dark";
-</file>
-
-<file path="apps/merchant-app/data.ts">
-import { Feather } from "@expo/vector-icons";
-import { Alert, Meal, MealPrepSummary } from "./types";
-export const TODAY_PREP_SUMMARY: MealPrepSummary[] = [
-	{
-		period: "Breakfast",
-		totalMeals: 25,
-		mealsToPrep: [
-			{ id: "shashuka", name: "Shashuka", count: 15 },
-			{ id: "oats", name: "Overnight Oats", count: 7 },
-			{ id: "smoothie", name: "Green Smoothie", count: 3 },
-		],
-	},
-	{
-		period: "Lunch",
-		totalMeals: 32,
-		mealsToPrep: [
-			{ id: "salad_x", name: "Quinoa Salad", count: 18 },
-			{ id: "wrap_y", name: "Falafel Wrap", count: 10 },
-			{ id: "soup_z", name: "Lentil Soup", count: 4 },
-			{ id: "extra1", name: "Side Salad", count: 2 },
-		],
-	},
-	{
-		period: "Dinner",
-		totalMeals: 28,
-		mealsToPrep: [
-			{ id: "salmon", name: "Grilled Salmon", count: 12 },
-			{ id: "tofu_stirfry", name: "Tofu Stir-fry", count: 9 },
-			{ id: "pasta_veg", name: "Veggie Pasta", count: 7 },
-		],
-	},
-];
-export const ALERTS: Alert[] = [
-	{
-		id: 1,
-		type: "info",
-		title: "New 'Keto Weekly' subscriber",
-		icon: "person-add-outline",
-		timestamp: "3h ago",
-	},
-	{
-		id: 2,
-		type: "warning",
-		title: "Low inventory: Quinoa",
-		icon: "cube-outline",
-		timestamp: "1h ago",
-	},
-	{
-		id: 3,
-		type: "error",
-		title: "Delivery issue Order #12345",
-		icon: "car-sport-outline",
-		timestamp: "Yesterday",
-	},
-];
-export const MEALS: Meal[] = [
-	{
-		featured: false,
-		isVegan: false,
-		id: "b1",
-		name: "Shakshuka",
-		name_ar: "شكشوكة",
-		description: "Eggs poached in spiced tomato sauce",
-		description_ar: "بيض مطبوخ في صلصة طماطم متبلة",
-		price: 12.99,
-		ingredients: ["Eggs", "Tomatoes", "Bell Peppers", "Onions", "Spices"],
-		ingredients_ar: ["بيض", "طماطم", "فلفل حلو", "بصل", "توابل"],
-		calories: 380,
-		prepTime: 25,
-		period: "Breakfast",
-		available: true,
-		image:
-			"https://images.unsplash.com/photo-1590412200988-a436970781fa?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8c2hha3NodWthfGVufDB8fDB8fHww",
-	},
-	{
-		featured: false,
-		isVegan: false,
-		id: "b2",
-		name: "Overnight Oats",
-		name_ar: "شوفان مبيت",
-		description: "Oats soaked with yogurt and fruits",
-		description_ar: "شوفان منقوع مع الزبادي والفواكه",
-		price: 8.99,
-		ingredients: ["Oats", "Yogurt", "Berries", "Honey", "Nuts"],
-		ingredients_ar: ["شوفان", "زبادي", "توت", "عسل", "مكسرات"],
-		calories: 320,
-		prepTime: 10,
-		period: "Breakfast",
-		available: true,
-		image:
-			"https://images.unsplash.com/photo-1614961233913-a5113a4a34ed?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fG92ZXJuaWdodCUyMG9hdHN8ZW58MHx8MHx8fDA%3D",
-	},
-	{
-		featured: false,
-		isVegan: false,
-		id: "l1",
-		name: "Quinoa Salad",
-		name_ar: "سلطة الكينوا",
-		description: "Fresh salad with quinoa and vegetables",
-		description_ar: "سلطة طازجة مع الكينوا والخضروات",
-		price: 14.99,
-		ingredients: ["Quinoa", "Cucumber", "Tomato", "Avocado", "Lemon Dressing"],
-		ingredients_ar: ["كينوا", "خيار", "طماطم", "أفوكادو", "صلصة ليمون"],
-		calories: 420,
-		prepTime: 20,
-		period: "Lunch",
-		available: true,
-		image:
-			"https://images.unsplash.com/photo-1505253716362-afaea1d3d1af?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8cXVpbm9hJTIwc2FsYWR8ZW58MHx8MHx8fDA%3D",
-	},
-	{
-		featured: false,
-		isVegan: false,
-		id: "l2",
-		name: "Falafel Wrap",
-		name_ar: "لفائف الفلافل",
-		description: "Falafel with vegetables in a whole wheat wrap",
-		description_ar: "فلافل مع الخضروات في خبز القمح الكامل",
-		price: 10.99,
-		ingredients: ["Falafel", "Lettuce", "Tomato", "Cucumber", "Tahini"],
-		ingredients_ar: ["فلافل", "خس", "طماطم", "خيار", "طحينة"],
-		calories: 480,
-		prepTime: 15,
-		period: "Lunch",
-		available: true,
-		image:
-			"https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8ZmFsYWZlbHxlbnwwfHwwfHx8MA%3D%3D",
-	},
-	{
-		featured: false,
-		isVegan: false,
-		id: "d1",
-		name: "Grilled Salmon",
-		name_ar: "سلمون مشوي",
-		description: "Fresh salmon with herbs and lemon",
-		description_ar: "سلمون طازج مع الأعشاب والليمون",
-		price: 18.99,
-		ingredients: ["Salmon", "Lemon", "Herbs", "Olive Oil", "Garlic"],
-		ingredients_ar: ["سلمون", "ليمون", "أعشاب", "زيت زيتون", "ثوم"],
-		calories: 520,
-		prepTime: 30,
-		period: "Dinner",
-		available: true,
-		image:
-			"https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Z3JpbGxlZCUyMHNhbG1vbnxlbnwwfHwwfHx8MA%3D%3D",
-	},
-	{
-		featured: false,
-		isVegan: false,
-		id: "d2",
-		name: "Tofu Stir-fry",
-		name_ar: "توفو مقلي",
-		description: "Tofu and vegetables in a savory sauce",
-		description_ar: "توفو وخضروات في صلصة لذيذة",
-		price: 13.99,
-		ingredients: ["Tofu", "Broccoli", "Carrots", "Bell Peppers", "Soy Sauce"],
-		ingredients_ar: ["توفو", "بروكلي", "جزر", "فلفل حلو", "صلصة الصويا"],
-		calories: 380,
-		prepTime: 25,
-		period: "Dinner",
-		available: true,
-		image:
-			"https://images.unsplash.com/photo-1512003867696-6d5ce6835040?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8dG9mdSUyMHN0aXIlMjBmcnl8ZW58MHx8MHx8fDA%3D",
-	},
-];
-</file>
-
-<file path="apps/merchant-app/components/dashboard/DashboardHeader.tsx">
-import React from "react";
-import { AnimatedBox, Text } from "@/components/ui";
-import { useTheme } from "@/hooks/useTheme";
-interface DashboardHeaderProps {
-	currentDateString: string;
-	animatedStyle: any;
-}
-export const DashboardHeader = React.memo(
-	({ currentDateString, animatedStyle }: DashboardHeaderProps) => {
-		const theme = useTheme();
-		return (
-			<AnimatedBox
-				row
-				alignItems="center"
-				paddingHorizontal="md"
-				paddingVertical="sm"
-				style={[
-					{
-						height: theme.sizes.headerHeight,
-					},
-					animatedStyle,
-				]}
-			>
-				<Text variant="xl" weight="semibold" numberOfLines={1}>
-					{currentDateString}
-				</Text>
-			</AnimatedBox>
-		);
-	},
-);
-</file>
-
-<file path="apps/merchant-app/components/dashboard/StatsGrid.tsx">
-import React from "react";
-import { AnimatedBox, Box, Text } from "@/components/ui";
-import { Ionicons } from "@expo/vector-icons";
-import {
-	FadeInUp,
-	FadeOutDown,
-	LinearTransition,
-} from "react-native-reanimated";
-import { useTheme } from "@/hooks/useTheme";
-interface StatItem {
-	title: string;
-	value: string | number;
-	icon: string;
-}
-interface StatsGridProps {
-	stats: StatItem[];
-}
-export const StatsGrid = React.memo(({ stats }: StatsGridProps) => {
-	const theme = useTheme();
-	return (
-		<AnimatedBox
-			layout={LinearTransition.delay(100).duration(300)}
-			row
-			marginHorizontal="sm"
-			marginBottom="lg"
-			gap="sm"
-		>
-			{stats.map((stat) => (
-				<AnimatedBox
-					key={stat.title}
-					entering={FadeInUp.duration(300)}
-					exiting={FadeOutDown.duration(200)}
-					layout={LinearTransition.duration(300)}
-					flex={1}
-				>
-					<Box bg="card" padding="md" rounded="lg" elevation="small">
-						<Box row alignCenter marginBottom="sm" gap="sm">
-							<Box
-								width={theme.sizes.buttonSm}
-								height={theme.sizes.buttonSm}
-								rounded="sm"
-								bg="primaryLight"
-								alignItems="center"
-								justifyContent="center"
-							>
-								<Ionicons
-									name={stat.icon as any}
-									size={theme.sizes.iconSm}
-									color={theme.colors.primary}
-								/>
-							</Box>
-							<Text variant="xs" weight="semibold" color="textSecondary">
-								{stat.title}
-							</Text>
-						</Box>
-						<Text variant="xl" weight="bold">
-							{stat.value}
-						</Text>
-					</Box>
-				</AnimatedBox>
-			))}
-		</AnimatedBox>
-	);
-});
-</file>
-
 <file path="apps/merchant-app/components/ui/Box.tsx">
 import { useTheme } from "@/hooks/useTheme";
 import { ColorToken, RadiusToken, SpacingToken } from "@/hooks/useTheme";
@@ -4494,6 +5585,154 @@ export default Box;
 export const AnimatedBox = Animated.createAnimatedComponent(Box);
 </file>
 
+<file path="apps/merchant-app/components/ui/Text.tsx">
+import React from "react";
+import {
+	Text as RNText,
+	TextProps as RNTextProps,
+	StyleProp,
+	TextStyle,
+	AccessibilityRole,
+} from "react-native";
+import {
+	ColorToken,
+	FontSizeVariant,
+	FontWeightVariant,
+	SpacingToken,
+	useTheme,
+} from "@/hooks/useTheme";
+interface TextProps extends RNTextProps {
+	variant?: FontSizeVariant;
+	weight?: FontWeightVariant;
+	color?: ColorToken | string;
+	center?: boolean;
+	muted?: boolean;
+	marginBottom?: SpacingToken | number;
+	marginTop?: SpacingToken | number;
+	marginStart?: SpacingToken | number;
+	marginEnd?: SpacingToken | number;
+	marginHorizontal?: SpacingToken | number;
+	marginVertical?: SpacingToken | number;
+	margin?: SpacingToken | number;
+	paddingStart?: SpacingToken | number;
+	paddingEnd?: SpacingToken | number;
+	paddingHorizontal?: SpacingToken | number;
+	paddingVertical?: SpacingToken | number;
+	paddingTop?: SpacingToken | number;
+	paddingBottom?: SpacingToken | number;
+	padding?: SpacingToken | number;
+	style?: StyleProp<TextStyle>;
+	align?: TextStyle["textAlign"];
+	accessibilityRole?: AccessibilityRole;
+	accessibilityLabel?: string;
+	accessibilityHint?: string;
+	accessibilityState?: {
+		disabled?: boolean;
+		selected?: boolean;
+		checked?: boolean | "mixed";
+		busy?: boolean;
+		expanded?: boolean;
+	};
+}
+export const Text: React.FC<TextProps> = React.memo(
+	({
+		children,
+		variant = "md",
+		weight = "regular",
+		color,
+		center,
+		muted,
+		marginBottom,
+		marginTop,
+		marginStart,
+		marginEnd,
+		marginHorizontal,
+		marginVertical,
+		margin,
+		paddingStart,
+		paddingEnd,
+		paddingHorizontal,
+		paddingVertical,
+		paddingTop,
+		paddingBottom,
+		padding,
+		style,
+		align,
+		accessibilityRole,
+		accessibilityLabel,
+		accessibilityHint,
+		accessibilityState,
+		...props
+	}) => {
+		const theme = useTheme();
+		const getSpacingValue = (
+			value: SpacingToken | number | undefined,
+		): number | undefined => {
+			if (value === undefined) return undefined;
+			return typeof value === "number" ? value : theme.spacing[value];
+		};
+		const getColorValue = (
+			colorProp: ColorToken | string | undefined,
+		): string => {
+			if (colorProp === undefined) {
+				return muted ? theme.colors.textSecondary : theme.colors.text;
+			}
+			if (typeof colorProp === "string" && colorProp in theme.colors) {
+				return theme.colors[colorProp as ColorToken];
+			}
+			return colorProp;
+		};
+		const textAlign = center ? "center" : align;
+		const textStyle: TextStyle = {
+			fontSize: theme.typography.sizes[variant],
+			fontWeight: theme.typography.weights[weight],
+			color: getColorValue(color),
+			textAlign,
+			marginBottom: getSpacingValue(marginBottom),
+			marginTop: getSpacingValue(marginTop),
+			marginStart: getSpacingValue(marginStart),
+			marginEnd: getSpacingValue(marginEnd),
+			marginHorizontal: getSpacingValue(marginHorizontal),
+			marginVertical: getSpacingValue(marginVertical),
+			margin: getSpacingValue(margin),
+			paddingStart: getSpacingValue(paddingStart),
+			paddingEnd: getSpacingValue(paddingEnd),
+			paddingHorizontal: getSpacingValue(paddingHorizontal),
+			paddingVertical: getSpacingValue(paddingVertical),
+			paddingTop: getSpacingValue(paddingTop),
+			paddingBottom: getSpacingValue(paddingBottom),
+			padding: getSpacingValue(padding),
+		};
+		return (
+			<RNText
+				style={[textStyle, style]}
+				accessibilityRole={accessibilityRole}
+				accessibilityLabel={accessibilityLabel}
+				accessibilityHint={accessibilityHint}
+				accessibilityState={accessibilityState}
+				{...props}
+			>
+				{children}
+			</RNText>
+		);
+	},
+	(prevProps, nextProps) => {
+		const equalChildren = prevProps.children === nextProps.children;
+		const equalVariant = prevProps.variant === nextProps.variant;
+		const equalWeight = prevProps.weight === nextProps.weight;
+		const equalColor = prevProps.color === nextProps.color;
+		return (
+			equalChildren &&
+			equalVariant &&
+			equalWeight &&
+			equalColor &&
+			prevProps.numberOfLines === nextProps.numberOfLines &&
+			prevProps.center === nextProps.center
+		);
+	},
+);
+</file>
+
 <file path="pnpm-workspace.yaml">
 packages:
   - apps/*
@@ -4516,112 +5755,71 @@ onlyBuiltDependencies:
   - '@biomejs/biome'
 </file>
 
-<file path="apps/merchant-app/components/ui/Tabs.tsx">
+<file path="apps/merchant-app/components/dashboard/StatsGrid.tsx">
 import React from "react";
-import { Pressable } from "react-native";
-import { Box } from "./Box";
-import { Text } from "./Text";
-import { useTheme } from "@/hooks/useTheme";
-import * as Haptics from "expo-haptics";
+import { AnimatedBox, Box, Text } from "@/components/ui";
 import { Ionicons } from "@expo/vector-icons";
-type TabItem = {
-	key: string;
-	label: string;
-	iconLeft?: string;
-	iconRight?: string;
-};
-export type TabType = string | TabItem;
-interface TabsProps {
-	tabs: TabType[];
-	selectedTab: string;
-	onSelectTab: (tab: string) => void;
-	labelRender?: (tab: string) => string;
+import {
+	FadeInUp,
+	FadeOutDown,
+	LinearTransition,
+} from "react-native-reanimated";
+import { useTheme } from "@/hooks/useTheme";
+interface StatItem {
+	title: string;
+	value: string | number;
+	icon: string;
 }
-export const Tabs = React.memo(
-	({ tabs, selectedTab, onSelectTab, labelRender }: TabsProps) => {
-		const theme = useTheme();
-		const handlePress = (tab: TabType) => {
-			const tabKey = typeof tab === "string" ? tab : tab.key;
-			if (tabKey !== selectedTab) {
-				Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-				onSelectTab(tabKey);
-			}
-		};
-		const getTabLabel = (tab: TabType): string => {
-			if (typeof tab === "string") {
-				return labelRender ? labelRender(tab) : tab;
-			}
-			return tab.label;
-		};
-		const isTabSelected = (tab: TabType): boolean => {
-			const tabKey = typeof tab === "string" ? tab : tab.key;
-			return tabKey === selectedTab;
-		};
-		return (
-			<Box row bg={theme.colors.backgroundAlt} rounded="md" padding="xs">
-				{tabs.map((tab) => {
-					const isSelected = isTabSelected(tab);
-					const tabKey = typeof tab === "string" ? tab : tab.key;
-					return (
-						<Pressable
-							key={tabKey}
-							style={({ pressed }) => ({
-								flex: 1,
-								paddingVertical: 8,
-								paddingHorizontal: 12,
-								alignItems: "center",
-								justifyContent: "center",
-								flexDirection: "row",
-								borderRadius: theme.radius.sm,
-								backgroundColor: isSelected ? theme.colors.card : undefined,
-								shadowOffset: isSelected ? { width: 0, height: 1 } : undefined,
-								shadowOpacity: isSelected ? 0.1 : undefined,
-								shadowRadius: isSelected ? 2 : undefined,
-								elevation: isSelected ? 2 : undefined,
-								shadowColor: isSelected ? theme.colors.shadow : undefined,
-								opacity: pressed ? 0.5 : 1,
-							})}
-							onPress={() => handlePress(tab)}
-							android_ripple={{ color: theme.colors.overlay, borderless: true }}
-						>
-							{typeof tab !== "string" && tab.iconLeft && (
-								<Ionicons
-									name={tab.iconLeft as any}
-									size={theme.sizes.iconSm}
-									color={
-										isSelected
-											? theme.colors.primary
-											: theme.colors.textSecondary
-									}
-									style={{ marginEnd: theme.spacing.xs }}
-								/>
-							)}
-							<Text
-								variant="sm"
-								weight={isSelected ? "semibold" : "medium"}
-								color={isSelected ? "primary" : "textSecondary"}
+interface StatsGridProps {
+	stats: StatItem[];
+}
+export const StatsGrid = React.memo(({ stats }: StatsGridProps) => {
+	const theme = useTheme();
+	return (
+		<AnimatedBox
+			layout={LinearTransition.delay(100).duration(300)}
+			row
+			marginHorizontal="sm"
+			marginBottom="lg"
+			gap="sm"
+		>
+			{stats.map((stat) => (
+				<AnimatedBox
+					key={stat.title}
+					entering={FadeInUp.duration(300)}
+					exiting={FadeOutDown.duration(200)}
+					layout={LinearTransition.duration(300)}
+					flex={1}
+				>
+					<Box bg="card" padding="md" rounded="lg" elevation="small">
+						<Box row alignCenter marginBottom="sm" gap="sm">
+							<Box
+								width={theme.sizes.buttonSm}
+								height={theme.sizes.buttonSm}
+								rounded="sm"
+								bg="primaryLight"
+								alignItems="center"
+								justifyContent="center"
 							>
-								{getTabLabel(tab)}
-							</Text>
-							{typeof tab !== "string" && tab.iconRight && (
 								<Ionicons
-									name={tab.iconRight as any}
+									name={stat.icon as any}
 									size={theme.sizes.iconSm}
-									color={
-										isSelected
-											? theme.colors.primary
-											: theme.colors.textSecondary
-									}
-									style={{ marginStart: theme.spacing.xs }}
+									color={theme.colors.primary}
 								/>
-							)}
-						</Pressable>
-					);
-				})}
-			</Box>
-		);
-	},
-);
+							</Box>
+							<Text variant="xs" weight="semibold" color="textSecondary">
+								{stat.title}
+							</Text>
+						</Box>
+						<Text variant="xl" weight="bold">
+							{stat.value}
+						</Text>
+					</Box>
+				</AnimatedBox>
+			))}
+		</AnimatedBox>
+	);
+});
 </file>
 
 <file path="apps/merchant-app/constants/i18n.ts">
@@ -4806,6 +6004,178 @@ export const translations = {
 	},
 };
 export type Language = keyof typeof translations;
+</file>
+
+<file path="apps/merchant-app/components/ui/Tabs.tsx">
+import React, { useMemo } from "react";
+import { Pressable, AccessibilityState } from "react-native";
+import { Box } from "./Box";
+import { Text } from "./Text";
+import { useTheme } from "@/hooks/useTheme";
+import * as Haptics from "expo-haptics";
+import { Ionicons } from "@expo/vector-icons";
+type TabItem = {
+	key: string;
+	label: string;
+	iconLeft?: string;
+	iconRight?: string;
+	accessibilityLabel?: string;
+	accessibilityHint?: string;
+};
+export type TabType = string | TabItem;
+interface TabsProps {
+	tabs: TabType[];
+	selectedTab: string;
+	onSelectTab: (tab: string) => void;
+	labelRender?: (tab: string) => string;
+	accessibilityLabel?: string;
+	accessibilityHint?: string;
+}
+export const Tabs = React.memo(
+	({
+		tabs,
+		selectedTab,
+		onSelectTab,
+		labelRender,
+		accessibilityLabel,
+		accessibilityHint,
+	}: TabsProps) => {
+		const theme = useTheme();
+		const handlePress = (tab: TabType) => {
+			const tabKey = typeof tab === "string" ? tab : tab.key;
+			if (tabKey !== selectedTab) {
+				Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+				onSelectTab(tabKey);
+			}
+		};
+		const getTabLabel = (tab: TabType): string => {
+			if (typeof tab === "string") {
+				return labelRender ? labelRender(tab) : tab;
+			}
+			return tab.label;
+		};
+		const isTabSelected = (tab: TabType): boolean => {
+			const tabKey = typeof tab === "string" ? tab : tab.key;
+			return tabKey === selectedTab;
+		};
+		const renderedTabs = useMemo(() => {
+			return tabs.map((tab) => {
+				const isSelected = isTabSelected(tab);
+				const tabKey = typeof tab === "string" ? tab : tab.key;
+				const tabLabel = getTabLabel(tab);
+				const iconLeft = typeof tab !== "string" ? tab.iconLeft : undefined;
+				const iconRight = typeof tab !== "string" ? tab.iconRight : undefined;
+				const tabAccessibilityLabel =
+					typeof tab !== "string"
+						? tab.accessibilityLabel || tabLabel
+						: tabLabel;
+				const tabAccessibilityHint =
+					typeof tab !== "string" ? tab.accessibilityHint : undefined;
+				const accessibilityState: AccessibilityState = {
+					selected: isSelected,
+				};
+				return (
+					<Pressable
+						key={tabKey}
+						style={({ pressed }) => ({
+							flex: 1,
+							paddingVertical: 8,
+							paddingHorizontal: 12,
+							alignItems: "center",
+							justifyContent: "center",
+							flexDirection: "row",
+							borderRadius: theme.radius.sm,
+							backgroundColor: isSelected ? theme.colors.card : undefined,
+							shadowOffset: isSelected ? { width: 0, height: 1 } : undefined,
+							shadowOpacity: isSelected ? 0.1 : undefined,
+							shadowRadius: isSelected ? 2 : undefined,
+							elevation: isSelected ? 2 : undefined,
+							shadowColor: isSelected ? theme.colors.shadow : undefined,
+							opacity: pressed ? 0.5 : 1,
+						})}
+						onPress={() => handlePress(tab)}
+						android_ripple={{ color: theme.colors.overlay, borderless: true }}
+						accessibilityRole="tab"
+						accessibilityLabel={tabAccessibilityLabel}
+						accessibilityHint={tabAccessibilityHint}
+						accessibilityState={accessibilityState}
+					>
+						{iconLeft && (
+							<Ionicons
+								name={iconLeft as any}
+								size={theme.sizes.iconSm}
+								color={
+									isSelected ? theme.colors.primary : theme.colors.textSecondary
+								}
+								style={{ marginEnd: theme.spacing.xs }}
+							/>
+						)}
+						<Text
+							variant="sm"
+							weight={isSelected ? "semibold" : "medium"}
+							color={isSelected ? "primary" : "textSecondary"}
+						>
+							{tabLabel}
+						</Text>
+						{iconRight && (
+							<Ionicons
+								name={iconRight as any}
+								size={theme.sizes.iconSm}
+								color={
+									isSelected ? theme.colors.primary : theme.colors.textSecondary
+								}
+								style={{ marginStart: theme.spacing.xs }}
+							/>
+						)}
+					</Pressable>
+				);
+			});
+		}, [tabs, selectedTab, theme, labelRender]);
+		return (
+			<Box
+				row
+				bg={theme.colors.backgroundAlt}
+				rounded="md"
+				padding="xs"
+				accessibilityRole="tablist"
+				accessibilityLabel={accessibilityLabel || "Tab navigation"}
+				accessibilityHint={accessibilityHint}
+			>
+				{renderedTabs}
+			</Box>
+		);
+	},
+	(prevProps, nextProps) => {
+		if (prevProps.selectedTab !== nextProps.selectedTab) {
+			return false;
+		}
+		if (prevProps.tabs.length !== nextProps.tabs.length) {
+			return false;
+		}
+		for (let i = 0; i < prevProps.tabs.length; i++) {
+			const prevTab = prevProps.tabs[i];
+			const nextTab = nextProps.tabs[i];
+			if (typeof prevTab !== typeof nextTab) {
+				return false;
+			}
+			if (typeof prevTab === "string" && typeof nextTab === "string") {
+				if (prevTab !== nextTab) {
+					return false;
+				}
+			} else if (typeof prevTab === "object" && typeof nextTab === "object") {
+				if (
+					prevTab.key !== nextTab.key ||
+					prevTab.label !== nextTab.label ||
+					prevTab.iconLeft !== nextTab.iconLeft ||
+					prevTab.iconRight !== nextTab.iconRight
+				) {
+					return false;
+				}
+			}
+		}
+		return true;
+	},
+);
 </file>
 
 <file path=".gitignore">
