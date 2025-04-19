@@ -36,6 +36,9 @@ export interface QuickActionItem {
 }
 
 export interface Meal {
+	dietaryRestriction?: string;
+	featured: boolean;
+	isVegan: boolean;
 	id: string;
 	name: string;
 	name_ar?: string;

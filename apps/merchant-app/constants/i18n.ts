@@ -59,12 +59,25 @@ export const translations = {
 			description: "Description",
 			price: "Price ($)",
 			calories: "Calories",
-			prepTime: "Prep Time",
+			prepTime: "Prep Time (min)",
 			ingredients: "Ingredients (comma separated)",
 			mealPeriod: "Meal Period",
 			createMeal: "Create Meal",
 			saveChanges: "Save Changes",
 			confirmDelete: "Are you sure you want to delete this meal?",
+
+			// New translations
+			basicInfo: "Basic Information",
+			details: "Details",
+			available: "Available",
+			unavailable: "Unavailable",
+			availableDesc: "This meal is visible to customers",
+			unavailableDesc: "This meal is hidden from customers",
+			featured: "Featured Meal",
+			featuredDesc: "Show this meal in featured sections",
+			dangerZone: "Danger Zone",
+			deleteMealWarning: "Once deleted, this meal cannot be recovered.",
+			addImage: "Add Image",
 		},
 		periods: {
 			breakfast: "Breakfast",
@@ -137,12 +150,25 @@ export const translations = {
 			description: "الوصف",
 			price: "السعر ($)",
 			calories: "السعرات الحرارية",
-			prepTime: "وقت التحضير",
+			prepTime: "وقت التحضير (دقيقة)",
 			ingredients: "المكونات (مفصولة بفواصل)",
 			mealPeriod: "فترة الوجبة",
 			createMeal: "إنشاء وجبة",
 			saveChanges: "حفظ التغييرات",
 			confirmDelete: "هل أنت متأكد من حذف هذه الوجبة؟",
+
+			// New translations
+			basicInfo: "المعلومات الأساسية",
+			details: "التفاصيل",
+			available: "متاح",
+			unavailable: "غير متاح",
+			availableDesc: "هذه الوجبة مرئية للعملاء",
+			unavailableDesc: "هذه الوجبة مخفية عن العملاء",
+			featured: "وجبة مميزة",
+			featuredDesc: "عرض هذه الوجبة في الأقسام المميزة",
+			dangerZone: "منطقة الخطر",
+			deleteMealWarning: "بمجرد الحذف، لا يمكن استعادة هذه الوجبة.",
+			addImage: "إضافة صورة",
 		},
 		periods: {
 			breakfast: "الإفطار",
@@ -156,4 +182,5 @@ export const translations = {
 		},
 	},
 };
+
 export type Language = keyof typeof translations;

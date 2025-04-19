@@ -1,4 +1,5 @@
-import { Alert, MealPrepSummary } from "./types";
+import { Feather } from "@expo/vector-icons";
+import { Alert, Meal, MealPrepSummary } from "./types";
 
 export const TODAY_PREP_SUMMARY: MealPrepSummary[] = [
 	{
@@ -55,8 +56,10 @@ export const ALERTS: Alert[] = [
 	},
 ];
 
-export const MEALS = [
+export const MEALS: Meal[] = [
 	{
+		featured: false,
+		isVegan: false,
 		id: "b1",
 		name: "Shakshuka",
 		name_ar: "شكشوكة",
@@ -73,6 +76,8 @@ export const MEALS = [
 			"https://images.unsplash.com/photo-1590412200988-a436970781fa?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8c2hha3NodWthfGVufDB8fDB8fHww",
 	},
 	{
+		featured: false,
+		isVegan: false,
 		id: "b2",
 		name: "Overnight Oats",
 		name_ar: "شوفان مبيت",
@@ -89,6 +94,8 @@ export const MEALS = [
 			"https://images.unsplash.com/photo-1614961233913-a5113a4a34ed?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fG92ZXJuaWdodCUyMG9hdHN8ZW58MHx8MHx8fDA%3D",
 	},
 	{
+		featured: false,
+		isVegan: false,
 		id: "l1",
 		name: "Quinoa Salad",
 		name_ar: "سلطة الكينوا",
@@ -105,6 +112,8 @@ export const MEALS = [
 			"https://images.unsplash.com/photo-1505253716362-afaea1d3d1af?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8cXVpbm9hJTIwc2FsYWR8ZW58MHx8MHx8fDA%3D",
 	},
 	{
+		featured: false,
+		isVegan: false,
 		id: "l2",
 		name: "Falafel Wrap",
 		name_ar: "لفائف الفلافل",
@@ -121,6 +130,8 @@ export const MEALS = [
 			"https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8ZmFsYWZlbHxlbnwwfHwwfHx8MA%3D%3D",
 	},
 	{
+		featured: false,
+		isVegan: false,
 		id: "d1",
 		name: "Grilled Salmon",
 		name_ar: "سلمون مشوي",
@@ -137,6 +148,8 @@ export const MEALS = [
 			"https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Z3JpbGxlZCUyMHNhbG1vbnxlbnwwfHwwfHx8MA%3D%3D",
 	},
 	{
+		featured: false,
+		isVegan: false,
 		id: "d2",
 		name: "Tofu Stir-fry",
 		name_ar: "توفو مقلي",
