@@ -1,8 +1,8 @@
 import { AnimatedBox, Badge, Box, Button, Text } from "@/components/ui";
 import FocusableInput from "@/components/fields/FocusableInput";
-import SwitchField from "@/components/fields/SwitchField";
-import CategoryField from "@/components/fields/CategoryField";
-import RadioField from "@/components/fields/RadioField";
+import { SwitchField } from "@/components/fields/SwitchField";
+import { CategoryField } from "@/components/fields/CategoryField";
+import { RadioField } from "@/components/fields/RadioField";
 import { MEALS } from "@/data";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -29,10 +29,15 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Tabs, TabType } from "@/components/ui/Tabs";
 
-const MealFormScreen = () => {
+const MealFormScreen = React.memo(() => {
 	const { "meal-id": mealId } = useLocalSearchParams<{ "meal-id": string }>();
 	const theme = useTheme();
 	const { t, language, isRTL } = useTranslation();
+	const insets = useSafeAreaInsets();
+	const router = useRouter();
+	const isArabic = language === "ar";
+	const isEdit = mealId !== "new";
+
 	const sectionTabs: TabType[] = [
 		{
 			key: "basic",
@@ -45,10 +50,7 @@ const MealFormScreen = () => {
 			iconLeft: "settings-outline",
 		},
 	];
-	const insets = useSafeAreaInsets();
-	const router = useRouter();
-	const isArabic = language === "ar";
-	const isEdit = mealId !== "new";
+
 	const [activeSection, setActiveSection] = useState<string>("basic");
 	const [loading, setLoading] = useState(false);
 	const [errors, setErrors] = useState<Record<string, string>>({});
@@ -129,31 +131,25 @@ const MealFormScreen = () => {
 
 	const validateForm = () => {
 		const newErrors: Record<string, string> = {};
-
 		if (!meal.name?.trim()) {
 			newErrors.name = t("validation.required");
 		}
-
 		if (!meal.description?.trim()) {
 			newErrors.description = t("validation.required");
 		}
-
 		if (!meal.price || meal.price <= 0) {
 			newErrors.price = t("validation.invalidPrice");
 		}
-
 		setErrors(newErrors);
 		return Object.keys(newErrors).length === 0;
 	};
 
 	const handleSave = () => {
 		Keyboard.dismiss();
-
 		if (!validateForm()) {
 			Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
 			return;
 		}
-
 		Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 		setLoading(true);
 		setTimeout(() => {
@@ -190,7 +186,6 @@ const MealFormScreen = () => {
 
 	const updateField = (field: keyof Meal, value: any) => {
 		setMeal((prev) => ({ ...prev, [field]: value }));
-
 		if (errors[field]) {
 			setErrors((prev) => ({ ...prev, [field]: "" }));
 		}
@@ -210,7 +205,6 @@ const MealFormScreen = () => {
 				}}
 			>
 				<Stack.Screen options={{ headerShown: false }} />
-
 				<AnimatedBox
 					row
 					alignItems="center"
@@ -271,7 +265,6 @@ const MealFormScreen = () => {
 					showsVerticalScrollIndicator={false}
 					keyboardShouldPersistTaps="handled"
 				>
-					{}
 					<AnimatedBox
 						entering={FadeInUp.delay(100).duration(400)}
 						marginBottom="md"
@@ -379,7 +372,7 @@ const MealFormScreen = () => {
 							</Box>
 						)}
 					</AnimatedBox>
-					{}
+
 					<AnimatedBox
 						entering={FadeInUp.delay(200).duration(400)}
 						bg="backgroundAlt"
@@ -390,17 +383,15 @@ const MealFormScreen = () => {
 							tabs={sectionTabs}
 							selectedTab={activeSection}
 							onSelectTab={setActiveSection}
-							theme={theme}
 						/>
 					</AnimatedBox>
-					{}
+
 					{activeSection === "basic" && (
 						<Animated.View
 							entering={FadeInRight.delay(100).duration(100)}
 							key={activeSection}
 							style={{ gap: theme.spacing.md }}
 						>
-							{}
 							<Box card rounded="md" padding="lg" elevation="small">
 								<Box row alignItems="center" marginBottom="md">
 									<Ionicons
@@ -413,7 +404,7 @@ const MealFormScreen = () => {
 										{t("meals.basicInfo")}
 									</Text>
 								</Box>
-								{}
+
 								<Box marginBottom="md">
 									<FocusableInput
 										inputRef={nameInputRef}
@@ -440,7 +431,7 @@ const MealFormScreen = () => {
 										textAlign={isArabic ? "right" : "left"}
 									/>
 								</Box>
-								{}
+
 								<Box marginBottom="md">
 									<FocusableInput
 										inputRef={descInputRef}
@@ -472,7 +463,7 @@ const MealFormScreen = () => {
 										textAlignVertical="top"
 									/>
 								</Box>
-								{}
+
 								<Box marginBottom="md">
 									<CategoryField
 										label={t("meals.mealPeriod")}
@@ -483,7 +474,6 @@ const MealFormScreen = () => {
 									/>
 								</Box>
 
-								{/* Added Radio Field as dietary restrictions example */}
 								<Box marginBottom="md">
 									<RadioField
 										label="Dietary Restrictions"
@@ -496,7 +486,7 @@ const MealFormScreen = () => {
 									/>
 								</Box>
 							</Box>
-							{}
+
 							<Box card rounded="md" padding="lg" elevation="small">
 								<Box row alignItems="center" marginBottom="md">
 									<Ionicons
@@ -509,9 +499,8 @@ const MealFormScreen = () => {
 										{t("meals.details")}
 									</Text>
 								</Box>
-								{}
+
 								<Box row gap="md" marginBottom="md">
-									{}
 									<Box flex={1}>
 										<FocusableInput
 											inputRef={priceInputRef}
@@ -551,7 +540,7 @@ const MealFormScreen = () => {
 											</Text>
 										</Box>
 									</Box>
-									{}
+
 									<Box flex={1}>
 										<FocusableInput
 											inputRef={caloriesInputRef}
@@ -590,7 +579,7 @@ const MealFormScreen = () => {
 										</Box>
 									</Box>
 								</Box>
-								{}
+
 								<Box marginBottom="md">
 									<FocusableInput
 										inputRef={prepTimeInputRef}
@@ -629,7 +618,7 @@ const MealFormScreen = () => {
 										</Text>
 									</Box>
 								</Box>
-								{}
+
 								<Box marginBottom="md">
 									<FocusableInput
 										inputRef={ingredientsInputRef}
@@ -676,7 +665,7 @@ const MealFormScreen = () => {
 										onSubmitEditing={() => Keyboard.dismiss()}
 									/>
 								</Box>
-								{}
+
 								{meal.ingredients && meal.ingredients.length > 0 && (
 									<Box
 										row
@@ -700,13 +689,12 @@ const MealFormScreen = () => {
 							</Box>
 						</Animated.View>
 					)}
-					{}
+
 					{activeSection === "settings" && (
 						<Animated.View
 							entering={FadeInRight.delay(100).duration(100)}
 							key={activeSection}
 						>
-							{}
 							<Box
 								card
 								rounded="md"
@@ -726,7 +714,6 @@ const MealFormScreen = () => {
 									</Text>
 								</Box>
 
-								{/* Using SwitchField instead of the custom implementation */}
 								<SwitchField
 									value={meal.available || false}
 									onValueChange={(value) => updateField("available", value)}
@@ -748,7 +735,6 @@ const MealFormScreen = () => {
 									style={{ marginBottom: theme.spacing.md }}
 								/>
 
-								{/* Example of additional switch options */}
 								<SwitchField
 									value={meal.featured || false}
 									onValueChange={(value) => updateField("featured", value)}
@@ -757,7 +743,6 @@ const MealFormScreen = () => {
 									leftIcon="star-outline"
 									style={{ marginBottom: theme.spacing.md }}
 								/>
-
 								<SwitchField
 									value={meal.isVegan || false}
 									onValueChange={(value) => updateField("isVegan", value)}
@@ -766,7 +751,7 @@ const MealFormScreen = () => {
 									leftIcon="leaf-outline"
 								/>
 							</Box>
-							{}
+
 							{isEdit && (
 								<Box
 									bg="error"
@@ -801,7 +786,7 @@ const MealFormScreen = () => {
 							)}
 						</Animated.View>
 					)}
-					{}
+
 					<AnimatedBox
 						entering={FadeInUp.delay(300).duration(400)}
 						marginTop="lg"
@@ -831,6 +816,6 @@ const MealFormScreen = () => {
 			</View>
 		</KeyboardAvoidingView>
 	);
-};
+});
 
 export default MealFormScreen;

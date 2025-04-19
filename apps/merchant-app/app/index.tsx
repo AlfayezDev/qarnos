@@ -9,17 +9,16 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import * as Haptics from "expo-haptics";
 import React, { useState, useCallback, useMemo } from "react";
-import { FlatList, View, ScrollView } from "react-native";
+import { FlatList, ScrollView, View } from "react-native";
 import Animated, { FadeInUp } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const PREP_CARD_WIDTH = 170;
 
-const HomeScreen: React.FC = () => {
+const HomeScreen = React.memo(() => {
 	const theme = useTheme();
 	const insets = useSafeAreaInsets();
 	const { t, language } = useTranslation();
-
 	const [selectedTab, setSelectedTab] = useState("Today");
 
 	const tabItems = useMemo(() => {
@@ -68,7 +67,7 @@ const HomeScreen: React.FC = () => {
 					},
 				];
 		}
-	}, [selectedTab]);
+	}, [selectedTab, t]);
 
 	const currentDateString = useMemo(
 		() =>
@@ -77,7 +76,7 @@ const HomeScreen: React.FC = () => {
 				month: "short",
 				day: "numeric",
 			}),
-		[],
+		[language],
 	);
 
 	const handleSelectTab = useCallback(
@@ -129,7 +128,6 @@ const HomeScreen: React.FC = () => {
 						{currentDateString}
 					</Text>
 				</Box>
-
 				<AnimatedBox
 					marginHorizontal="md"
 					gap="lg"
@@ -139,10 +137,9 @@ const HomeScreen: React.FC = () => {
 						tabs={tabItems}
 						selectedTab={selectedTab}
 						onSelectTab={handleSelectTab}
-						theme={theme}
 						labelRender={(tab) => t(`dashboard.${tab.toLowerCase()}`)}
 					/>
-					<StatsGrid stats={currentStats} theme={theme} key={selectedTab} />
+					<StatsGrid stats={currentStats} key={selectedTab} />
 				</AnimatedBox>
 				<Animated.Text
 					entering={FadeInUp.duration(400)}
@@ -157,26 +154,22 @@ const HomeScreen: React.FC = () => {
 				>
 					{t("dashboard.todaysPrep")}
 				</Animated.Text>
-
 				<Animated.View entering={FadeInUp.delay(300).duration(400).damping(15)}>
 					<FlatList
 						horizontal
 						data={TODAY_PREP_SUMMARY}
 						keyExtractor={(item) => item.period}
 						showsHorizontalScrollIndicator={false}
-						contentContainerStyle={[
-							{
-								paddingHorizontal: theme.spacing.md,
-								paddingVertical: theme.spacing.sm,
-								gap: theme.spacing.sm,
-							},
-						]}
+						contentContainerStyle={{
+							paddingHorizontal: theme.spacing.md,
+							paddingVertical: theme.spacing.sm,
+							gap: theme.spacing.sm,
+						}}
 						snapToInterval={PREP_CARD_WIDTH + theme.spacing.sm}
 						decelerationRate="fast"
 						renderItem={({ item }) => (
 							<TodayPrepCard
 								summary={item}
-								theme={theme}
 								onPress={() => handleViewSchedule(item.period)}
 							/>
 						)}
@@ -184,13 +177,12 @@ const HomeScreen: React.FC = () => {
 				</Animated.View>
 				<AlertsCard
 					alerts={ALERTS}
-					theme={theme}
 					onViewAlert={handleViewAlert}
 					onViewAllAlerts={handleViewAllAlerts}
 				/>
 			</ScrollView>
 		</View>
 	);
-};
+});
 
 export default HomeScreen;

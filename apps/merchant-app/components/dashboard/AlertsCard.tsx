@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
 import Animated, {
 	FadeInUp,
 	FadeOutDown,
@@ -9,19 +9,19 @@ import Animated, {
 } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { AnimatedBox, Box, Text } from "@/components/ui";
-import { AppTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/hooks/useTheme";
 import { Alert } from "@/types";
 import { useTranslation } from "@/hooks/useTranslation";
 
 interface AlertsCardProps {
 	alerts: Alert[];
-	theme: AppTheme;
 	onViewAlert: (id: string | number) => void;
 	onViewAllAlerts?: () => void;
 }
 
-export const AlertsCard: React.FC<AlertsCardProps> = React.memo(
-	({ alerts, theme, onViewAlert, onViewAllAlerts }) => {
+export const AlertsCard = React.memo(
+	({ alerts, onViewAlert, onViewAllAlerts }: AlertsCardProps) => {
+		const theme = useTheme();
 		const { t } = useTranslation();
 		const hasAlerts = alerts.length > 0;
 
@@ -51,17 +51,15 @@ export const AlertsCard: React.FC<AlertsCardProps> = React.memo(
 						<Animated.View>
 							<Pressable
 								onPress={onViewAllAlerts}
-								style={({ pressed }) => [
-									{
-										paddingVertical: theme.spacing.xs,
-										paddingHorizontal: theme.spacing.sm,
-										borderRadius: theme.radius.sm,
-										backgroundColor: pressed
-											? theme.colors.primaryLight
-											: undefined,
-										transform: [{ scale: pressed ? 0.96 : 1 }],
-									},
-								]}
+								style={({ pressed }) => ({
+									paddingVertical: theme.spacing.xs,
+									paddingHorizontal: theme.spacing.sm,
+									borderRadius: theme.spacing.sm,
+									backgroundColor: pressed
+										? theme.colors.backgroundAlt
+										: undefined,
+									opacity: pressed ? 0.5 : 1,
+								})}
 							>
 								<Text variant="sm" color="primary" weight="medium">
 									{t("dashboard.viewAll")}
@@ -76,7 +74,6 @@ export const AlertsCard: React.FC<AlertsCardProps> = React.memo(
 							<AlertItem
 								key={alert.id}
 								alert={alert}
-								theme={theme}
 								onPress={() => onViewAlert(alert.id)}
 								isLast={index === alerts.length - 1}
 							/>
@@ -126,16 +123,16 @@ export const AlertsCard: React.FC<AlertsCardProps> = React.memo(
 
 interface AlertItemProps {
 	alert: Alert;
-	theme: AppTheme;
 	onPress: () => void;
 	isLast?: boolean;
 }
 
-const AlertItem: React.FC<AlertItemProps> = React.memo(
-	({ alert, theme, onPress, isLast = false }) => {
-		const iconColor = theme.colors[alert.type];
+const AlertItem = React.memo(
+	({ alert, onPress, isLast = false }: AlertItemProps) => {
+		const theme = useTheme();
 		const { isRTL } = useTranslation();
 		const pressed = useSharedValue(0);
+		const iconColor = theme.colors[alert.type];
 
 		const handlePressIn = () => {
 			pressed.value = withTiming(1, { duration: 100 });
@@ -164,7 +161,7 @@ const AlertItem: React.FC<AlertItemProps> = React.memo(
 			<Animated.View
 				style={[
 					{
-						borderBottomWidth: isLast ? 0 : StyleSheet.hairlineWidth,
+						borderBottomWidth: isLast ? 0 : 0.5,
 						borderBottomColor: theme.colors.divider,
 					},
 					animatedStyle,
@@ -200,7 +197,7 @@ const AlertItem: React.FC<AlertItemProps> = React.memo(
 					</View>
 					<Box
 						flex={1}
-						marginStart={"sm"}
+						marginStart="sm"
 						gap={theme.spacing.xs / 2}
 						alignItems="flex-start"
 					>
@@ -214,7 +211,7 @@ const AlertItem: React.FC<AlertItemProps> = React.memo(
 						)}
 					</Box>
 					<Box
-						marginStart={"sm"}
+						marginStart="sm"
 						paddingVertical="xs"
 						paddingHorizontal="sm"
 						rounded="xs"

@@ -10,23 +10,21 @@ import Animated, {
 } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 import { Box, Text, Badge } from "@/components/ui";
-import { AppTheme } from "@/hooks/useTheme";
 import { MealPrepSummary } from "@/types";
+import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 
 interface TodayPrepCardProps {
 	summary: MealPrepSummary;
-	theme: AppTheme;
 	onPress: () => void;
 }
 
-const MAX_MEALS_TO_SHOW = 3;
 const PREP_CARD_WIDTH = 180;
-
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-export const TodayPrepCard: React.FC<TodayPrepCardProps> = React.memo(
-	({ summary, theme, onPress }) => {
+export const TodayPrepCard = React.memo(
+	({ summary, onPress }: TodayPrepCardProps) => {
+		const theme = useTheme();
 		const { t } = useTranslation();
 		const pressed = useSharedValue(0);
 		const hovered = useSharedValue(0);
@@ -40,7 +38,11 @@ export const TodayPrepCard: React.FC<TodayPrepCardProps> = React.memo(
 		const periodColors: Record<
 			"Breakfast" | "Lunch" | "Dinner",
 			"info" | "primary" | "error"
-		> = { Breakfast: "info", Lunch: "primary", Dinner: "error" };
+		> = {
+			Breakfast: "info",
+			Lunch: "primary",
+			Dinner: "error",
+		};
 
 		const translatedPeriod = t(`periods.${summary.period.toLowerCase()}`);
 
@@ -73,23 +75,14 @@ export const TodayPrepCard: React.FC<TodayPrepCardProps> = React.memo(
 				[1, 0.95],
 				Extrapolation.CLAMP,
 			);
-
 			const opacity = interpolate(
 				pressed.value,
 				[0, 1],
 				[1, 0.5],
 				Extrapolation.CLAMP,
 			);
-
-			const translateY = interpolate(
-				pressed.value,
-				[0, 1],
-				[0, 2],
-				Extrapolation.CLAMP,
-			);
-
 			return {
-				transform: [{ scale }, { translateY }],
+				transform: [{ scale }],
 				opacity,
 			};
 		});
@@ -121,28 +114,23 @@ export const TodayPrepCard: React.FC<TodayPrepCardProps> = React.memo(
 				>
 					<Box row alignCenter marginBottom="sm">
 						<Ionicons
-							name={periodIcons[summary.period] as any}
+							name={
+								periodIcons[summary.period as keyof typeof periodIcons] as any
+							}
 							size={theme.sizes.iconSm}
-							color={theme.colors[periodColors[summary.period]]}
+							color={
+								theme.colors[
+									periodColors[summary.period as keyof typeof periodColors]
+								]
+							}
 							style={{ marginEnd: theme.spacing.sm }}
 						/>
 						<Text variant="md" weight="semibold">
 							{translatedPeriod}
 						</Text>
 					</Box>
-
-					<Text
-						variant="sm"
-						weight="medium"
-						color="textSecondary"
-						marginBottom="xs"
-						style={{ alignSelf: "flex-start" }}
-					>
-						{t("dashboard.prepList")}
-					</Text>
-
-					<Box marginTop="xs" flex={1} gap={"sm"}>
-						{summary.mealsToPrep.slice(0, MAX_MEALS_TO_SHOW).map((meal) => (
+					<Box marginTop="xs" flex={1} gap="sm">
+						{summary.mealsToPrep.slice(0, 3).map((meal) => (
 							<Box
 								key={meal.id}
 								row
@@ -165,7 +153,6 @@ export const TodayPrepCard: React.FC<TodayPrepCardProps> = React.memo(
 							</Box>
 						))}
 					</Box>
-
 					<Box
 						row
 						justifyContent="space-between"
@@ -174,7 +161,9 @@ export const TodayPrepCard: React.FC<TodayPrepCardProps> = React.memo(
 					>
 						<Badge
 							text={`${summary.totalMeals} ${t("common.total")}`}
-							variant={periodColors[summary.period]}
+							variant={
+								periodColors[summary.period as keyof typeof periodColors]
+							}
 							size="sm"
 						/>
 					</Box>

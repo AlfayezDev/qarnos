@@ -2,10 +2,10 @@ import { Text } from "@/components/ui/Text";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useTheme } from "@/hooks/useTheme";
 import { Ionicons } from "@expo/vector-icons";
-import React, { memo, useCallback } from "react";
+import React, { useCallback } from "react";
 import { TouchableOpacity, View } from "react-native";
 
-export const LanguageSelector: React.FC = memo(() => {
+export const LanguageSelector = React.memo(() => {
 	const { language, changeLanguage } = useLanguage();
 	const theme = useTheme();
 
@@ -54,7 +54,7 @@ export const LanguageSelector: React.FC = memo(() => {
 									? theme.colors.background
 									: theme.colors.primary
 							}
-							style={{ marginRight: theme.spacing.xs }}
+							style={{ marginEnd: theme.spacing.xs }}
 						/>
 						<Text
 							variant="md"
@@ -98,7 +98,7 @@ export const LanguageSelector: React.FC = memo(() => {
 									? theme.colors.background
 									: theme.colors.primary
 							}
-							style={{ marginRight: theme.spacing.xs }}
+							style={{ marginEnd: theme.spacing.xs }}
 						/>
 						<Text
 							variant="md"

@@ -2,7 +2,7 @@ import React from "react";
 import { Pressable } from "react-native";
 import { Box } from "./Box";
 import { Text } from "./Text";
-import { AppTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/hooks/useTheme";
 import * as Haptics from "expo-haptics";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -19,12 +19,13 @@ interface TabsProps {
 	tabs: TabType[];
 	selectedTab: string;
 	onSelectTab: (tab: string) => void;
-	theme: AppTheme;
 	labelRender?: (tab: string) => string;
 }
 
-export const Tabs: React.FC<TabsProps> = React.memo(
-	({ tabs, selectedTab, onSelectTab, theme, labelRender }) => {
+export const Tabs = React.memo(
+	({ tabs, selectedTab, onSelectTab, labelRender }: TabsProps) => {
+		const theme = useTheme();
+
 		const handlePress = (tab: TabType) => {
 			const tabKey = typeof tab === "string" ? tab : tab.key;
 			if (tabKey !== selectedTab) {
@@ -46,38 +47,32 @@ export const Tabs: React.FC<TabsProps> = React.memo(
 		};
 
 		return (
-			<Box row bg={theme.colors.backgroundAlt} rounded={"md"} padding={"xs"}>
+			<Box row bg={theme.colors.backgroundAlt} rounded="md" padding="xs">
 				{tabs.map((tab) => {
 					const isSelected = isTabSelected(tab);
 					const tabKey = typeof tab === "string" ? tab : tab.key;
-
 					return (
 						<Pressable
 							key={tabKey}
-							style={({ pressed }) => [
-								{
-									flex: 1,
-									paddingVertical: 8,
-									paddingHorizontal: 12,
-									alignItems: "center",
-									justifyContent: "center",
-									flexDirection: "row",
-									borderRadius: theme.radius.sm,
-								},
-								isSelected && {
-									backgroundColor: theme.colors.card,
-									shadowOffset: { width: 0, height: 1 },
-									shadowOpacity: 0.1,
-									shadowRadius: 2,
-									elevation: 2,
-									shadowColor: theme.colors.shadow,
-								},
-								pressed && { opacity: 0.5 },
-							]}
+							style={({ pressed }) => ({
+								flex: 1,
+								paddingVertical: 8,
+								paddingHorizontal: 12,
+								alignItems: "center",
+								justifyContent: "center",
+								flexDirection: "row",
+								borderRadius: theme.radius.sm,
+								backgroundColor: isSelected ? theme.colors.card : undefined,
+								shadowOffset: isSelected ? { width: 0, height: 1 } : undefined,
+								shadowOpacity: isSelected ? 0.1 : undefined,
+								shadowRadius: isSelected ? 2 : undefined,
+								elevation: isSelected ? 2 : undefined,
+								shadowColor: isSelected ? theme.colors.shadow : undefined,
+								opacity: pressed ? 0.5 : 1,
+							})}
 							onPress={() => handlePress(tab)}
 							android_ripple={{ color: theme.colors.overlay, borderless: true }}
 						>
-							{/* Left Icon */}
 							{typeof tab !== "string" && tab.iconLeft && (
 								<Ionicons
 									name={tab.iconLeft as any}
@@ -87,11 +82,9 @@ export const Tabs: React.FC<TabsProps> = React.memo(
 											? theme.colors.primary
 											: theme.colors.textSecondary
 									}
-									style={{ marginRight: theme.spacing.xs }}
+									style={{ marginEnd: theme.spacing.xs }}
 								/>
 							)}
-
-							{/* Label */}
 							<Text
 								variant="sm"
 								weight={isSelected ? "semibold" : "medium"}
@@ -99,8 +92,6 @@ export const Tabs: React.FC<TabsProps> = React.memo(
 							>
 								{getTabLabel(tab)}
 							</Text>
-
-							{/* Right Icon */}
 							{typeof tab !== "string" && tab.iconRight && (
 								<Ionicons
 									name={tab.iconRight as any}
@@ -110,7 +101,7 @@ export const Tabs: React.FC<TabsProps> = React.memo(
 											? theme.colors.primary
 											: theme.colors.textSecondary
 									}
-									style={{ marginLeft: theme.spacing.xs }}
+									style={{ marginStart: theme.spacing.xs }}
 								/>
 							)}
 						</Pressable>

@@ -108,7 +108,6 @@ const FocusableInput = forwardRef<TextInput, FocusableInputProps>(
 			focusProgress.value = withTiming(isFocused ? 1 : 0, {
 				duration: 200,
 			});
-
 			if (isFocused) {
 				if (Platform.OS !== "android") {
 					Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
@@ -122,7 +121,6 @@ const FocusableInput = forwardRef<TextInput, FocusableInputProps>(
 			errorProgress.value = withTiming(hasError ? 1 : 0, {
 				duration: 200,
 			});
-
 			if (hasError && errorProgress.value === 0) {
 				Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(
 					() => {},
@@ -134,7 +132,6 @@ const FocusableInput = forwardRef<TextInput, FocusableInputProps>(
 			const shadowOpacity = hasError
 				? errorProgress.value * 0.3
 				: focusProgress.value * 0.15;
-
 			return {
 				marginBottom: hasError
 					? theme.spacing.md
@@ -162,7 +159,6 @@ const FocusableInput = forwardRef<TextInput, FocusableInputProps>(
 						[0, 1],
 						[theme.colors.divider, theme.colors.primary],
 					);
-
 			const translateX = hasError
 				? withSpring(0, {
 						velocity: errorProgress.value > 0.5 ? 0 : 10,
@@ -170,7 +166,6 @@ const FocusableInput = forwardRef<TextInput, FocusableInputProps>(
 						stiffness: 300,
 					})
 				: 0;
-
 			return {
 				borderColor,
 				borderWidth: hasError ? 1.5 : 1,
@@ -225,14 +220,13 @@ const FocusableInput = forwardRef<TextInput, FocusableInputProps>(
 								variant="sm"
 								weight="semibold"
 								color="error"
-								style={{ marginLeft: theme.spacing.xs / 2 }}
+								style={{ marginStart: theme.spacing.xs / 2 }}
 							>
 								*
 							</Text>
 						)}
 					</View>
 				)}
-
 				<TouchableWithoutFeedback onPress={focusInput}>
 					<Animated.View style={containerAnimatedStyle}>
 						<AnimatedTextInput
@@ -260,7 +254,6 @@ const FocusableInput = forwardRef<TextInput, FocusableInputProps>(
 						/>
 					</Animated.View>
 				</TouchableWithoutFeedback>
-
 				{hasError && (
 					<Text
 						variant="xs"

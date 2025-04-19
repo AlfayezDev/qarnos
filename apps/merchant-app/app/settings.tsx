@@ -23,11 +23,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-export default function SettingsScreen() {
+const SettingsScreen = React.memo(() => {
 	const theme = useTheme();
 	const insets = useSafeAreaInsets();
 	const { t } = useTranslation();
-
 	const restaurantName = "The Gourmet Spot";
 
 	const handleThemeChange = useCallback((newTheme: "light" | "dark") => {
@@ -36,112 +35,118 @@ export default function SettingsScreen() {
 		console.log("Theme changed to:", newTheme);
 	}, []);
 
-	const ThemeOption = ({
-		option,
-	}: { option: { key: "light" | "dark"; icon: string; label: string } }) => {
-		const isSelected = theme.mode === option.key;
+	const ThemeOption = React.memo(
+		({
+			option,
+		}: { option: { key: "light" | "dark"; icon: string; label: string } }) => {
+			const theme = useTheme();
+			const isSelected = theme.mode === option.key;
 
-		const animatedStyle = useAnimatedStyle(() => {
-			return {
-				backgroundColor: withTiming(
-					isSelected ? theme.colors.primaryLight : theme.colors.backgroundAlt,
-					{ duration: 200 },
-				),
-				borderColor: withTiming(
-					isSelected ? theme.colors.primary : theme.colors.divider,
-					{ duration: 200 },
-				),
-				transform: [
-					{ scale: withTiming(isSelected ? 1.0 : 0.98, { duration: 150 }) },
-				],
-				opacity: withTiming(isSelected ? 1 : 0.8, { duration: 200 }),
-			};
-		});
+			const animatedStyle = useAnimatedStyle(() => {
+				return {
+					backgroundColor: withTiming(
+						isSelected ? theme.colors.primaryLight : theme.colors.backgroundAlt,
+						{ duration: 200 },
+					),
+					borderColor: withTiming(
+						isSelected ? theme.colors.primary : theme.colors.divider,
+						{ duration: 200 },
+					),
+					transform: [
+						{ scale: withTiming(isSelected ? 1.0 : 0.98, { duration: 150 }) },
+					],
+					opacity: withTiming(isSelected ? 1 : 0.8, { duration: 200 }),
+				};
+			});
 
-		const iconColor = isSelected
-			? theme.colors.primary
-			: theme.colors.textSecondary;
-		const textColor = isSelected
-			? theme.colors.primary
-			: theme.colors.textSecondary;
+			const iconColor = isSelected
+				? theme.colors.primary
+				: theme.colors.textSecondary;
 
-		return (
-			<AnimatedPressable
-				key={option.key}
-				style={[
-					{
-						flex: 1,
-						marginHorizontal: theme.spacing.xs,
-						paddingVertical: theme.spacing.md,
-						paddingHorizontal: theme.spacing.sm,
-						borderRadius: theme.radius.lg,
-						borderWidth: 2,
-						alignItems: "center" as const,
-						justifyContent: "center" as const,
-						minHeight: theme.sizes.buttonLg * 1.8,
-					},
-					animatedStyle,
-				]}
-				onPress={() => handleThemeChange(option.key)}
-				accessible={true}
-				accessibilityRole="button"
-				accessibilityLabel={`Set theme to ${option.label}`}
-				accessibilityState={{ selected: isSelected }}
-			>
-				<Ionicons
-					name={option.icon as any}
-					size={theme.sizes.iconLg}
-					color={iconColor}
-					style={{ marginBottom: theme.spacing.sm }}
-				/>
-				<Text variant="sm" weight="semibold" color={textColor}>
-					{option.label}
-				</Text>
-			</AnimatedPressable>
-		);
-	};
+			const textColor = isSelected
+				? theme.colors.primary
+				: theme.colors.textSecondary;
+
+			return (
+				<AnimatedPressable
+					key={option.key}
+					style={[
+						{
+							flex: 1,
+							marginHorizontal: theme.spacing.xs,
+							paddingVertical: theme.spacing.md,
+							paddingHorizontal: theme.spacing.sm,
+							borderRadius: theme.radius.lg,
+							borderWidth: 2,
+							alignItems: "center",
+							justifyContent: "center",
+							minHeight: theme.sizes.buttonLg * 1.8,
+						},
+						animatedStyle,
+					]}
+					onPress={() => handleThemeChange(option.key)}
+					accessible={true}
+					accessibilityRole="button"
+					accessibilityLabel={`Set theme to ${option.label}`}
+					accessibilityState={{ selected: isSelected }}
+				>
+					<Ionicons
+						name={option.icon as any}
+						size={theme.sizes.iconLg}
+						color={iconColor}
+						style={{ marginBottom: theme.spacing.sm }}
+					/>
+					<Text variant="sm" weight="semibold" color={textColor}>
+						{option.label}
+					</Text>
+				</AnimatedPressable>
+			);
+		},
+	);
 
 	const themeOptions = [
 		{ key: "light", icon: "sunny-outline", label: t("settings.lightMode") },
 		{ key: "dark", icon: "moon-outline", label: t("settings.darkMode") },
 	] as const;
 
-	const SettingsSection = ({
-		title,
-		icon,
-		children,
-		delay,
-	}: {
-		title: string;
-		icon: any;
-		children: React.ReactNode;
-		delay: number;
-	}) => (
-		<AnimatedBox
-			entering={FadeInUp.delay(delay).duration(500).springify().damping(18)}
-			layout={LinearTransition.duration(300)}
-			padding="lg"
-			marginBottom="lg"
-			bg="card"
-			rounded="xl"
-			style={{
-				borderWidth: 1,
-				borderColor: theme.colors.divider,
-			}}
-		>
-			<Box row alignCenter marginBottom="md">
-				<Ionicons
-					name={icon}
-					size={theme.sizes.iconSm}
-					color={theme.colors.primary}
-					style={{ marginEnd: theme.spacing.sm }}
-				/>
-				<Text variant="lg" weight="semibold" color="textSecondary">
-					{title}
-				</Text>
-			</Box>
-			{children}
-		</AnimatedBox>
+	const SettingsSection = React.memo(
+		({
+			title,
+			icon,
+			children,
+			delay,
+		}: {
+			title: string;
+			icon: any;
+			children: React.ReactNode;
+			delay: number;
+		}) => (
+			<AnimatedBox
+				entering={FadeInUp.delay(delay).duration(500).springify().damping(18)}
+				layout={LinearTransition.duration(300)}
+				padding="lg"
+				marginBottom="lg"
+				bg="card"
+				rounded="xl"
+				style={{
+					borderWidth: 1,
+					borderColor: theme.colors.divider,
+				}}
+			>
+				<Box row alignCenter marginBottom="md">
+					<Ionicons
+						name={icon}
+						size={theme.sizes.iconSm}
+						color={theme.colors.primary}
+						style={{ marginEnd: theme.spacing.sm }}
+					/>
+					<Text variant="lg" weight="semibold" color="textSecondary">
+						{title}
+					</Text>
+				</Box>
+				{children}
+			</AnimatedBox>
+		),
 	);
 
 	return (
@@ -153,7 +158,6 @@ export default function SettingsScreen() {
 			}}
 		>
 			<Stack.Screen options={{ headerShown: false }} />
-
 			<Box
 				row
 				alignItems="center"
@@ -167,7 +171,6 @@ export default function SettingsScreen() {
 					{t("common.settings")}
 				</Text>
 			</Box>
-
 			<ScrollView
 				contentContainerStyle={{
 					paddingHorizontal: theme.spacing.md,
@@ -204,7 +207,6 @@ export default function SettingsScreen() {
 						color={theme.colors.textMuted}
 					/>
 				</AnimatedBox>
-
 				<SettingsSection
 					title={t("settings.language")}
 					icon="language-outline"
@@ -212,7 +214,6 @@ export default function SettingsScreen() {
 				>
 					<LanguageSelector />
 				</SettingsSection>
-
 				<SettingsSection
 					title={t("settings.theme")}
 					icon="color-palette-outline"
@@ -229,7 +230,6 @@ export default function SettingsScreen() {
 						))}
 					</View>
 				</SettingsSection>
-
 				<SettingsSection
 					title={t("settings.appInfo")}
 					icon="information-circle-outline"
@@ -244,7 +244,6 @@ export default function SettingsScreen() {
 						</Text>
 					</Box>
 				</SettingsSection>
-
 				<AnimatedBox
 					entering={FadeInUp.delay(500).duration(500).springify().damping(18)}
 				>
@@ -281,4 +280,6 @@ export default function SettingsScreen() {
 			</ScrollView>
 		</View>
 	);
-}
+});
+
+export default SettingsScreen;

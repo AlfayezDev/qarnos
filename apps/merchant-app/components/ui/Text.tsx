@@ -84,8 +84,7 @@ export const Text: React.FC<TextProps> = memo(
 			return colorProp;
 		};
 
-		// Determine text alignment based on RTL and center props
-		const textAlign = center ? "center" : align; // Let React Native handle text alignment based on RTL
+		const textAlign = center ? "center" : align;
 
 		const textStyle: TextStyle = {
 			fontSize: theme.typography.sizes[variant],

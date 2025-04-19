@@ -1,26 +1,16 @@
+import React from "react";
 import { AnimatedBox, Text } from "@/components/ui";
-import { AppTheme } from "@/hooks/useTheme";
-import React, { memo } from "react";
-import { EdgeInsets } from "react-native-safe-area-context";
+import { useTheme } from "@/hooks/useTheme";
 
 interface DashboardHeaderProps {
-	theme: AppTheme;
-	insets: EdgeInsets;
-	animatedStyle: any;
 	currentDateString: string;
-	onSettingsPress: () => void;
-	headerHeight: number;
+	animatedStyle: any;
 }
 
-export const DashboardHeader: React.FC<DashboardHeaderProps> = memo(
-	({
-		theme,
-		insets,
-		animatedStyle,
-		currentDateString,
-		onSettingsPress,
-		headerHeight,
-	}) => {
+export const DashboardHeader = React.memo(
+	({ currentDateString, animatedStyle }: DashboardHeaderProps) => {
+		const theme = useTheme();
+
 		return (
 			<AnimatedBox
 				row
