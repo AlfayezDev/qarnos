@@ -80,14 +80,12 @@ const MealFormScreen = () => {
 		isVegan: false,
 	});
 
-	// Category options for meal period
 	const periodOptions = [
 		{ value: "Breakfast", label: t("periods.breakfast"), icon: "cafe-outline" },
 		{ value: "Lunch", label: t("periods.lunch"), icon: "restaurant-outline" },
 		{ value: "Dinner", label: t("periods.dinner"), icon: "fast-food-outline" },
 	];
 
-	// Dietary restrictions options for radio field demo
 	const dietaryOptions = [
 		{
 			value: "none",
@@ -120,9 +118,7 @@ const MealFormScreen = () => {
 		}
 	}, [mealId, isEdit]);
 
-	// Add an effect to auto-focus the first field after initial load
 	useEffect(() => {
-		// Wait for component to mount before attempting to focus
 		const timer = setTimeout(() => {
 			if (!isEdit && nameInputRef.current) {
 				nameInputRef.current.focus();
@@ -166,14 +162,13 @@ const MealFormScreen = () => {
 		}, 1000);
 	};
 
-	// Handle enter key press to advance to next field
 	const handleSubmitEditing = (
 		nextInput: React.RefObject<TextInput | null>,
 	) => {
 		if (nextInput?.current) {
 			setTimeout(() => {
 				nextInput.current?.focus();
-			}, 50); // Small delay to ensure proper focus sequence
+			}, 50);
 		} else {
 			Keyboard.dismiss();
 		}
@@ -196,7 +191,6 @@ const MealFormScreen = () => {
 	const updateField = (field: keyof Meal, value: any) => {
 		setMeal((prev) => ({ ...prev, [field]: value }));
 
-		// Clear error when updating a field
 		if (errors[field]) {
 			setErrors((prev) => ({ ...prev, [field]: "" }));
 		}
@@ -546,7 +540,7 @@ const MealFormScreen = () => {
 											style={{
 												position: "absolute",
 												left: theme.spacing.md,
-												top: 28, // Adjusted for label
+												top: 28,
 												bottom: 0,
 												justifyContent: "center",
 												zIndex: 1,
@@ -584,7 +578,7 @@ const MealFormScreen = () => {
 											style={{
 												position: "absolute",
 												right: theme.spacing.md,
-												top: 28, // Adjusted for label
+												top: 28,
 												bottom: 0,
 												justifyContent: "center",
 												zIndex: 1,
@@ -624,7 +618,7 @@ const MealFormScreen = () => {
 										style={{
 											position: "absolute",
 											right: theme.spacing.md,
-											top: 28, // Adjusted for label
+											top: 28,
 											bottom: 0,
 											justifyContent: "center",
 											zIndex: 1,

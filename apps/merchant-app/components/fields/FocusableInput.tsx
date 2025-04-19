@@ -123,7 +123,6 @@ const FocusableInput = forwardRef<TextInput, FocusableInputProps>(
 				duration: 200,
 			});
 
-			// Apply error haptic feedback when error first appears
 			if (hasError && errorProgress.value === 0) {
 				Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(
 					() => {},
@@ -164,7 +163,6 @@ const FocusableInput = forwardRef<TextInput, FocusableInputProps>(
 						[theme.colors.divider, theme.colors.primary],
 					);
 
-			// Error shake animation when error first appears
 			const translateX = hasError
 				? withSpring(0, {
 						velocity: errorProgress.value > 0.5 ? 0 : 10,
@@ -175,7 +173,7 @@ const FocusableInput = forwardRef<TextInput, FocusableInputProps>(
 
 			return {
 				borderColor,
-				borderWidth: hasError ? 1.5 : 1, // Slightly thicker border for errors
+				borderWidth: hasError ? 1.5 : 1,
 				paddingHorizontal: theme.spacing.md,
 				paddingVertical: multiline ? theme.spacing.sm : 0,
 				color: editable ? theme.colors.text : theme.colors.textSecondary,

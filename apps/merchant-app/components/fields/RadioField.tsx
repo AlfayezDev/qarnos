@@ -53,16 +53,13 @@ export const RadioField: React.FC<RadioFieldProps> = ({
 	const hasError = !!error;
 	const errorAnimation = useSharedValue(0);
 
-	// Trigger error animation when error changes
 	React.useEffect(() => {
 		if (hasError) {
 			setErrorShake(true);
 			errorAnimation.value = withTiming(1, { duration: 300 });
 
-			// Add error haptic feedback
 			Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
 
-			// Reset shake after animation completes
 			setTimeout(() => {
 				setErrorShake(false);
 			}, 800);
@@ -72,7 +69,6 @@ export const RadioField: React.FC<RadioFieldProps> = ({
 	}, [error, hasError]);
 
 	const containerAnimatedStyle = useAnimatedStyle(() => {
-		// Add shake animation for error
 		const translateX = errorShake
 			? withSpring(0, {
 					velocity: 10,
@@ -81,7 +77,6 @@ export const RadioField: React.FC<RadioFieldProps> = ({
 				})
 			: 0;
 
-		// Add error styles
 		const borderColor = hasError ? theme.colors.error : "transparent";
 		const borderWidth = hasError ? 2 : 0;
 		const backgroundColor = hasError
@@ -261,7 +256,7 @@ const RadioOption: React.FC<RadioOptionProps> = ({
 	return (
 		<Animated.View style={[containerStyle, animatedStyle]}>
 			<TouchableOpacity
-				activeOpacity={1} // We're handling the opacity animation ourselves
+				activeOpacity={1}
 				onPress={onSelect}
 				onPressIn={handlePressIn}
 				onPressOut={handlePressOut}

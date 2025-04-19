@@ -50,10 +50,8 @@ export const CategoryField: React.FC<CategoryFieldProps> = ({
 	const hasError = !!error;
 	const errorAnim = useSharedValue(0);
 
-	// Handle error animation
 	React.useEffect(() => {
 		if (hasError) {
-			// Error animation sequence with haptics
 			Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
 			errorAnim.value = 0;
 			errorAnim.value = withTiming(1, { duration: 300 });
@@ -73,7 +71,6 @@ export const CategoryField: React.FC<CategoryFieldProps> = ({
 	);
 
 	const containerAnimStyle = useAnimatedStyle(() => {
-		// Shake animation for error
 		const translateX = hasError
 			? withSpring(0, {
 					velocity: errorAnim.value > 0.5 ? 0 : 10,
@@ -82,12 +79,10 @@ export const CategoryField: React.FC<CategoryFieldProps> = ({
 				})
 			: 0;
 
-		// Background tint for error
 		const backgroundColor = hasError
 			? `${theme.colors.error}10`
 			: "transparent";
 
-		// Border for error
 		const borderColor = hasError ? theme.colors.error : "transparent";
 		const borderWidth = hasError ? 1.5 : 0;
 
@@ -203,10 +198,8 @@ const CategoryOption: React.FC<CategoryOptionProps> = ({
 	};
 
 	const containerAnimatedStyle = useAnimatedStyle(() => {
-		// Scale animation when pressed
 		const scale = 0.96 + (1 - 0.96) * (1 - pressedValue.value);
 
-		// Background color animation
 		const backgroundColor =
 			hasError && !isSelected
 				? interpolateColor(
@@ -220,7 +213,6 @@ const CategoryOption: React.FC<CategoryOptionProps> = ({
 						["transparent", theme.colors.card],
 					);
 
-		// Border color for error state
 		const borderColor =
 			hasError && !isSelected
 				? theme.colors.error
@@ -228,7 +220,6 @@ const CategoryOption: React.FC<CategoryOptionProps> = ({
 					? theme.colors.primary
 					: "transparent";
 
-		// Shadow animation
 		const elevation = selectedValue.value * 2;
 		const shadowOpacity = selectedValue.value * 0.15;
 
@@ -260,7 +251,6 @@ const CategoryOption: React.FC<CategoryOptionProps> = ({
 	});
 
 	const textAnimatedStyle = useAnimatedStyle(() => {
-		// Text color animation
 		const color = interpolateColor(
 			selectedValue.value,
 			[0, 1],

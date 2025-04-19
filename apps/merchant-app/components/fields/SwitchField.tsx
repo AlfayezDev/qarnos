@@ -52,7 +52,6 @@ export const SwitchField: React.FC<SwitchFieldProps> = ({
 
 	useEffect(() => {
 		if (hasError) {
-			// Error animation sequence
 			Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
 			pressedValue.value = withTiming(1, { duration: 100 });
 			setTimeout(() => {
@@ -83,7 +82,6 @@ export const SwitchField: React.FC<SwitchFieldProps> = ({
 	const containerAnimatedStyle = useAnimatedStyle(() => {
 		const scale = interpolate(pressedValue.value, [0, 1], [1, 0.98]);
 
-		// Add shake animation for error state
 		const translateX = hasError
 			? withSpring(0, {
 					velocity: pressedValue.value > 0.5 ? 0 : 5,
@@ -91,12 +89,10 @@ export const SwitchField: React.FC<SwitchFieldProps> = ({
 				})
 			: 0;
 
-		// Add error background tint
 		const backgroundColor = hasError
 			? `${theme.colors.error}10`
 			: "transparent";
 
-		// Add error border
 		const borderColor = hasError ? theme.colors.error : "transparent";
 		const borderWidth = hasError ? 1 : 0;
 		const borderRadius = theme.radius.md;
@@ -112,17 +108,13 @@ export const SwitchField: React.FC<SwitchFieldProps> = ({
 		};
 	});
 
-	// This will handle the switch being toggled directly
 	const handleSwitchValueChange = () => {
 		if (!disabled) {
-			// Apply haptic feedback
 			Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
-			// Handle press animation
 			handlePressIn();
 			setTimeout(() => handlePressOut(), 200);
 
-			// Update the value
 			onValueChange(!value);
 		}
 	};
