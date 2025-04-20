@@ -18,6 +18,7 @@ export const useTheme = () => {
 		typography: theme.typography,
 		shadows: theme.shadows,
 		platform: theme.platform,
+		animations: theme.animations,
 		navTheme: {
 			...navTheme,
 			colors: {

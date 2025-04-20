@@ -1,4 +1,5 @@
 import { colors } from "./colors";
+import { animations } from "./animations";
 import { spacing } from "./spacing";
 import { radius } from "./radius";
 import { typography } from "./typography";
@@ -17,4 +18,5 @@ export const theme = {
 	sizes,
 	shadows,
 	platform,
+	animations,
 };

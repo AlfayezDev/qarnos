@@ -1,24 +1,25 @@
+import { LanguageSelector } from "@/components/LanguageSelector";
+import { AnimatedBox, Avatar, Box, Text } from "@/components/ui";
+import { useTheme } from "@/hooks/useTheme";
+import { useTranslation } from "@/hooks/useTranslation";
+import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
+import { Stack } from "expo-router";
 import React, { useCallback } from "react";
 import {
+	Appearance,
+	Pressable,
+	ScrollView,
 	TouchableOpacity,
 	View,
-	Appearance,
-	ScrollView,
-	Pressable,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { Stack } from "expo-router";
-import { useTheme } from "@/hooks/useTheme";
-import { Text, Box, AnimatedBox, Avatar } from "@/components/ui";
-import { useTranslation } from "@/hooks/useTranslation";
-import { LanguageSelector } from "@/components/LanguageSelector";
 import Animated, {
 	FadeInUp,
 	useAnimatedStyle,
 	withTiming,
 	LinearTransition,
+	FadeOutDown,
 } from "react-native-reanimated";
-import * as Haptics from "expo-haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -114,15 +115,17 @@ const SettingsScreen = React.memo(() => {
 			title,
 			icon,
 			children,
-			delay,
 		}: {
 			title: string;
 			icon: any;
 			children: React.ReactNode;
-			delay: number;
 		}) => (
 			<AnimatedBox
-				entering={FadeInUp.delay(delay).duration(500).springify().damping(18)}
+				entering={FadeInUp.delay(theme.animations.delay.staggered.medium)
+					.duration(theme.animations.duration.extraSlow)
+					.springify()
+					.damping(theme.animations.spring.damping.light)}
+				exiting={FadeOutDown.duration(theme.animations.duration.medium)}
 				layout={LinearTransition.duration(300)}
 				padding="lg"
 				marginBottom="lg"
@@ -179,7 +182,11 @@ const SettingsScreen = React.memo(() => {
 				showsVerticalScrollIndicator={false}
 			>
 				<AnimatedBox
-					entering={FadeInUp.delay(100).duration(500).springify().damping(18)}
+					entering={FadeInUp.delay(theme.animations.delay.staggered.medium)
+						.duration(theme.animations.duration.extraSlow)
+						.springify()
+						.damping(theme.animations.spring.damping.light)}
+					exiting={FadeOutDown.duration(theme.animations.duration.medium)}
 					row
 					alignCenter
 					bg="card"
@@ -207,17 +214,12 @@ const SettingsScreen = React.memo(() => {
 						color={theme.colors.textMuted}
 					/>
 				</AnimatedBox>
-				<SettingsSection
-					title={t("settings.language")}
-					icon="language-outline"
-					delay={200}
-				>
+				<SettingsSection title={t("settings.language")} icon="language-outline">
 					<LanguageSelector />
 				</SettingsSection>
 				<SettingsSection
 					title={t("settings.theme")}
 					icon="color-palette-outline"
-					delay={300}
 				>
 					<View
 						style={{
@@ -233,7 +235,6 @@ const SettingsScreen = React.memo(() => {
 				<SettingsSection
 					title={t("settings.appInfo")}
 					icon="information-circle-outline"
-					delay={400}
 				>
 					<Box row justifyContent="space-between" alignItems="center">
 						<Text variant="md" weight="medium" color="textSecondary">
@@ -245,7 +246,11 @@ const SettingsScreen = React.memo(() => {
 					</Box>
 				</SettingsSection>
 				<AnimatedBox
-					entering={FadeInUp.delay(500).duration(500).springify().damping(18)}
+					entering={FadeInUp.delay(theme.animations.delay.staggered.medium)
+						.duration(theme.animations.duration.extraSlow)
+						.springify()
+						.damping(theme.animations.spring.damping.light)}
+					exiting={FadeOutDown.duration(theme.animations.duration.medium)}
 				>
 					<TouchableOpacity
 						style={{

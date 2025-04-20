@@ -32,8 +32,11 @@ export const StatsGrid = React.memo(({ stats }: StatsGridProps) => {
 			{stats.map((stat) => (
 				<AnimatedBox
 					key={stat.title}
-					entering={FadeInUp.duration(300)}
-					exiting={FadeOutDown.duration(200)}
+					entering={FadeInUp.delay(theme.animations.delay.staggered.medium)
+						.duration(theme.animations.duration.extraSlow)
+						.springify()
+						.damping(theme.animations.spring.damping.light)}
+					exiting={FadeOutDown.duration(theme.animations.duration.medium)}
 					layout={LinearTransition.duration(300)}
 					flex={1}
 				>

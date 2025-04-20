@@ -96,7 +96,6 @@ const MealScreen = () => {
 					tabs={periods}
 					selectedTab={selectedPeriod}
 					onSelectTab={handleSelectPeriod}
-					theme={theme}
 					labelRender={(tab) => t(`periods.${tab.toLowerCase()}`)}
 				/>
 			</AnimatedBox>
@@ -125,19 +124,22 @@ const MealCard = (props: { item: Meal }) => {
 	const { language } = useTranslation();
 	const theme = useTheme();
 	const isArabic = language === "ar";
-
 	return (
 		<Animated.View
-			layout={LinearTransition.springify().damping(15)}
-			entering={FadeIn.duration(300)}
+			layout={LinearTransition.springify().damping(
+				theme.animations.spring.damping.light,
+			)}
+			entering={FadeIn.duration(theme.animations.duration.slow)}
 			style={{ marginBottom: theme.spacing.md }}
 		>
 			<Link asChild href={`/meals/${item.id}`}>
 				<Pressable
 					onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
 					style={({ pressed }) => ({
-						opacity: pressed ? 0.9 : 1,
-						transform: [{ scale: pressed ? 0.98 : 1 }],
+						opacity: pressed ? theme.animations.scale.pressedSmall : 1,
+						transform: [
+							{ scale: pressed ? theme.animations.scale.pressed : 1 },
+						],
 					})}
 				>
 					<Card padding="none" elevation="small">
@@ -145,7 +147,7 @@ const MealCard = (props: { item: Meal }) => {
 							<Image
 								source={{ uri: item.image }}
 								style={{
-									height: 140,
+									height: theme.sizes.mealCardImageHeight,
 									width: "100%",
 									borderTopLeftRadius: theme.radius.card,
 									borderTopRightRadius: theme.radius.card,

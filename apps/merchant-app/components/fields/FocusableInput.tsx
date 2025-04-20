@@ -175,8 +175,8 @@ const FocusableInput = forwardRef<TextInput, FocusableInputProps>(
 			const translateX = hasError
 				? withSpring(0, {
 						velocity: errorProgress.value > 0.5 ? 0 : 10,
-						damping: 8,
-						stiffness: 300,
+						damping: theme.animations.spring.damping.medium,
+						stiffness: theme.animations.spring.stiffness.medium,
 					})
 				: 0;
 			return {

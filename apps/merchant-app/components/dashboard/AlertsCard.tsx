@@ -27,8 +27,11 @@ export const AlertsCard = React.memo(
 
 		return (
 			<AnimatedBox
-				entering={FadeInUp.delay(350).duration(400).springify().damping(15)}
-				exiting={FadeOutDown.duration(200)}
+				entering={FadeInUp.delay(theme.animations.delay.staggered.medium)
+					.duration(theme.animations.duration.extraSlow)
+					.springify()
+					.damping(theme.animations.spring.damping.light)}
+				exiting={FadeOutDown.duration(theme.animations.duration.medium)}
 				card
 				rounded="sm"
 				marginHorizontal="md"
@@ -135,25 +138,41 @@ const AlertItem = React.memo(
 		const iconColor = theme.colors[alert.type];
 
 		const handlePressIn = () => {
-			pressed.value = withTiming(1, { duration: 100 });
+			pressed.value = withTiming(1, {
+				duration: theme.animations.duration.fast,
+			});
 		};
 
 		const handlePressOut = () => {
-			pressed.value = withTiming(0, { duration: 200 });
+			pressed.value = withTiming(0, {
+				duration: theme.animations.duration.medium,
+			});
 		};
 
 		const animatedStyle = useAnimatedStyle(() => {
 			return {
 				transform: [
 					{
-						scale: withTiming(pressed.value === 1 ? 0.98 : 1, {
-							duration: pressed.value === 1 ? 50 : 200,
-						}),
+						scale: withTiming(
+							pressed.value === 1 ? theme.animations.scale.pressed : 1,
+							{
+								duration:
+									pressed.value === 1
+										? theme.animations.duration.fast / 2
+										: theme.animations.duration.medium,
+							},
+						),
 					},
 				],
-				opacity: withTiming(pressed.value === 1 ? 0.5 : 1, {
-					duration: pressed.value === 1 ? 50 : 200,
-				}),
+				opacity: withTiming(
+					pressed.value === 1 ? theme.animations.scale.pressedSmall : 1,
+					{
+						duration:
+							pressed.value === 1
+								? theme.animations.duration.fast / 2
+								: theme.animations.duration.medium,
+					},
+				),
 			};
 		});
 

@@ -20,14 +20,15 @@ export const MealImagePreview: React.FC<MealImagePreviewProps> = React.memo(
 		const theme = useTheme();
 		const { t, language } = useTranslation();
 		const isArabic = language === "ar";
-
 		return (
 			<AnimatedBox
-				entering={FadeInUp.delay(100).duration(400)}
+				entering={FadeInUp.delay(100).duration(
+					theme.animations.duration.extraSlow,
+				)}
 				style={{
 					borderRadius: theme.radius.lg,
 					overflow: "hidden",
-					height: 240,
+					height: theme.sizes.mealImageHeight,
 				}}
 			>
 				{image ? (
@@ -46,8 +47,8 @@ export const MealImagePreview: React.FC<MealImagePreviewProps> = React.memo(
 								bottom: 0,
 								left: 0,
 								right: 0,
-								height: 80,
-								backgroundColor: "rgba(0,0,0,0.3)",
+								height: theme.sizes.mealImageOverlayHeight,
+								backgroundColor: theme.colors.overlayLight,
 								padding: theme.spacing.md,
 								justifyContent: "flex-end",
 							}}
@@ -93,7 +94,7 @@ export const MealImagePreview: React.FC<MealImagePreviewProps> = React.memo(
 								position: "absolute",
 								top: theme.spacing.sm,
 								right: theme.spacing.sm,
-								backgroundColor: "rgba(0,0,0,0.5)",
+								backgroundColor: theme.colors.overlayMedium,
 								borderRadius: theme.radius.round,
 								padding: theme.spacing.xs,
 							}}

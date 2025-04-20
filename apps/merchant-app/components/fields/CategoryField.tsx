@@ -177,25 +177,32 @@ const CategoryOption = React.memo(
 		const theme = useTheme();
 		const selectedValue = useSharedValue(isSelected ? 1 : 0);
 		const pressedValue = useSharedValue(0);
-
 		React.useEffect(() => {
-			selectedValue.value = withTiming(isSelected ? 1 : 0, { duration: 200 });
+			selectedValue.value = withTiming(isSelected ? 1 : 0, {
+				duration: theme.animations.duration.medium,
+			});
 		}, [isSelected]);
 
 		const handlePressIn = () => {
 			if (!disabled) {
-				pressedValue.value = withTiming(1, { duration: 100 });
+				pressedValue.value = withTiming(1, {
+					duration: theme.animations.duration.fast,
+				});
 			}
 		};
 
 		const handlePressOut = () => {
 			if (!disabled) {
-				pressedValue.value = withTiming(0, { duration: 150 });
+				pressedValue.value = withTiming(0, {
+					duration: theme.animations.duration.medium,
+				});
 			}
 		};
 
 		const containerAnimatedStyle = useAnimatedStyle(() => {
-			const scale = 0.96 + (1 - 0.96) * (1 - pressedValue.value);
+			const scale =
+				theme.animations.scale.pressed +
+				(1 - theme.animations.scale.pressed) * (1 - pressedValue.value);
 			const backgroundColor =
 				hasError && !isSelected
 					? interpolateColor(
@@ -218,7 +225,7 @@ const CategoryOption = React.memo(
 			const shadowOpacity = selectedValue.value * 0.15;
 			return {
 				flex: 1,
-				margin: 2,
+				margin: theme.sizes.categoryMargin,
 				paddingVertical: theme.spacing.sm,
 				transform: [{ scale }],
 				backgroundColor,
@@ -236,7 +243,10 @@ const CategoryOption = React.memo(
 		});
 
 		const iconAnimatedStyle = useAnimatedStyle(() => {
-			const scale = withSpring(isSelected ? 1.1 : 1, { damping: 15 });
+			const scale = withSpring(
+				isSelected ? theme.sizes.categoryOptionScale : 1,
+				{ damping: theme.animations.spring.damping.light },
+			);
 			return {
 				transform: [{ scale }],
 			};

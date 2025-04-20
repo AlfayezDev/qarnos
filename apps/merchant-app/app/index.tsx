@@ -10,7 +10,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import * as Haptics from "expo-haptics";
 import React, { useState, useCallback, useMemo } from "react";
 import { FlatList, ScrollView, View } from "react-native";
-import Animated, { FadeInUp } from "react-native-reanimated";
+import Animated, { FadeInUp, FadeOutDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const PREP_CARD_WIDTH = 170;
@@ -131,7 +131,11 @@ const HomeScreen = React.memo(() => {
 				<AnimatedBox
 					marginHorizontal="md"
 					gap="lg"
-					entering={FadeInUp.delay(50).duration(400).springify().damping(15)}
+					entering={FadeInUp.delay(theme.animations.delay.staggered.medium)
+						.duration(theme.animations.duration.extraSlow)
+						.springify()
+						.damping(theme.animations.spring.damping.light)}
+					exiting={FadeOutDown.duration(theme.animations.duration.medium)}
 				>
 					<Tabs
 						tabs={tabItems}
@@ -154,7 +158,13 @@ const HomeScreen = React.memo(() => {
 				>
 					{t("dashboard.todaysPrep")}
 				</Animated.Text>
-				<Animated.View entering={FadeInUp.delay(300).duration(400).damping(15)}>
+				<Animated.View
+					entering={FadeInUp.delay(theme.animations.delay.staggered.medium)
+						.duration(theme.animations.duration.extraSlow)
+						.springify()
+						.damping(theme.animations.spring.damping.light)}
+					exiting={FadeOutDown.duration(theme.animations.duration.medium)}
+				>
 					<FlatList
 						horizontal
 						data={TODAY_PREP_SUMMARY}

@@ -14,4 +14,9 @@ export const sizes = {
 	avatarSm: 32,
 	avatarMd: 44,
 	avatarLg: 64,
+	mealImageHeight: 240,
+	mealCardImageHeight: 140,
+	mealImageOverlayHeight: 80,
+	categoryOptionScale: 1.1,
+	categoryMargin: 2,
 } as const;
