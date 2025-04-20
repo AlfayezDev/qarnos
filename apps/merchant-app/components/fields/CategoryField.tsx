@@ -233,7 +233,6 @@ const CategoryOption = React.memo(
 				alignItems: "center",
 				justifyContent: "center",
 				shadowColor: hasError ? theme.colors.error : theme.colors.shadow,
-				shadowOffset: { width: 0, height: 1 },
 				shadowRadius: 2,
 				shadowOpacity,
 				elevation,

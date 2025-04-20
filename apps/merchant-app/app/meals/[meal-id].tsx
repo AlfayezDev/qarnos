@@ -10,15 +10,12 @@ import {
 } from "react-native";
 import Animated, { FadeInRight, FadeInUp } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
 import { AnimatedBox, Box, Button, Text } from "@/components/ui";
 import { TabType, Tabs } from "@/components/ui/Tabs";
-
 import { MEALS } from "@/data";
 import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
-
 import {
 	Form,
 	FormCategory,
@@ -26,7 +23,6 @@ import {
 	FormRadio,
 	FormSwitch,
 } from "@/components/compound/form";
-
 import { mealSchema, MealSchemaType } from "@/schemas/mealSchema";
 import {
 	caloriesSchema,
@@ -34,11 +30,9 @@ import {
 	nameSchema,
 	priceSchema,
 } from "@/utils/validation";
-
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { MealFormHeader } from "@/components/meal/MealFormHeader";
 import { MealImagePreview } from "@/components/meal/MealImagePreview";
-
 import { Meal } from "@/types";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -166,7 +160,6 @@ const MealFormScreen: React.FC = React.memo(() => {
 						isEdit={isEdit}
 						mealName={meal.name}
 						mealNameAr={meal.name_ar}
-						available={meal.available}
 						onDelete={handleDelete}
 					/>
 

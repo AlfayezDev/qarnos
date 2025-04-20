@@ -153,7 +153,6 @@ const FocusableInput = forwardRef<TextInput, FocusableInputProps>(
 						: 0,
 				borderRadius: theme.radius.input,
 				shadowColor: hasError ? theme.colors.error : theme.colors.primary,
-				shadowOffset: { width: 0, height: 0 },
 				shadowOpacity,
 				shadowRadius: hasError ? 5 : 3,
 				elevation: hasError ? errorProgress.value * 4 : focusProgress.value * 2,

@@ -9,7 +9,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import * as Haptics from "expo-haptics";
 import React, { useState, useCallback, useMemo } from "react";
-import { FlatList, ScrollView, View } from "react-native";
+import { FlatList, ScrollView } from "react-native";
 import Animated, { FadeInUp, FadeOutDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -102,13 +102,7 @@ const HomeScreen = React.memo(() => {
 	}, []);
 
 	return (
-		<View
-			style={{
-				flex: 1,
-				backgroundColor: theme.colors.background,
-				paddingTop: insets.top,
-			}}
-		>
+		<Box paddingTop={insets.top} bg={theme.colors.background} flex={1}>
 			<ScrollView
 				contentContainerStyle={{
 					paddingBottom: theme.spacing.md,
@@ -191,7 +185,7 @@ const HomeScreen = React.memo(() => {
 					onViewAllAlerts={handleViewAllAlerts}
 				/>
 			</ScrollView>
-		</View>
+		</Box>
 	);
 });
 

@@ -22,13 +22,7 @@ export const StatsGrid = React.memo(({ stats }: StatsGridProps) => {
 	const theme = useTheme();
 
 	return (
-		<AnimatedBox
-			layout={LinearTransition.delay(100).duration(300)}
-			row
-			marginHorizontal="sm"
-			marginBottom="lg"
-			gap="sm"
-		>
+		<Box row marginHorizontal="sm" marginBottom="lg" gap="sm">
 			{stats.map((stat) => (
 				<AnimatedBox
 					key={stat.title}
@@ -40,7 +34,7 @@ export const StatsGrid = React.memo(({ stats }: StatsGridProps) => {
 					layout={LinearTransition.duration(300)}
 					flex={1}
 				>
-					<Box bg="card" padding="md" rounded="lg" elevation="small">
+					<Box card padding="md" rounded="lg" elevation="small">
 						<Box row alignCenter marginBottom="sm" gap="sm">
 							<Box
 								width={theme.sizes.buttonSm}
@@ -66,6 +60,6 @@ export const StatsGrid = React.memo(({ stats }: StatsGridProps) => {
 					</Box>
 				</AnimatedBox>
 			))}
-		</AnimatedBox>
+		</Box>
 	);
 });
