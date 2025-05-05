@@ -97,7 +97,6 @@ export const useTranslation = create<TranslationState>()((set, get) => ({
 
 	t: (path: string): string => {
 		const language = get().language;
-		console.log(language);
 		const cache = get().translationCache;
 		const cacheKey = `${language}:${path}`;
 		let value = cache[cacheKey];
