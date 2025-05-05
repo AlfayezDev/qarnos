@@ -10,12 +10,14 @@ import { Ionicons } from "@expo/vector-icons";
 import { LogBox } from "react-native";
 import { useTranslation } from "@/stores/translationStore";
 import { useTheme } from "@/stores/themeStore";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 LogBox.ignoreLogs([
 	"Sending `onAnimatedValueUpdate` with no listeners registered.",
 ]);
 
 SplashScreen.preventAutoHideAsync();
+
 export default function RootLayout() {
 	const { isDark, navTheme, colors } = useTheme();
 	const { t } = useTranslation();
@@ -40,44 +42,51 @@ export default function RootLayout() {
 
 	return (
 		<SafeAreaProvider>
-			<ThemeProvider value={navTheme}>
-				<Tabs
-					screenOptions={{
-						headerShown: false,
-						tabBarActiveTintColor: colors.primary,
-						tabBarInactiveTintColor: colors.textMuted,
-					}}
-				>
-					<Tabs.Screen
-						name="index"
-						options={{
-							title: t("common.dashboard"),
-							tabBarIcon: ({ color, size }) => (
-								<Ionicons name="home-outline" size={size} color={color} />
-							),
+			<GestureHandlerRootView>
+				<ThemeProvider value={navTheme}>
+					<Tabs
+						screenOptions={{
+							headerShown: false,
+							// tabBarActiveTintColor: colors.primary,
+							// tabBarInactiveTintColor: colors.textMuted,
+							lazy: true,
 						}}
-					/>
-					<Tabs.Screen
-						name="meals"
-						options={{
-							title: t("common.meals"),
-							tabBarIcon: ({ color, size }) => (
-								<Ionicons name="restaurant-outline" size={size} color={color} />
-							),
-						}}
-					/>
-					<Tabs.Screen
-						name="settings"
-						options={{
-							title: t("common.settings"),
-							tabBarIcon: ({ color, size }) => (
-								<Ionicons name="settings-outline" size={size} color={color} />
-							),
-						}}
-					/>
-				</Tabs>
-				<StatusBar style={isDark ? "light" : "dark"} />
-			</ThemeProvider>
+					>
+						<Tabs.Screen
+							name="index"
+							options={{
+								title: t("common.dashboard"),
+								// tabBarIcon: ({ color, size }) => (
+								// 	<Ionicons name="home-outline" size={size} color={color} />
+								// ),
+							}}
+						/>
+						<Tabs.Screen
+							name="meals"
+							options={{
+								title: t("common.meals"),
+								// tabBarIcon: ({ color, size }) => (
+								// 	<Ionicons
+								// 		name="restaurant-outline"
+								// 		size={size}
+								// 		color={color}
+								// 	/>
+								// ),
+							}}
+						/>
+						<Tabs.Screen
+							name="settings"
+							options={{
+								title: t("common.settings"),
+								// tabBarIcon: ({ color, size }) => (
+								// 	<Ionicons name="settings-outline" size={size} color={color} />
+								// ),
+							}}
+						/>
+					</Tabs>
+					<StatusBar style={isDark ? "light" : "dark"} />
+				</ThemeProvider>
+			</GestureHandlerRootView>
 		</SafeAreaProvider>
 	);
 }
