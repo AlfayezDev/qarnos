@@ -9,19 +9,15 @@ import { ALERTS, TODAY_PREP_SUMMARY } from "@/data";
 import { useTheme } from "@/stores/themeStore";
 import { useTranslation } from "@/stores/translationStore";
 import * as Haptics from "expo-haptics";
-import React, { useState, useCallback, useMemo, useRef } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { FlatList } from "react-native";
 import Animated, {
-	clamp,
 	FadeInUp,
 	FadeOutDown,
 	interpolate,
 	useAnimatedRef,
 	useAnimatedStyle,
 	useScrollViewOffset,
-	withClamp,
-	withSpring,
-	withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
