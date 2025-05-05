@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { Pressable } from "react-native";
 import { Box } from "./Box";
 import { Text } from "./Text";
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/stores/themeStore";
 import * as Haptics from "expo-haptics";
 import { Ionicons } from "@expo/vector-icons";
 import { radius } from "@/constants/theme/radius";

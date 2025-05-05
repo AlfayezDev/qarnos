@@ -25,7 +25,7 @@ import Animated, {
 	withSpring,
 } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/stores/themeStore";
 import { Text } from "@/components/ui";
 import { z } from "zod";
 

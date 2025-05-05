@@ -14,7 +14,7 @@ import { Link } from "expo-router";
 import { Box, Text } from "@/components/ui";
 import { Card } from "@/components/ui/Card";
 import { Meal } from "@/types";
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/stores/themeStore";
 import { useTranslation } from "@/stores/translationStore";
 
 interface MealCardProps {

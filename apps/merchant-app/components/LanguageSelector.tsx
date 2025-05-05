@@ -3,7 +3,7 @@ import { TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Text } from "@/components/ui/Text";
 import { useLanguage } from "@/hooks/useLanguage";
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/stores/themeStore";
 
 export const LanguageSelector = React.memo(() => {
 	const { changeLanguage, language } = useLanguage();

@@ -6,7 +6,7 @@ import {
 	FadeOutDown,
 	LinearTransition,
 } from "react-native-reanimated";
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/stores/themeStore";
 import { Card } from "@/components/ui/Card";
 
 interface StatItem {

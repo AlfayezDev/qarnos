@@ -1,4 +1,4 @@
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/stores/themeStore";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import {

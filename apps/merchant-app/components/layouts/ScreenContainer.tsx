@@ -1,4 +1,4 @@
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/stores/themeStore";
 import { Screen } from "expo-router/build/views/Screen";
 import React from "react";
 import { RefreshControlProps, ScrollView, StatusBar, View } from "react-native";

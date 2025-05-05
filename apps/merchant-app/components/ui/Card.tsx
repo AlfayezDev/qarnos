@@ -6,7 +6,7 @@ import {
 	ViewStyle,
 	View,
 } from "react-native";
-import { RadiusToken, SpacingToken, useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/stores/themeStore";
 import { getRgba } from "@/constants/theme/colors";
 
 interface CardProps extends TouchableOpacityProps {

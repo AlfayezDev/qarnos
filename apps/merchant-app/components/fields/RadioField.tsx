@@ -2,7 +2,7 @@ import React from "react";
 import { View, TouchableOpacity, StyleProp, ViewStyle } from "react-native";
 import * as Haptics from "expo-haptics";
 import { Text } from "@/components/ui";
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/stores/themeStore";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, {
 	useSharedValue,

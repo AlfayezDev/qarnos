@@ -1,7 +1,7 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
+import { View } from "react-native";
 import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/stores/themeStore";
 
 interface ResponsiveContainerProps {
 	children: React.ReactNode;

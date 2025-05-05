@@ -4,7 +4,7 @@ import { Form } from "./Form";
 import FocusableInput, {
 	FocusableInputProps,
 } from "@/components/fields/FocusableInput";
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/stores/themeStore";
 
 interface FormInputProps {
 	name: string;

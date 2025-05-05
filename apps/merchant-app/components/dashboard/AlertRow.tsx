@@ -2,7 +2,7 @@ import React from "react";
 import { Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Box, Text } from "@/components/ui";
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/stores/themeStore";
 import { Alert } from "@/types";
 
 interface AlertRowProps {

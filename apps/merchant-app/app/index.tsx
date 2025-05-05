@@ -5,7 +5,7 @@ import { AnimatedBox, Box } from "@/components/ui";
 import { Tabs } from "@/components/ui/Tabs";
 import { Text } from "@/components/ui/Text";
 import { ALERTS, TODAY_PREP_SUMMARY } from "@/data";
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/stores/themeStore";
 import { useTranslation } from "@/stores/translationStore";
 import * as Haptics from "expo-haptics";
 import React, { useState, useCallback, useMemo } from "react";

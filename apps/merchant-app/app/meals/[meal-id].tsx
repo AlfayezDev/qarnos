@@ -26,7 +26,7 @@ import {
 import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 
 import { useMealForm } from "@/hooks/useMealForm";
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/stores/themeStore";
 import { useTranslation } from "@/stores/translationStore";
 
 const MealFormScreen = () => {

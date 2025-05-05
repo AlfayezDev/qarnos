@@ -1,5 +1,4 @@
-import { useTheme } from "@/hooks/useTheme";
-import { ColorToken, RadiusToken, SpacingToken } from "@/hooks/useTheme";
+import { useTheme } from "@/stores/themeStore";
 import React, { memo } from "react";
 import {
 	DimensionValue,

@@ -2,7 +2,7 @@ import React from "react";
 import { TextInput } from "react-native";
 import { Box, Text } from "@/components/ui";
 import { Ionicons } from "@expo/vector-icons";
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/stores/themeStore";
 import FocusableInput from "@/components/fields/FocusableInput";
 import { CategoryField } from "@/components/fields/CategoryField";
 import { RadioField } from "@/components/fields/RadioField";

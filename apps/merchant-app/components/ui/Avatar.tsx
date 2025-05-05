@@ -1,4 +1,4 @@
-import { ColorToken, useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/stores/themeStore";
 import React from "react";
 import { Image, ImageSourcePropType, View, ViewProps } from "react-native";
 import { Text } from "./Text";

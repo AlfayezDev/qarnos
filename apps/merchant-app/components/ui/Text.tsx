@@ -6,13 +6,7 @@ import {
 	TextStyle,
 	AccessibilityRole,
 } from "react-native";
-import {
-	ColorToken,
-	FontSizeVariant,
-	FontWeightVariant,
-	SpacingToken,
-	useTheme,
-} from "@/hooks/useTheme";
+import { useTheme } from "@/stores/themeStore";
 
 interface TextProps extends RNTextProps {
 	variant?: FontSizeVariant;

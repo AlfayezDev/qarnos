@@ -9,7 +9,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { AnimatedBox, Box, Text } from "@/components/ui";
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/stores/themeStore";
 import { Alert } from "@/types";
 import { useTranslation } from "@/stores/translationStore";
 

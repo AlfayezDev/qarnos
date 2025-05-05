@@ -1,6 +1,6 @@
 import React from "react";
 import { View, ViewProps, AccessibilityState, ViewStyle } from "react-native";
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/stores/themeStore";
 import { Text } from "./Text";
 
 export interface BadgeProps extends ViewProps {

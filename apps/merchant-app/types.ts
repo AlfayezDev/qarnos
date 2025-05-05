@@ -180,3 +180,5 @@ export interface UserProfile {
 // Enhanced type exports to ensure proper type checking
 export type MealId = Meal["id"];
 export type AlertId = Alert["id"];
+
+export {};

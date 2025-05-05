@@ -11,7 +11,7 @@ import Animated, {
 import * as Haptics from "expo-haptics";
 import { Box, Text } from "@/components/ui";
 import { MealPrepSummary } from "@/types";
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/stores/themeStore";
 import { Card } from "@/components/ui/Card";
 import { useTranslation } from "@/stores/translationStore";
 

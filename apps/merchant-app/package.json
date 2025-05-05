@@ -3,7 +3,7 @@
 	"main": "expo-router/entry",
 	"version": "1.0.0",
 	"scripts": {
-		"dev": "expo start --dev-client -c",
+		"dev": "expo start --dev-client",
 		"android": "expo run:android",
 		"ios": "expo run:ios",
 		"web": "expo start --web",

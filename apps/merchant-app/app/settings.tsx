@@ -21,7 +21,7 @@ import { LanguageSelector } from "@/components/LanguageSelector";
 import { AnimatedBox, Avatar, Box, Text } from "@/components/ui";
 
 import { useMemoizedCallback } from "@/hooks/useMemoizedCallback";
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/stores/themeStore";
 import { useTranslation } from "@/stores/translationStore";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);

@@ -8,7 +8,7 @@ import { Tabs } from "@/components/ui/Tabs";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import MealCard from "@/components/meal/MealCard";
 import { useMealStore } from "@/stores/mealStore";
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/stores/themeStore";
 import { useTranslation } from "@/stores/translationStore";
 
 const MealScreen = () => {

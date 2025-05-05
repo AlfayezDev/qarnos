@@ -15,7 +15,7 @@ import Animated, {
 	withSpring,
 } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/stores/themeStore";
 import { Text, Box } from "@/components/ui";
 import { Ionicons } from "@expo/vector-icons";
 

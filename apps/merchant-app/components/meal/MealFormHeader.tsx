@@ -1,5 +1,5 @@
 import { AnimatedBox, Box, Text } from "@/components/ui";
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/stores/themeStore";
 import { useRouter } from "expo-router";
 import React from "react";
 import { FadeIn } from "react-native-reanimated";
