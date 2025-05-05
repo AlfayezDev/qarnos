@@ -1,21 +1,25 @@
 import { useState, useEffect } from "react";
 import { I18nManager } from "react-native";
+import * as Expo from "expo";
 import { Language } from "@/constants/i18n";
-
-const DEFAULT_LANGUAGE: Language = "ar";
+import { useMMKV } from "react-native-mmkv";
 
 export function useLanguage() {
-	const [language, setLanguage] = useState<Language>(DEFAULT_LANGUAGE);
+	const storage = useMMKV();
+	const [language, setLanguage] = useState<Language>(
+		(storage.getString("language") as Language) ?? "en",
+	);
 
 	useEffect(() => {
 		const loadLanguage = async () => {
-			const savedLanguage = DEFAULT_LANGUAGE;
+			const savedLanguage = storage.getString("language");
 			if (savedLanguage === "en" || savedLanguage === "ar") {
 				setLanguage(savedLanguage);
 
 				const shouldBeRTL = savedLanguage === "ar";
 				if (shouldBeRTL !== I18nManager.isRTL) {
 					I18nManager.forceRTL(shouldBeRTL);
+					Expo.reloadAppAsync();
 				} else if (!shouldBeRTL && I18nManager.isRTL) {
 					I18nManager.forceRTL(false);
 				}
@@ -26,17 +30,15 @@ export function useLanguage() {
 	}, []);
 
 	const changeLanguage = async (newLanguage: Language) => {
-		try {
-			setLanguage(newLanguage);
+		setLanguage(newLanguage);
+		storage.set("language", newLanguage);
 
-			const shouldBeRTL = newLanguage === "ar";
-			if (shouldBeRTL !== I18nManager.isRTL) {
-				I18nManager.allowRTL(shouldBeRTL);
-				I18nManager.forceRTL(shouldBeRTL);
-			}
-		} catch (error) {
-			console.error("Failed to save language setting:", error);
+		const shouldBeRTL = newLanguage === "ar";
+		if (shouldBeRTL !== I18nManager.isRTL) {
+			I18nManager.allowRTL(shouldBeRTL);
+			I18nManager.forceRTL(shouldBeRTL);
 		}
+		Expo.reloadAppAsync();
 	};
 
 	return { language, changeLanguage };

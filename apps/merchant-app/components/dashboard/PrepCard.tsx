@@ -29,7 +29,7 @@ interface TodayPrepCardProps {
 		| "rose";
 }
 
-const PREP_CARD_WIDTH = 200; // Wider cards for lofi aesthetic
+const PREP_CARD_WIDTH = 200;
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export const TodayPrepCard = React.memo(
@@ -106,15 +106,14 @@ export const TodayPrepCard = React.memo(
 			>
 				<Card
 					variant={variant}
-					rounded="xl" // More rounded
+					rounded="sm"
 					padding="md"
 					elevation="small"
 					style={{
-						minHeight: theme.sizes.buttonLg * 3.5, // Reduced height
+						minHeight: theme.sizes.buttonLg * 3.5,
 					}}
 				>
 					<Box row alignCenter marginBottom="xs">
-						{/* Reduced margin */}
 						<Ionicons
 							name={
 								periodIcons[summary.period as keyof typeof periodIcons] as any
@@ -127,14 +126,13 @@ export const TodayPrepCard = React.memo(
 							{translatedPeriod}
 						</Text>
 					</Box>
-					<Box marginTop="xs" flex={1} gap="xs">
-						{/* Reduced gap */}
+					<Box marginTop="xs" flex={1} gap="xs" justifyContent="space-between">
 						{summary.mealsToPrep.slice(0, 3).map((meal) => (
 							<Box
 								key={meal.id}
 								row
 								justifyContent="space-between"
-								paddingVertical={theme.spacing.xs / 2} // Reduced padding
+								paddingVertical={theme.spacing.xs / 2}
 							>
 								<Text
 									variant="sm"
@@ -151,18 +149,6 @@ export const TodayPrepCard = React.memo(
 								</Text>
 							</Box>
 						))}
-					</Box>
-					<Box
-						row
-						justifyContent="flex-start" // Changed from space-between
-						alignItems="flex-end"
-						paddingTop="xs" // Reduced padding
-					>
-						<Badge
-							text={`${summary.totalMeals} ${t("common.total")}`}
-							variant="default"
-							size="sm"
-						/>
 					</Box>
 				</Card>
 			</AnimatedPressable>

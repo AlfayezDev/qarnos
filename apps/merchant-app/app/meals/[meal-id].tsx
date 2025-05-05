@@ -1,21 +1,14 @@
-import * as Haptics from "expo-haptics";
+import React, { useState } from "react";
+import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import React, { useEffect } from "react";
-import {
-	Keyboard,
-	KeyboardAvoidingView,
-	Platform,
-	ScrollView,
-	View,
-} from "react-native";
 import Animated, { FadeInRight, FadeInUp } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import { AnimatedBox, Box, Button, Text } from "@/components/ui";
 import { TabType, Tabs } from "@/components/ui/Tabs";
-import { MEALS } from "@/data";
-import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
-import { useTheme } from "@/hooks/useTheme";
-import { useTranslation } from "@/hooks/useTranslation";
+import { ErrorBoundary } from "@/components/common/ErrorBoundary";
+import { MealFormHeader } from "@/components/meal/MealFormHeader";
+import { MealImagePreview } from "@/components/meal/MealImagePreview";
 import {
 	Form,
 	FormCategory,
@@ -23,47 +16,38 @@ import {
 	FormRadio,
 	FormSwitch,
 } from "@/components/compound/form";
-import { mealSchema, MealSchemaType } from "@/schemas/mealSchema";
+import { mealSchema } from "@/schemas/mealSchema";
 import {
 	caloriesSchema,
 	descriptionSchema,
 	nameSchema,
 	priceSchema,
 } from "@/utils/validation";
-import { ErrorBoundary } from "@/components/common/ErrorBoundary";
-import { MealFormHeader } from "@/components/meal/MealFormHeader";
-import { MealImagePreview } from "@/components/meal/MealImagePreview";
-import { Meal } from "@/types";
-import { Ionicons } from "@expo/vector-icons";
+import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 
-const MealFormScreen: React.FC = React.memo(() => {
+import { useMealForm } from "@/hooks/useMealForm";
+import { useTheme } from "@/hooks/useTheme";
+import { useTranslation } from "@/hooks/useTranslation";
+
+const MealFormScreen = () => {
 	const { "meal-id": mealId } = useLocalSearchParams<{ "meal-id": string }>();
 	const theme = useTheme();
 	const { t, language } = useTranslation();
 	const insets = useSafeAreaInsets();
 	const router = useRouter();
 	const { isTablet, isLandscape } = useResponsiveLayout();
-
 	const isArabic = language === "ar";
-	const isEdit = mealId !== "new";
 	const useTwoColumnLayout = isTablet && isLandscape;
+	const [activeSection, setActiveSection] = useState<string>("basic");
 
-	const [activeSection, setActiveSection] = React.useState<string>("basic");
-	const [loading, setLoading] = React.useState(false);
-	const [meal, setMeal] = React.useState<Partial<Meal>>({
-		id: "",
-		name: "",
-		name_ar: "",
-		description: "",
-		description_ar: "",
-		price: 0,
-		calories: 0,
-		prepTime: 0,
-		period: "Breakfast",
-		available: true,
-		image: "",
-		isVegan: false,
-	});
+	const {
+		meal,
+		loading,
+		isEdit,
+		handleFormSubmit,
+		handleDelete,
+		handleSelectImage,
+	} = useMealForm(mealId);
 
 	const periodOptions = [
 		{ value: "Breakfast", label: t("periods.breakfast"), icon: "cafe-outline" },
@@ -72,21 +56,13 @@ const MealFormScreen: React.FC = React.memo(() => {
 	];
 
 	const dietaryOptions = [
-		{
-			value: "none",
-			label: "Regular",
-			description: "No dietary restrictions",
-		},
+		{ value: "none", label: "Regular", description: "No dietary restrictions" },
 		{
 			value: "vegetarian",
 			label: "Vegetarian",
 			description: "No meat, may include dairy and eggs",
 		},
-		{
-			value: "vegan",
-			label: "Vegan",
-			description: "No animal products",
-		},
+		{ value: "vegan", label: "Vegan", description: "No animal products" },
 		{
 			value: "glutenFree",
 			label: "Gluten Free",
@@ -99,52 +75,19 @@ const MealFormScreen: React.FC = React.memo(() => {
 			key: "basic",
 			label: t("meals.basicInfo"),
 			iconLeft: "information-circle-outline",
-			accessibilityLabel: t("meals.basicInfo"),
 		},
 		{
 			key: "settings",
 			label: t("common.settings"),
 			iconLeft: "settings-outline",
-			accessibilityLabel: t("common.settings"),
 		},
 	];
-
-	useEffect(() => {
-		if (isEdit) {
-			const existingMeal = MEALS.find((m) => m.id === mealId);
-			if (existingMeal) setMeal(existingMeal);
-		} else {
-			setMeal((prev) => ({ ...prev, id: `meal-${Date.now()}` }));
-		}
-	}, [mealId, isEdit]);
-
-	const handleFormSubmit = (values: MealSchemaType) => {
-		Keyboard.dismiss();
-		Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-		setLoading(true);
-
-		console.log("Saving meal:", values);
-
-		setTimeout(() => {
-			setLoading(false);
-			router.back();
-		}, 1000);
-	};
-
-	const handleDelete = () => {
-		router.back();
-	};
-
-	const handleSelectImage = () => {
-		console.log("Select image");
-	};
 
 	return (
 		<ErrorBoundary>
 			<KeyboardAvoidingView
 				style={{ flex: 1 }}
 				behavior={Platform.OS === "ios" ? "padding" : "height"}
-				keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
 			>
 				<View
 					style={{
@@ -154,12 +97,11 @@ const MealFormScreen: React.FC = React.memo(() => {
 					}}
 				>
 					<Stack.Screen options={{ headerShown: false }} />
-
 					<MealFormHeader
 						title={t("meals.addNew")}
 						isEdit={isEdit}
-						mealName={meal.name}
-						mealNameAr={meal.name_ar}
+						mealName={meal?.name}
+						mealNameAr={meal?.name_ar}
 						onDelete={handleDelete}
 					/>
 
@@ -174,11 +116,11 @@ const MealFormScreen: React.FC = React.memo(() => {
 						keyboardShouldPersistTaps="handled"
 					>
 						<MealImagePreview
-							image={meal.image}
-							name={meal.name}
-							nameAr={meal.name_ar}
-							calories={meal.calories}
-							prepTime={meal.prepTime}
+							image={meal?.image}
+							name={meal?.name}
+							nameAr={meal?.name_ar}
+							calories={meal?.calories}
+							prepTime={meal?.prepTime}
 							onSelectImage={handleSelectImage}
 						/>
 
@@ -192,7 +134,6 @@ const MealFormScreen: React.FC = React.memo(() => {
 								selectedTab={activeSection}
 								onSelectTab={setActiveSection}
 								accessibilityLabel="Section Tabs"
-								accessibilityHint="Select between basic info and settings"
 							/>
 						</AnimatedBox>
 
@@ -212,9 +153,7 @@ const MealFormScreen: React.FC = React.memo(() => {
 													flexWrap: "wrap",
 													justifyContent: "space-between",
 												}
-											: {
-													gap: theme.spacing.md,
-												}
+											: { gap: theme.spacing.md }
 									}
 								>
 									<View
@@ -249,7 +188,6 @@ const MealFormScreen: React.FC = React.memo(() => {
 													placeholder={t("meals.mealName")}
 													schema={nameSchema}
 												/>
-
 												<FormInput
 													name="name_ar"
 													label={`${t("meals.mealName")} (العربية)`}
@@ -269,7 +207,6 @@ const MealFormScreen: React.FC = React.memo(() => {
 													textAlignVertical="top"
 													schema={descriptionSchema}
 												/>
-
 												<FormInput
 													name="description_ar"
 													label={`${t("meals.description")} (العربية)`}
@@ -299,14 +236,8 @@ const MealFormScreen: React.FC = React.memo(() => {
 									<View
 										style={
 											useTwoColumnLayout
-												? {
-														width: "48%",
-														marginTop: 0,
-													}
-												: {
-														width: "100%",
-														marginTop: theme.spacing.md,
-													}
+												? { width: "48%", marginTop: 0 }
+												: { width: "100%", marginTop: theme.spacing.md }
 										}
 									>
 										<Box
@@ -466,9 +397,11 @@ const MealFormScreen: React.FC = React.memo(() => {
 													{t("meals.dangerZone")}
 												</Text>
 											</Box>
+
 											<Text variant="sm" color="#fff">
 												{t("meals.deleteMealWarning")}
 											</Text>
+
 											<Button
 												title={t("common.delete")}
 												variant="outline"
@@ -477,8 +410,6 @@ const MealFormScreen: React.FC = React.memo(() => {
 												textColor="#fff"
 												onPress={handleDelete}
 												accessibilityLabel={t("common.delete")}
-												accessibilityRole="button"
-												accessibilityHint={t("meals.deleteMealWarning")}
 											/>
 										</Box>
 									)}
@@ -490,11 +421,7 @@ const MealFormScreen: React.FC = React.memo(() => {
 								marginTop="lg"
 							>
 								<Form.SubmitButton>
-									{({
-										onPress,
-										isValid: formIsValid,
-										isDirty: formIsDirty,
-									}) => (
+									{({ onPress, isValid, isDirty }) => (
 										<Button
 											title={
 												isEdit ? t("meals.saveChanges") : t("meals.createMeal")
@@ -506,7 +433,7 @@ const MealFormScreen: React.FC = React.memo(() => {
 											rounded
 											leftIcon="save-outline"
 											onPress={onPress}
-											disabled={!formIsValid || !formIsDirty}
+											disabled={!isValid || !isDirty}
 											accessibilityLabel={
 												isEdit ? t("meals.saveChanges") : t("meals.createMeal")
 											}
@@ -532,6 +459,6 @@ const MealFormScreen: React.FC = React.memo(() => {
 			</KeyboardAvoidingView>
 		</ErrorBoundary>
 	);
-});
+};
 
 export default MealFormScreen;

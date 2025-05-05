@@ -1,4 +1,4 @@
-This file is a merged representation of a subset of the codebase, containing files not matching ignore patterns, combined into a single document by Repomix.
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
 The content has been processed where comments have been removed, empty lines have been removed.
 
 <file_summary>
@@ -33,7 +33,6 @@ The content is organized as follows:
 <notes>
 - Some files may have been excluded based on .gitignore rules and Repomix's configuration
 - Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
-- Files matching these patterns are excluded: **/*.log, tmp/, **/Illustrations/**, **/*.json, **/Localization.ts, **/SVGS/**, **/generated/**
 - Files matching patterns in .gitignore are excluded
 - Files matching default ignore patterns are excluded
 - Code comments have been removed from supported file types
@@ -435,18 +434,23 @@ export function useColorScheme() {
 <file path="apps/merchant-app/hooks/useLanguage.ts">
 import { useState, useEffect } from "react";
 import { I18nManager } from "react-native";
+import * as Expo from "expo";
 import { Language } from "@/constants/i18n";
-const DEFAULT_LANGUAGE: Language = "ar";
+import { useMMKV } from "react-native-mmkv";
 export function useLanguage() {
-	const [language, setLanguage] = useState<Language>(DEFAULT_LANGUAGE);
+	const storage = useMMKV();
+	const [language, setLanguage] = useState<Language>(
+		(storage.getString("language") as Language) ?? "en",
+	);
 	useEffect(() => {
 		const loadLanguage = async () => {
-			const savedLanguage = DEFAULT_LANGUAGE;
+			const savedLanguage = storage.getString("language");
 			if (savedLanguage === "en" || savedLanguage === "ar") {
 				setLanguage(savedLanguage);
 				const shouldBeRTL = savedLanguage === "ar";
 				if (shouldBeRTL !== I18nManager.isRTL) {
 					I18nManager.forceRTL(shouldBeRTL);
+					Expo.reloadAppAsync();
 				} else if (!shouldBeRTL && I18nManager.isRTL) {
 					I18nManager.forceRTL(false);
 				}
@@ -455,16 +459,14 @@ export function useLanguage() {
 		loadLanguage();
 	}, []);
 	const changeLanguage = async (newLanguage: Language) => {
-		try {
-			setLanguage(newLanguage);
-			const shouldBeRTL = newLanguage === "ar";
-			if (shouldBeRTL !== I18nManager.isRTL) {
-				I18nManager.allowRTL(shouldBeRTL);
-				I18nManager.forceRTL(shouldBeRTL);
-			}
-		} catch (error) {
-			console.error("Failed to save language setting:", error);
+		setLanguage(newLanguage);
+		storage.set("language", newLanguage);
+		const shouldBeRTL = newLanguage === "ar";
+		if (shouldBeRTL !== I18nManager.isRTL) {
+			I18nManager.allowRTL(shouldBeRTL);
+			I18nManager.forceRTL(shouldBeRTL);
 		}
+		Expo.reloadAppAsync();
 	};
 	return { language, changeLanguage };
 }
@@ -617,20 +619,6 @@ engine-strict=true
 
 <file path=".nvimrc">
 23.11.0
-</file>
-
-<file path=".repomixignore">
-# Add patterns to ignore here, one per line
-# Example:
-# *.log
-# tmp/
-**/*.log,tmp/
-**/Illustrations/**
-**/*.json
-**/Localization.ts
-**/SVGS/**
-**/generated/**
-/**/svgs/**
 </file>
 
 <file path="pnpm-workspace.yaml">
@@ -1632,92 +1620,6 @@ export const Avatar = React.memo(
 );
 </file>
 
-<file path="apps/merchant-app/components/ui/Card.tsx">
-import React from "react";
-import {
-	TouchableOpacity,
-	TouchableOpacityProps,
-	StyleProp,
-	ViewStyle,
-	View,
-} from "react-native";
-import { RadiusToken, SpacingToken, useTheme } from "@/hooks/useTheme";
-import { getRgba } from "@/constants/theme/colors";
-interface CardProps extends TouchableOpacityProps {
-	elevation?: "none" | "small" | "medium" | "large";
-	padding?: string | number | SpacingToken;
-	rounded?: string | RadiusToken;
-	style?: StyleProp<ViewStyle>;
-	children?: React.ReactNode;
-	variant?:
-		| "default"
-		| "sage"
-		| "peach"
-		| "lavender"
-		| "coral"
-		| "mint"
-		| "cream"
-		| "sky"
-		| "rose";
-}
-export const Card = React.memo(
-	({
-		children,
-		elevation = "small",
-		padding = "md",
-		rounded = "md",
-		style,
-		onPress,
-		variant = "default",
-		...props
-	}: CardProps) => {
-		const theme = useTheme();
-		const getElevation = () => {
-			if (elevation === "none") return {};
-			const shadowStyle = theme.shadows[elevation];
-			return { ...shadowStyle, shadowColor: theme.colors.shadow };
-		};
-		const getPaddingValue = () => {
-			return typeof padding === "number"
-				? padding
-				: theme.spacing[padding as SpacingToken];
-		};
-		const getRadiusValue = () => {
-			return theme.radius[rounded as RadiusToken];
-		};
-		const getBackgroundColor = () => {
-			if (variant === "default") return theme.colors.card;
-			const accentKey =
-				`accent${variant.charAt(0).toUpperCase() + variant.slice(1)}` as keyof typeof theme.colors;
-			const color = theme.colors[accentKey];
-			if (color) {
-				return getRgba(color, 0.08);
-			}
-			return theme.colors.card;
-		};
-		const cardStyle = {
-			backgroundColor: getBackgroundColor(),
-			borderRadius: getRadiusValue(),
-			padding: getPaddingValue(),
-			borderWidth: 1,
-			borderColor: theme.colors.divider,
-			...getElevation(),
-		};
-		const ContainerComponent = onPress ? TouchableOpacity : View;
-		return (
-			<ContainerComponent
-				activeOpacity={onPress ? 0.85 : 1}
-				style={[cardStyle, style]}
-				onPress={onPress}
-				{...props}
-			>
-				{children}
-			</ContainerComponent>
-		);
-	},
-);
-</file>
-
 <file path="apps/merchant-app/components/LanguageSelector.tsx">
 import { Text } from "@/components/ui/Text";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -1892,45 +1794,6 @@ export const radius = {
 	card: 16,
 	input: 12,
 	badge: 12,
-} as const;
-</file>
-
-<file path="apps/merchant-app/constants/theme/shadows.ts">
-export const shadows = {
-	small: {
-		shadowOffset: { width: 0, height: 1 },
-		shadowOpacity: 0.03,
-		shadowRadius: 2,
-		elevation: 1,
-	},
-	medium: {
-		shadowOffset: { width: 0, height: 1 },
-		shadowOpacity: 0.04,
-		shadowRadius: 3,
-		elevation: 1,
-	},
-	large: {
-		shadowOffset: { width: 0, height: 2 },
-		shadowOpacity: 0.06,
-		shadowRadius: 4,
-		elevation: 2,
-	},
-};
-</file>
-
-<file path="apps/merchant-app/constants/theme/spacing.ts">
-export const spacing = {
-	none: 0,
-	xs: 4,
-	sm: 8,
-	md: 16,
-	lg: 24,
-	xl: 32,
-	xxl: 48,
-	screenPadding: 20,
-	cardPadding: 16,
-	itemSpacing: 12,
-	sectionSpacing: 24,
 } as const;
 </file>
 
@@ -2737,6 +2600,20 @@ export const MEALS: Meal[] = [
 ];
 </file>
 
+<file path=".repomixignore">
+# Add patterns to ignore here, one per line
+# Example:
+# *.log
+# tmp/
+**/*.log,tmp/
+**/Illustrations/**
+**/*.json
+**/Localization.ts
+**/SVGS/**
+**/generated/**
+/**/svgs/**
+</file>
+
 <file path="apps/merchant-app/app/settings.tsx">
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { AnimatedBox, Avatar, Box, Text } from "@/components/ui";
@@ -3088,256 +2965,6 @@ export const AlertRow = React.memo(
 );
 </file>
 
-<file path="apps/merchant-app/components/dashboard/AlertsCard.tsx">
-import React from "react";
-import { Pressable, View } from "react-native";
-import Animated, {
-	FadeInUp,
-	FadeOutDown,
-	useAnimatedStyle,
-	useSharedValue,
-	withTiming,
-} from "react-native-reanimated";
-import { Ionicons } from "@expo/vector-icons";
-import { AnimatedBox, Box, Text } from "@/components/ui";
-import { useTheme } from "@/hooks/useTheme";
-import { Alert } from "@/types";
-import { useTranslation } from "@/hooks/useTranslation";
-import { Card } from "@/components/ui/Card";
-interface AlertsCardProps {
-	alerts: Alert[];
-	onViewAlert: (id: string | number) => void;
-	onViewAllAlerts?: () => void;
-}
-export const AlertsCard = React.memo(
-	({ alerts, onViewAlert, onViewAllAlerts }: AlertsCardProps) => {
-		const theme = useTheme();
-		const { t } = useTranslation();
-		const hasAlerts = alerts.length > 0;
-		return (
-			<AnimatedBox
-				entering={FadeInUp.delay(theme.animations.delay.staggered.medium)
-					.duration(theme.animations.duration.extraSlow)
-					.springify()
-					.damping(theme.animations.spring.damping.light)}
-				exiting={FadeOutDown.duration(theme.animations.duration.medium)}
-				marginHorizontal="md"
-				marginBottom="lg"
-				style={{ overflow: "hidden" }}
-			>
-				<Card variant="sage" rounded="lg" elevation="small">
-					<Box
-						row
-						justifyContent="space-between"
-						alignItems="center"
-						marginBottom="md"
-						paddingHorizontal="md"
-						paddingTop="md"
-					>
-						<Text variant="lg" weight="semibold" fontFamily="serif">
-							{t("dashboard.alerts")}
-						</Text>
-						{hasAlerts && (
-							<Animated.View>
-								<Pressable
-									onPress={onViewAllAlerts}
-									style={({ pressed }) => ({
-										paddingVertical: theme.spacing.xs,
-										paddingHorizontal: theme.spacing.sm,
-										borderRadius: theme.spacing.sm,
-										backgroundColor: pressed
-											? theme.colors.backgroundAlt
-											: undefined,
-										opacity: pressed ? 0.7 : 1,
-									})}
-								>
-									<Text variant="sm" color="primary" weight="medium">
-										{t("dashboard.viewAll")}
-									</Text>
-								</Pressable>
-							</Animated.View>
-						)}
-					</Box>
-					{hasAlerts ? (
-						<Box>
-							{alerts.map((alert, index) => (
-								<AlertItem
-									key={alert.id}
-									alert={alert}
-									onPress={() => onViewAlert(alert.id)}
-									isLast={index === alerts.length - 1}
-								/>
-							))}
-						</Box>
-					) : (
-						<Box
-							alignCenter
-							paddingVertical="lg"
-							paddingHorizontal="md"
-							bg="backgroundAlt"
-							style={{
-								borderBottomLeftRadius: theme.radius.lg,
-								borderBottomRightRadius: theme.radius.lg,
-							}}
-						>
-							<Box
-								rounded="round"
-								bg="accentMint"
-								padding="md"
-								marginBottom="md"
-								style={{
-									width: theme.sizes.avatarLg,
-									height: theme.sizes.avatarLg,
-									alignItems: "center",
-									justifyContent: "center",
-								}}
-							>
-								<Ionicons
-									name="checkmark-circle"
-									size={theme.sizes.iconMd}
-									color={theme.colors.text}
-								/>
-							</Box>
-							<Text color="textSecondary" center fontFamily="serif">
-								{t("dashboard.allCaughtUp")}
-							</Text>
-							<Text color="textMuted" variant="sm" center marginTop="xs">
-								{t("dashboard.noAlerts")}
-							</Text>
-						</Box>
-					)}
-				</Card>
-			</AnimatedBox>
-		);
-	},
-);
-interface AlertItemProps {
-	alert: Alert;
-	onPress: () => void;
-	isLast?: boolean;
-}
-const AlertItem = React.memo(
-	({ alert, onPress, isLast = false }: AlertItemProps) => {
-		const theme = useTheme();
-		const { isRTL } = useTranslation();
-		const pressed = useSharedValue(0);
-		const getAlertAccentColor = (type: string) => {
-			switch (type) {
-				case "warning":
-					return theme.colors.accentPeach;
-				case "info":
-					return theme.colors.accentSky;
-				case "error":
-					return theme.colors.accentCoral;
-				case "success":
-					return theme.colors.accentMint;
-				default:
-					return theme.colors.accentSky;
-			}
-		};
-		const iconColor = getAlertAccentColor(alert.type);
-		const handlePressIn = () => {
-			pressed.value = withTiming(1, {
-				duration: theme.animations.duration.medium,
-			});
-		};
-		const handlePressOut = () => {
-			pressed.value = withTiming(0, {
-				duration: theme.animations.duration.medium,
-			});
-		};
-		const animatedStyle = useAnimatedStyle(() => {
-			return {
-				transform: [
-					{
-						scale: withTiming(
-							pressed.value === 1 ? theme.animations.scale.pressed : 1,
-							{
-								duration:
-									pressed.value === 1
-										? theme.animations.duration.fast / 2
-										: theme.animations.duration.medium,
-							},
-						),
-					},
-				],
-				opacity: withTiming(
-					pressed.value === 1 ? theme.animations.scale.pressedSmall : 1,
-					{
-						duration:
-							pressed.value === 1
-								? theme.animations.duration.fast / 2
-								: theme.animations.duration.medium,
-					},
-				),
-			};
-		});
-		return (
-			<Animated.View
-				style={[
-					{
-						borderBottomWidth: isLast ? 0 : 0.5,
-						borderBottomColor: theme.colors.divider,
-					},
-					animatedStyle,
-				]}
-			>
-				<Pressable
-					onPress={onPress}
-					onPressIn={handlePressIn}
-					onPressOut={handlePressOut}
-					style={{
-						flexDirection: "row",
-						alignItems: "center",
-						padding: theme.spacing.md,
-					}}
-					android_ripple={{ color: theme.colors.overlay }}
-				>
-					<View
-						style={{
-							width: theme.sizes.buttonSm,
-							height: theme.sizes.buttonSm,
-							borderRadius: theme.radius.round,
-							alignItems: "center",
-							justifyContent: "center",
-							backgroundColor: iconColor,
-							marginStart: theme.spacing.sm,
-						}}
-					>
-						<Ionicons
-							name={alert.icon as any}
-							size={theme.sizes.iconSm}
-							color={theme.colors.text}
-						/>
-					</View>
-					<Box
-						flex={1}
-						marginStart="sm"
-						gap={theme.spacing.xs / 2}
-						alignItems="flex-start"
-					>
-						<Text variant="sm" weight="medium" numberOfLines={1}>
-							{alert.title}
-						</Text>
-						{alert.timestamp && (
-							<Text variant="xs" color="textMuted">
-								{alert.timestamp}
-							</Text>
-						)}
-					</Box>
-					<Ionicons
-						name={isRTL ? "chevron-back" : "chevron-forward"}
-						size={theme.sizes.iconSm}
-						color={theme.colors.textMuted}
-						style={{ marginStart: theme.spacing.sm }}
-					/>
-				</Pressable>
-			</Animated.View>
-		);
-	},
-);
-</file>
-
 <file path="apps/merchant-app/components/dashboard/PrepCard.tsx">
 import React, { useCallback } from "react";
 import { Pressable } from "react-native";
@@ -3435,7 +3062,7 @@ export const TodayPrepCard = React.memo(
 			>
 				<Card
 					variant={variant}
-					rounded="xl"
+					rounded="sm"
 					padding="md"
 					elevation="small"
 					style={{
@@ -3443,7 +3070,6 @@ export const TodayPrepCard = React.memo(
 					}}
 				>
 					<Box row alignCenter marginBottom="xs">
-						{}
 						<Ionicons
 							name={
 								periodIcons[summary.period as keyof typeof periodIcons] as any
@@ -3456,8 +3082,7 @@ export const TodayPrepCard = React.memo(
 							{translatedPeriod}
 						</Text>
 					</Box>
-					<Box marginTop="xs" flex={1} gap="xs">
-						{}
+					<Box marginTop="xs" flex={1} gap="xs" justifyContent="space-between">
 						{summary.mealsToPrep.slice(0, 3).map((meal) => (
 							<Box
 								key={meal.id}
@@ -3480,18 +3105,6 @@ export const TodayPrepCard = React.memo(
 								</Text>
 							</Box>
 						))}
-					</Box>
-					<Box
-						row
-						justifyContent="flex-start"
-						alignItems="flex-end"
-						paddingTop="xs"
-					>
-						<Badge
-							text={`${summary.totalMeals} ${t("common.total")}`}
-							variant="default"
-							size="sm"
-						/>
 					</Box>
 				</Card>
 			</AnimatedPressable>
@@ -3700,6 +3313,562 @@ export const MealImagePreview: React.FC<MealImagePreviewProps> = React.memo(
 			prevProps.nameAr === nextProps.nameAr &&
 			prevProps.calories === nextProps.calories &&
 			prevProps.prepTime === nextProps.prepTime
+		);
+	},
+);
+</file>
+
+<file path="apps/merchant-app/components/ui/Card.tsx">
+import React from "react";
+import {
+	TouchableOpacity,
+	TouchableOpacityProps,
+	StyleProp,
+	ViewStyle,
+	View,
+} from "react-native";
+import { RadiusToken, SpacingToken, useTheme } from "@/hooks/useTheme";
+import { getRgba } from "@/constants/theme/colors";
+interface CardProps extends TouchableOpacityProps {
+	elevation?: "none" | "small" | "medium" | "large";
+	padding?: string | number | SpacingToken;
+	rounded?: string | RadiusToken;
+	style?: StyleProp<ViewStyle>;
+	children?: React.ReactNode;
+	variant?:
+		| "default"
+		| "sage"
+		| "peach"
+		| "lavender"
+		| "coral"
+		| "mint"
+		| "cream"
+		| "sky"
+		| "rose";
+}
+export const Card = React.memo(
+	({
+		children,
+		elevation = "small",
+		padding = "md",
+		rounded = "md",
+		style,
+		onPress,
+		variant = "default",
+		...props
+	}: CardProps) => {
+		const theme = useTheme();
+		const getElevation = () => {
+			if (elevation === "none") return {};
+			const shadowStyle = theme.shadows[elevation];
+			return { ...shadowStyle, shadowColor: theme.colors.shadow };
+		};
+		const getPaddingValue = () => {
+			return typeof padding === "number"
+				? padding
+				: theme.spacing[padding as SpacingToken];
+		};
+		const getRadiusValue = () => {
+			return theme.radius[rounded as RadiusToken];
+		};
+		const getBackgroundColor = () => {
+			if (variant === "default") return theme.colors.card;
+			const accentKey =
+				`accent${variant.charAt(0).toUpperCase() + variant.slice(1)}` as keyof typeof theme.colors;
+			const color = theme.colors[accentKey];
+			if (color) {
+				return getRgba(color, 0.08);
+			}
+			return theme.colors.card;
+		};
+		const cardStyle = {
+			backgroundColor: getBackgroundColor(),
+			borderRadius: getRadiusValue(),
+			padding: getPaddingValue(),
+			borderWidth: 1,
+			borderColor: theme.colors.divider,
+			...getElevation(),
+		};
+		const ContainerComponent = onPress ? TouchableOpacity : View;
+		return (
+			<ContainerComponent
+				activeOpacity={onPress ? 0.85 : 1}
+				style={[cardStyle, style]}
+				onPress={onPress}
+				{...props}
+			>
+				{children}
+			</ContainerComponent>
+		);
+	},
+);
+</file>
+
+<file path="apps/merchant-app/constants/theme/shadows.ts">
+export const shadows = {
+	small: {
+		shadowOffset: { width: 0, height: 1 },
+		shadowOpacity: 0.03,
+		shadowRadius: 2,
+		elevation: 1,
+	},
+	medium: {
+		shadowOffset: { width: 0, height: 1 },
+		shadowOpacity: 0.04,
+		shadowRadius: 3,
+		elevation: 1,
+	},
+	large: {
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.06,
+		shadowRadius: 4,
+		elevation: 2,
+	},
+};
+</file>
+
+<file path="apps/merchant-app/constants/theme/sizes.ts">
+export const sizes = {
+	touchTarget: 44,
+	smallTouchTarget: 36,
+	iconXs: 16,
+	iconSm: 20,
+	iconMd: 24,
+	iconLg: 32,
+	buttonSm: 36,
+	buttonMd: 44,
+	buttonLg: 52,
+	inputHeight: 48,
+	headerHeight: 56,
+	tabBarHeight: 49,
+	avatarSm: 32,
+	avatarMd: 44,
+	avatarLg: 64,
+	mealImageHeight: 240,
+	mealCardImageHeight: 140,
+	mealImageOverlayHeight: 80,
+	categoryOptionScale: 1.1,
+	categoryMargin: 2,
+} as const;
+</file>
+
+<file path="apps/merchant-app/constants/theme/spacing.ts">
+export const spacing = {
+	none: 0,
+	xs: 4,
+	sm: 8,
+	md: 16,
+	lg: 24,
+	xl: 32,
+	xxl: 48,
+	screenPadding: 20,
+	cardPadding: 16,
+	itemSpacing: 12,
+	sectionSpacing: 24,
+} as const;
+</file>
+
+<file path="apps/merchant-app/types.ts">
+export interface BaseModel {
+	id: string;
+	createdAt?: string;
+	updatedAt?: string;
+}
+export type Period = "Breakfast" | "Lunch" | "Dinner";
+export type AlertType = "warning" | "info" | "error" | "success";
+export type DietaryRestriction =
+	| "none"
+	| "vegetarian"
+	| "vegan"
+	| "glutenFree"
+	| "dairyFree";
+export interface MealCount {
+	name: string;
+	count: number;
+	id: string;
+}
+export interface MealPrepSummary {
+	period: Period;
+	totalMeals: number;
+	mealsToPrep: MealCount[];
+}
+export interface Alert extends BaseModel {
+	type: AlertType;
+	title: string;
+	icon: string;
+	timestamp?: string;
+	message?: string;
+	read?: boolean;
+}
+export interface StatItem {
+	title: string;
+	value: string | number;
+	icon: string;
+	change?: number;
+	changeDirection?: "up" | "down" | "neutral";
+}
+export interface OverviewStats {
+	activeSubscriptions: number;
+	newThisWeek: number;
+	newThisMonth?: number;
+	totalMeals?: number;
+	revenue?: {
+		daily?: number;
+		weekly?: number;
+		monthly?: number;
+	};
+}
+export interface QuickActionItem {
+	label: string;
+	icon: string;
+	action: () => void;
+	accessibilityLabel?: string;
+	accessibilityHint?: string;
+}
+export interface Ingredient {
+	name: string;
+	quantity?: number;
+	unit?: string;
+}
+export interface Meal extends BaseModel {
+	dietaryRestriction?: DietaryRestriction;
+	featured: boolean;
+	isVegan: boolean;
+	name: string;
+	name_ar?: string;
+	description: string;
+	description_ar?: string;
+	price: number;
+	calories: number;
+	prepTime: number;
+	period: Period;
+	available: boolean;
+	image?: string;
+	nutritionalInfo?: {
+		protein?: number;
+		carbs?: number;
+		fat?: number;
+		sugar?: number;
+		sodium?: number;
+	};
+	allergens?: string[];
+	tags?: string[];
+}
+export type RootStackParamList = {
+	Home: undefined;
+	Meals: undefined;
+	MealDetails: {
+		mealId: string;
+	};
+	Settings: undefined;
+};
+export interface ThemeTypography {
+	sizes: {
+		xs: number;
+		sm: number;
+		md: number;
+		lg: number;
+		xl: number;
+		xxl: number;
+		xxxl: number;
+	};
+	weights: {
+		regular: string;
+		medium: string;
+		semibold: string;
+		bold: string;
+		extrabold: string;
+	};
+	lineHeights: {
+		tight: number;
+		normal: number;
+		loose: number;
+	};
+}
+export interface FieldCommonProps {
+	label?: string;
+	error?: string;
+	required?: boolean;
+	disabled?: boolean;
+	accessibilityLabel?: string;
+	accessibilityHint?: string;
+}
+export interface InputFieldProps extends FieldCommonProps {
+	value: string;
+	onChangeText: (text: string) => void;
+	placeholder?: string;
+	keyboardType?: "default" | "numeric" | "email-address" | "phone-pad";
+	secureTextEntry?: boolean;
+	multiline?: boolean;
+	numberOfLines?: number;
+	autoCapitalize?: "none" | "sentences" | "words" | "characters";
+	rightIcon?: string;
+	leftIcon?: string;
+}
+export interface SelectOption {
+	value: string;
+	label: string;
+	icon?: string;
+	description?: string;
+}
+export interface UserProfile {
+	id: string;
+	email: string;
+	name: string;
+	role: "admin" | "staff" | "cook";
+	avatarUrl?: string;
+	preferences?: {
+		language?: "en" | "ar";
+		theme?: "light" | "dark" | "system";
+		notifications?: boolean;
+	};
+}
+export type MealId = Meal["id"];
+export type AlertId = Alert["id"];
+</file>
+
+<file path="apps/merchant-app/components/dashboard/AlertsCard.tsx">
+import React from "react";
+import { Pressable, View } from "react-native";
+import Animated, {
+	FadeInUp,
+	FadeOutDown,
+	useAnimatedStyle,
+	useSharedValue,
+	withTiming,
+} from "react-native-reanimated";
+import { Ionicons } from "@expo/vector-icons";
+import { AnimatedBox, Box, Text } from "@/components/ui";
+import { useTheme } from "@/hooks/useTheme";
+import { Alert } from "@/types";
+import { useTranslation } from "@/hooks/useTranslation";
+import { Card } from "@/components/ui/Card";
+interface AlertsCardProps {
+	alerts: Alert[];
+	onViewAlert: (id: string | number) => void;
+	onViewAllAlerts?: () => void;
+}
+export const AlertsCard = React.memo(
+	({ alerts, onViewAlert, onViewAllAlerts }: AlertsCardProps) => {
+		const theme = useTheme();
+		const { t } = useTranslation();
+		const hasAlerts = alerts.length > 0;
+		return (
+			<AnimatedBox
+				entering={FadeInUp.delay(theme.animations.delay.staggered.medium)
+					.duration(theme.animations.duration.extraSlow)
+					.springify()
+					.damping(theme.animations.spring.damping.light)}
+				exiting={FadeOutDown.duration(theme.animations.duration.medium)}
+				marginHorizontal="md"
+				marginBottom="lg"
+				style={{ overflow: "hidden" }}
+			>
+				<Box rounded="lg" elevation="small">
+					<Box
+						row
+						justifyContent="space-between"
+						alignItems="center"
+						marginBottom="md"
+						paddingTop="md"
+					>
+						<Text variant="lg" weight="semibold" fontFamily="serif">
+							{t("dashboard.alerts")}
+						</Text>
+						{hasAlerts && (
+							<Animated.View>
+								<Pressable
+									onPress={onViewAllAlerts}
+									style={({ pressed }) => ({
+										paddingVertical: theme.spacing.xs,
+										borderRadius: theme.spacing.sm,
+										backgroundColor: pressed
+											? theme.colors.backgroundAlt
+											: undefined,
+										opacity: pressed ? 0.7 : 1,
+									})}
+								>
+									<Text variant="sm" color="primary" weight="medium">
+										{t("dashboard.viewAll")}
+									</Text>
+								</Pressable>
+							</Animated.View>
+						)}
+					</Box>
+					{hasAlerts ? (
+						<Box>
+							{alerts.map((alert, index) => (
+								<AlertItem
+									key={alert.id}
+									alert={alert}
+									onPress={() => onViewAlert(alert.id)}
+									isLast={index === alerts.length - 1}
+								/>
+							))}
+						</Box>
+					) : (
+						<Box
+							alignCenter
+							paddingVertical="lg"
+							bg="backgroundAlt"
+							style={{
+								borderBottomLeftRadius: theme.radius.lg,
+								borderBottomRightRadius: theme.radius.lg,
+							}}
+						>
+							<Box
+								rounded="round"
+								bg="accentMint"
+								padding="md"
+								marginBottom="md"
+								style={{
+									width: theme.sizes.avatarLg,
+									height: theme.sizes.avatarLg,
+									alignItems: "center",
+									justifyContent: "center",
+								}}
+							>
+								<Ionicons
+									name="checkmark-circle"
+									size={theme.sizes.iconMd}
+									color={theme.colors.text}
+								/>
+							</Box>
+							<Text color="textSecondary" center fontFamily="serif">
+								{t("dashboard.allCaughtUp")}
+							</Text>
+							<Text color="textMuted" variant="sm" center marginTop="xs">
+								{t("dashboard.noAlerts")}
+							</Text>
+						</Box>
+					)}
+				</Box>
+			</AnimatedBox>
+		);
+	},
+);
+interface AlertItemProps {
+	alert: Alert;
+	onPress: () => void;
+	isLast?: boolean;
+}
+const AlertItem = React.memo(
+	({ alert, onPress, isLast = false }: AlertItemProps) => {
+		const theme = useTheme();
+		const { isRTL } = useTranslation();
+		const pressed = useSharedValue(0);
+		const getAlertAccentColor = (type: string) => {
+			switch (type) {
+				case "warning":
+					return theme.colors.accentPeach;
+				case "info":
+					return theme.colors.accentSky;
+				case "error":
+					return theme.colors.accentCoral;
+				case "success":
+					return theme.colors.accentMint;
+				default:
+					return theme.colors.accentSky;
+			}
+		};
+		const iconColor = getAlertAccentColor(alert.type);
+		const handlePressIn = () => {
+			pressed.value = withTiming(1, {
+				duration: theme.animations.duration.medium,
+			});
+		};
+		const handlePressOut = () => {
+			pressed.value = withTiming(0, {
+				duration: theme.animations.duration.medium,
+			});
+		};
+		const animatedStyle = useAnimatedStyle(() => {
+			return {
+				transform: [
+					{
+						scale: withTiming(
+							pressed.value === 1 ? theme.animations.scale.pressed : 1,
+							{
+								duration:
+									pressed.value === 1
+										? theme.animations.duration.fast / 2
+										: theme.animations.duration.medium,
+							},
+						),
+					},
+				],
+				opacity: withTiming(
+					pressed.value === 1 ? theme.animations.scale.pressedSmall : 1,
+					{
+						duration:
+							pressed.value === 1
+								? theme.animations.duration.fast / 2
+								: theme.animations.duration.medium,
+					},
+				),
+			};
+		});
+		return (
+			<Animated.View
+				style={[
+					{
+						borderBottomWidth: isLast ? 0 : 0.5,
+						borderBottomColor: theme.colors.divider,
+					},
+					animatedStyle,
+				]}
+			>
+				<Pressable
+					onPress={onPress}
+					onPressIn={handlePressIn}
+					onPressOut={handlePressOut}
+					style={{
+						flexDirection: "row",
+						alignItems: "center",
+						paddingVertical: theme.spacing.md,
+					}}
+					android_ripple={{ color: theme.colors.overlay }}
+				>
+					<View
+						style={{
+							width: theme.sizes.buttonSm,
+							height: theme.sizes.buttonSm,
+							borderRadius: theme.radius.round,
+							alignItems: "center",
+							justifyContent: "center",
+							backgroundColor: iconColor,
+							marginStart: theme.spacing.sm,
+						}}
+					>
+						<Ionicons
+							name={alert.icon as any}
+							size={theme.sizes.iconSm}
+							color={theme.colors.text}
+						/>
+					</View>
+					<Box
+						flex={1}
+						marginStart="sm"
+						gap={theme.spacing.xs / 2}
+						alignItems="flex-start"
+					>
+						<Text variant="sm" weight="medium" numberOfLines={1}>
+							{alert.title}
+						</Text>
+						{alert.timestamp && (
+							<Text variant="xs" color="textMuted">
+								{alert.timestamp}
+							</Text>
+						)}
+					</Box>
+					<Ionicons
+						name={isRTL ? "chevron-back" : "chevron-forward"}
+						size={theme.sizes.iconSm}
+						color={theme.colors.textMuted}
+						style={{ marginStart: theme.spacing.sm }}
+					/>
+				</Pressable>
+			</Animated.View>
 		);
 	},
 );
@@ -4187,7 +4356,6 @@ export const Text: React.FC<TextProps> = React.memo(
 			paddingTop: getSpacingValue(paddingTop),
 			paddingBottom: getSpacingValue(paddingBottom),
 			padding: getSpacingValue(padding),
-			letterSpacing: 0.2,
 		};
 		return (
 			<RNText
@@ -4382,34 +4550,9 @@ export const theme = {
 } as const;
 </file>
 
-<file path="apps/merchant-app/constants/theme/sizes.ts">
-export const sizes = {
-	touchTarget: 44,
-	smallTouchTarget: 36,
-	iconXs: 16,
-	iconSm: 20,
-	iconMd: 24,
-	iconLg: 32,
-	buttonSm: 36,
-	buttonMd: 44,
-	buttonLg: 52,
-	inputHeight: 48,
-	headerHeight: 56,
-	tabBarHeight: 49,
-	avatarSm: 32,
-	avatarMd: 44,
-	avatarLg: 64,
-	mealImageHeight: 240,
-	mealCardImageHeight: 140,
-	mealImageOverlayHeight: 80,
-	categoryOptionScale: 1.1,
-	categoryMargin: 2,
-} as const;
-</file>
-
 <file path="apps/merchant-app/hooks/useTheme.ts">
 import { useColorScheme } from "react-native";
-import { theme, ThemeMode } from "@/constants/theme";
+import { theme } from "@/constants/theme";
 import { DarkTheme, DefaultTheme } from "@react-navigation/native";
 export const useTheme = () => {
 	const colorScheme = useColorScheme() || "light";
@@ -4462,165 +4605,6 @@ export type ThemeTokens = {
 		lineHeights: LineHeightVariant;
 	};
 };
-</file>
-
-<file path="apps/merchant-app/types.ts">
-export interface BaseModel {
-	id: string;
-	createdAt?: string;
-	updatedAt?: string;
-}
-export type Period = "Breakfast" | "Lunch" | "Dinner";
-export type AlertType = "warning" | "info" | "error" | "success";
-export type DietaryRestriction =
-	| "none"
-	| "vegetarian"
-	| "vegan"
-	| "glutenFree"
-	| "dairyFree";
-export interface MealCount {
-	name: string;
-	count: number;
-	id: string;
-}
-export interface MealPrepSummary {
-	period: Period;
-	totalMeals: number;
-	mealsToPrep: MealCount[];
-}
-export interface Alert extends BaseModel {
-	type: AlertType;
-	title: string;
-	icon: string;
-	timestamp?: string;
-	message?: string;
-	read?: boolean;
-}
-export interface StatItem {
-	title: string;
-	value: string | number;
-	icon: string;
-	change?: number;
-	changeDirection?: "up" | "down" | "neutral";
-}
-export interface OverviewStats {
-	activeSubscriptions: number;
-	newThisWeek: number;
-	newThisMonth?: number;
-	totalMeals?: number;
-	revenue?: {
-		daily?: number;
-		weekly?: number;
-		monthly?: number;
-	};
-}
-export interface QuickActionItem {
-	label: string;
-	icon: string;
-	action: () => void;
-	accessibilityLabel?: string;
-	accessibilityHint?: string;
-}
-export interface Ingredient {
-	name: string;
-	quantity?: number;
-	unit?: string;
-}
-export interface Meal extends BaseModel {
-	dietaryRestriction?: DietaryRestriction;
-	featured: boolean;
-	isVegan: boolean;
-	name: string;
-	name_ar?: string;
-	description: string;
-	description_ar?: string;
-	price: number;
-	calories: number;
-	prepTime: number;
-	period: Period;
-	available: boolean;
-	image?: string;
-	nutritionalInfo?: {
-		protein?: number;
-		carbs?: number;
-		fat?: number;
-		sugar?: number;
-		sodium?: number;
-	};
-	allergens?: string[];
-	tags?: string[];
-}
-export type RootStackParamList = {
-	Home: undefined;
-	Meals: undefined;
-	MealDetails: {
-		mealId: string;
-	};
-	Settings: undefined;
-};
-export interface ThemeTypography {
-	sizes: {
-		xs: number;
-		sm: number;
-		md: number;
-		lg: number;
-		xl: number;
-		xxl: number;
-		xxxl: number;
-	};
-	weights: {
-		regular: string;
-		medium: string;
-		semibold: string;
-		bold: string;
-		extrabold: string;
-	};
-	lineHeights: {
-		tight: number;
-		normal: number;
-		loose: number;
-	};
-}
-export interface FieldCommonProps {
-	label?: string;
-	error?: string;
-	required?: boolean;
-	disabled?: boolean;
-	accessibilityLabel?: string;
-	accessibilityHint?: string;
-}
-export interface InputFieldProps extends FieldCommonProps {
-	value: string;
-	onChangeText: (text: string) => void;
-	placeholder?: string;
-	keyboardType?: "default" | "numeric" | "email-address" | "phone-pad";
-	secureTextEntry?: boolean;
-	multiline?: boolean;
-	numberOfLines?: number;
-	autoCapitalize?: "none" | "sentences" | "words" | "characters";
-	rightIcon?: string;
-	leftIcon?: string;
-}
-export interface SelectOption {
-	value: string;
-	label: string;
-	icon?: string;
-	description?: string;
-}
-export interface UserProfile {
-	id: string;
-	email: string;
-	name: string;
-	role: "admin" | "staff" | "cook";
-	avatarUrl?: string;
-	preferences?: {
-		language?: "en" | "ar";
-		theme?: "light" | "dark" | "system";
-		notifications?: boolean;
-	};
-}
-export type MealId = Meal["id"];
-export type AlertId = Alert["id"];
 </file>
 
 <file path="apps/merchant-app/app/meals/index.tsx">
@@ -4976,12 +4960,7 @@ const HomeScreen = React.memo(() => {
 						height: theme.sizes.headerHeight,
 					}}
 				>
-					<Text
-						variant="xl"
-						weight="semibold"
-						numberOfLines={1}
-						fontFamily="serif"
-					>
+					<Text variant="xl" weight="semibold" numberOfLines={1}>
 						{currentDateString}
 					</Text>
 				</Box>
@@ -4994,14 +4973,14 @@ const HomeScreen = React.memo(() => {
 						.damping(theme.animations.spring.damping.light)}
 					exiting={FadeOutDown.duration(theme.animations.duration.medium)}
 				>
-					<Card variant="cream" elevation="small" padding="xs">
+					<Box elevation="small" padding="xs">
 						<Tabs
 							tabs={tabItems}
 							selectedTab={selectedTab}
 							onSelectTab={handleSelectTab}
 							labelRender={(tab) => t(`dashboard.${tab.toLowerCase()}`)}
 						/>
-					</Card>
+					</Box>
 					<StatsGrid stats={currentStats} key={selectedTab} />
 				</AnimatedBox>
 				<Animated.Text
@@ -5104,7 +5083,7 @@ export const StatsGrid = React.memo(({ stats }: StatsGridProps) => {
 					<Card
 						variant={stat.variant}
 						padding="md"
-						rounded="lg"
+						rounded="sm"
 						elevation="small"
 					>
 						<Box row alignCenter marginBottom="sm" gap="sm">
@@ -5684,12 +5663,13 @@ export const SwitchField = React.memo(
 
 <file path="apps/merchant-app/components/ui/Tabs.tsx">
 import React, { useMemo } from "react";
-import { Pressable, AccessibilityState } from "react-native";
+import { Pressable } from "react-native";
 import { Box } from "./Box";
 import { Text } from "./Text";
 import { useTheme } from "@/hooks/useTheme";
 import * as Haptics from "expo-haptics";
 import { Ionicons } from "@expo/vector-icons";
+import { radius } from "@/constants/theme/radius";
 type TabItem = {
 	key: string;
 	label: string;
@@ -5747,9 +5727,6 @@ export const Tabs = React.memo(
 						: tabLabel;
 				const tabAccessibilityHint =
 					typeof tab !== "string" ? tab.accessibilityHint : undefined;
-				const accessibilityState: AccessibilityState = {
-					selected: isSelected,
-				};
 				return (
 					<Pressable
 						key={tabKey}
@@ -5760,10 +5737,7 @@ export const Tabs = React.memo(
 							alignItems: "center",
 							justifyContent: "center",
 							flexDirection: "row",
-							borderBottomWidth: isSelected ? 2 : 0,
-							borderBottomColor: isSelected
-								? theme.colors.primary
-								: "transparent",
+							borderRadius: radius.md,
 							opacity: pressed ? 0.7 : 1,
 							gap: theme.spacing.xs,
 						})}
@@ -5772,7 +5746,6 @@ export const Tabs = React.memo(
 						accessibilityRole="tab"
 						accessibilityLabel={tabAccessibilityLabel}
 						accessibilityHint={tabAccessibilityHint}
-						accessibilityState={accessibilityState}
 					>
 						{iconLeft && (
 							<Ionicons
@@ -5783,11 +5756,7 @@ export const Tabs = React.memo(
 								}
 							/>
 						)}
-						<Text
-							variant="sm"
-							weight={isSelected ? "medium" : "regular"}
-							color={isSelected ? "primary" : "textSecondary"}
-						>
+						<Text variant="sm" color={isSelected ? "primary" : "textSecondary"}>
 							{tabLabel}
 						</Text>
 						{iconRight && (

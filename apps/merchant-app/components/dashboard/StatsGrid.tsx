@@ -47,7 +47,7 @@ export const StatsGrid = React.memo(({ stats }: StatsGridProps) => {
 					<Card
 						variant={stat.variant}
 						padding="md"
-						rounded="lg"
+						rounded="sm"
 						elevation="small"
 					>
 						<Box row alignCenter marginBottom="sm" gap="sm">

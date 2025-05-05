@@ -1,10 +1,11 @@
 import React, { useMemo } from "react";
-import { Pressable, AccessibilityState } from "react-native";
+import { Pressable } from "react-native";
 import { Box } from "./Box";
 import { Text } from "./Text";
 import { useTheme } from "@/hooks/useTheme";
 import * as Haptics from "expo-haptics";
 import { Ionicons } from "@expo/vector-icons";
+import { radius } from "@/constants/theme/radius";
 
 type TabItem = {
 	key: string;
@@ -72,10 +73,6 @@ export const Tabs = React.memo(
 				const tabAccessibilityHint =
 					typeof tab !== "string" ? tab.accessibilityHint : undefined;
 
-				const accessibilityState: AccessibilityState = {
-					selected: isSelected,
-				};
-
 				return (
 					<Pressable
 						key={tabKey}
@@ -86,11 +83,13 @@ export const Tabs = React.memo(
 							alignItems: "center",
 							justifyContent: "center",
 							flexDirection: "row",
+							// backgroundColor: isSelected ? "rgba(0,0,0,0.1)" : undefined,
+							borderRadius: radius.md,
 							// Much simpler tab styling
-							borderBottomWidth: isSelected ? 2 : 0,
-							borderBottomColor: isSelected
-								? theme.colors.primary
-								: "transparent",
+							// borderBottomWidth: isSelected ? 2 : 0,
+							// borderBottomColor: isSelected
+							// 	? theme.colors.primary
+							// 	: "transparent",
 							opacity: pressed ? 0.7 : 1,
 							gap: theme.spacing.xs,
 						})}
@@ -99,7 +98,6 @@ export const Tabs = React.memo(
 						accessibilityRole="tab"
 						accessibilityLabel={tabAccessibilityLabel}
 						accessibilityHint={tabAccessibilityHint}
-						accessibilityState={accessibilityState}
 					>
 						{iconLeft && (
 							<Ionicons
@@ -110,11 +108,7 @@ export const Tabs = React.memo(
 								}
 							/>
 						)}
-						<Text
-							variant="sm"
-							weight={isSelected ? "medium" : "regular"}
-							color={isSelected ? "primary" : "textSecondary"}
-						>
+						<Text variant="sm" color={isSelected ? "primary" : "textSecondary"}>
 							{tabLabel}
 						</Text>
 						{iconRight && (

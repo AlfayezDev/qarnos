@@ -122,8 +122,6 @@ export const Text: React.FC<TextProps> = React.memo(
 			paddingTop: getSpacingValue(paddingTop),
 			paddingBottom: getSpacingValue(paddingBottom),
 			padding: getSpacingValue(padding),
-			// Lofi-specific text styles
-			letterSpacing: 0.2,
 		};
 
 		return (

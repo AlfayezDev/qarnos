@@ -1,37 +1,25 @@
-import React, { useState, useCallback, useMemo } from "react";
-import { FlatList, View, Pressable } from "react-native";
+import React, { useState, useCallback } from "react";
+import { FlatList, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import Animated, {
-	FadeIn,
-	FadeInUp,
-	LinearTransition,
-	useAnimatedStyle,
-	useSharedValue,
-	withSpring,
-	withTiming,
-} from "react-native-reanimated";
+import Animated, { FadeInUp } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
-import { AnimatedBox, Box, Card, Text } from "@/components/ui";
+import { AnimatedBox, Box, Text } from "@/components/ui";
 import { Tabs } from "@/components/ui/Tabs";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import MealCard from "@/components/meal/MealCard";
+import { useMealStore } from "@/stores/mealStore";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
-import { MEALS } from "@/data";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Meal } from "@/types";
-import { Link } from "expo-router";
 
 const MealScreen = () => {
 	const theme = useTheme();
 	const { t } = useTranslation();
 	const [selectedPeriod, setSelectedPeriod] = useState<string>("Breakfast");
 	const insets = useSafeAreaInsets();
-	const [meals] = useState<Meal[]>(MEALS);
+	const { meals } = useMealStore();
+	const periods = ["Breakfast", "Lunch", "Dinner"];
 
-	const periods = useMemo(() => ["Breakfast", "Lunch", "Dinner"], []);
-
-	const filteredMeals = useMemo(() => {
-		return meals.filter((meal) => meal.period === selectedPeriod);
-	}, [meals, selectedPeriod]);
+	const filteredMeals = meals.filter((meal) => meal.period === selectedPeriod);
 
 	const handleSelectPeriod = useCallback(
 		(period: string) => {
@@ -90,7 +78,6 @@ const MealScreen = () => {
 					{t("meals.title")}
 				</Text>
 			</Box>
-
 			<AnimatedBox
 				marginHorizontal="md"
 				gap="lg"
@@ -103,7 +90,7 @@ const MealScreen = () => {
 					labelRender={(tab) => t(`periods.${tab.toLowerCase()}`)}
 				/>
 			</AnimatedBox>
-			<Animated.View layout={LinearTransition.springify()} style={{ flex: 1 }}>
+			<Animated.View style={{ flex: 1 }}>
 				{filteredMeals.length > 0 ? (
 					<FlatList
 						data={filteredMeals}
@@ -124,100 +111,4 @@ const MealScreen = () => {
 	);
 };
 
-const MealCard = React.memo(({ item }: { item: Meal }) => {
-	const theme = useTheme();
-	const { language } = useTranslation();
-	const isArabic = language === "ar";
-
-	const pressed = useSharedValue(0);
-
-	const handlePressIn = () => {
-		pressed.value = withTiming(1, { duration: theme.animations.duration.fast });
-		Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-	};
-
-	const handlePressOut = () => {
-		pressed.value = withTiming(0, {
-			duration: theme.animations.duration.medium,
-		});
-	};
-
-	const cardAnimatedStyle = useAnimatedStyle(() => {
-		return {
-			transform: [
-				{
-					scale: withSpring(
-						pressed.value === 1 ? theme.animations.scale.pressed : 1,
-						{ damping: theme.animations.spring.damping.light },
-					),
-				},
-			],
-		};
-	});
-
-	return (
-		<Animated.View
-			layout={LinearTransition.springify().damping(
-				theme.animations.spring.damping.light,
-			)}
-			entering={FadeIn.duration(theme.animations.duration.slow)}
-			style={cardAnimatedStyle}
-		>
-			<Link asChild href={`/meals/${item.id}`}>
-				<Pressable onPressIn={handlePressIn} onPressOut={handlePressOut}>
-					<Card
-						elevation="small"
-						style={{
-							overflow: "hidden",
-							marginBottom: theme.spacing.md, // More spacing between cards
-							marginHorizontal: theme.spacing.xs,
-						}}
-					>
-						{item.image && (
-							<Animated.Image
-								source={{ uri: item.image }}
-								style={{
-									height: theme.sizes.mealCardImageHeight - 20,
-									width: "100%",
-									borderTopLeftRadius: theme.radius.md,
-									borderTopRightRadius: theme.radius.md,
-								}}
-								resizeMode="cover"
-							/>
-						)}
-						<Box padding="md" gap="xs" alignItems="flex-start">
-							<Text variant="lg" weight="medium" style={{ letterSpacing: 0.3 }}>
-								{isArabic && item.name_ar ? item.name_ar : item.name}
-							</Text>
-							<Text
-								variant="sm"
-								color="textSecondary"
-								marginBottom="sm"
-								numberOfLines={2}
-								style={{ lineHeight: 20 }}
-							>
-								{isArabic && item.description_ar
-									? item.description_ar
-									: item.description}
-							</Text>
-							<Box row marginTop="xs">
-								<Box row alignCenter>
-									<Ionicons
-										name="flame-outline"
-										size={theme.sizes.iconXs}
-										color={theme.colors.textSecondary}
-										style={{ marginEnd: theme.spacing.xs }}
-									/>
-									<Text variant="xs" color="textSecondary">
-										{item.calories} cal
-									</Text>
-								</Box>
-							</Box>
-						</Box>
-					</Card>
-				</Pressable>
-			</Link>
-		</Animated.View>
-	);
-});
 export default MealScreen;

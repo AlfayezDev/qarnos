@@ -149,12 +149,7 @@ const HomeScreen = React.memo(() => {
 						height: theme.sizes.headerHeight,
 					}}
 				>
-					<Text
-						variant="xl"
-						weight="semibold"
-						numberOfLines={1}
-						fontFamily="serif"
-					>
+					<Text variant="xl" weight="semibold" numberOfLines={1}>
 						{currentDateString}
 					</Text>
 				</Box>
@@ -168,14 +163,14 @@ const HomeScreen = React.memo(() => {
 						.damping(theme.animations.spring.damping.light)}
 					exiting={FadeOutDown.duration(theme.animations.duration.medium)}
 				>
-					<Card variant="cream" elevation="small" padding="xs">
+					<Box elevation="small" padding="xs">
 						<Tabs
 							tabs={tabItems}
 							selectedTab={selectedTab}
 							onSelectTab={handleSelectTab}
 							labelRender={(tab) => t(`dashboard.${tab.toLowerCase()}`)}
 						/>
-					</Card>
+					</Box>
 					<StatsGrid stats={currentStats} key={selectedTab} />
 				</AnimatedBox>
 

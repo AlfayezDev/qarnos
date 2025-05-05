@@ -1,5 +1,5 @@
 import { useColorScheme } from "react-native";
-import { theme, ThemeMode } from "@/constants/theme";
+import { theme } from "@/constants/theme";
 import { DarkTheme, DefaultTheme } from "@react-navigation/native";
 
 export const useTheme = () => {

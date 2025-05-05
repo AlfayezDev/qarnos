@@ -1,10 +1,3 @@
-import { LanguageSelector } from "@/components/LanguageSelector";
-import { AnimatedBox, Avatar, Box, Text } from "@/components/ui";
-import { useTheme } from "@/hooks/useTheme";
-import { useTranslation } from "@/hooks/useTranslation";
-import { Ionicons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
-import { Stack } from "expo-router";
 import React, { useCallback } from "react";
 import {
 	Appearance,
@@ -13,14 +6,23 @@ import {
 	TouchableOpacity,
 	View,
 } from "react-native";
+import { Stack } from "expo-router";
 import Animated, {
 	FadeInUp,
+	FadeOutDown,
+	LinearTransition,
 	useAnimatedStyle,
 	withTiming,
-	LinearTransition,
-	FadeOutDown,
 } from "react-native-reanimated";
+import * as Haptics from "expo-haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import { LanguageSelector } from "@/components/LanguageSelector";
+import { AnimatedBox, Avatar, Box, Text } from "@/components/ui";
+
+import { useMemoizedCallback } from "@/hooks/useMemoizedCallback";
+import { useTheme } from "@/hooks/useTheme";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -30,40 +32,42 @@ const SettingsScreen = React.memo(() => {
 	const { t } = useTranslation();
 	const restaurantName = "The Gourmet Spot";
 
-	const handleThemeChange = useCallback((newTheme: "light" | "dark") => {
-		Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-		Appearance.setColorScheme(newTheme);
-		console.log("Theme changed to:", newTheme);
-	}, []);
+	const handleThemeChange = useMemoizedCallback(
+		(newTheme: "light" | "dark") => {
+			Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+			Appearance.setColorScheme(newTheme);
+			console.log("Theme changed to:", newTheme);
+		},
+		[],
+	);
 
 	const ThemeOption = React.memo(
 		({
 			option,
-		}: { option: { key: "light" | "dark"; icon: string; label: string } }) => {
+		}: {
+			option: { key: "light" | "dark"; icon: string; label: string };
+		}) => {
 			const theme = useTheme();
 			const isSelected = theme.mode === option.key;
 
-			const animatedStyle = useAnimatedStyle(() => {
-				return {
-					backgroundColor: withTiming(
-						isSelected ? theme.colors.primaryLight : theme.colors.backgroundAlt,
-						{ duration: 200 },
-					),
-					borderColor: withTiming(
-						isSelected ? theme.colors.primary : theme.colors.divider,
-						{ duration: 200 },
-					),
-					transform: [
-						{ scale: withTiming(isSelected ? 1.0 : 0.98, { duration: 150 }) },
-					],
-					opacity: withTiming(isSelected ? 1 : 0.8, { duration: 200 }),
-				};
-			});
+			const animatedStyle = useAnimatedStyle(() => ({
+				backgroundColor: withTiming(
+					isSelected ? theme.colors.primaryLight : theme.colors.backgroundAlt,
+					{ duration: 200 },
+				),
+				borderColor: withTiming(
+					isSelected ? theme.colors.primary : theme.colors.divider,
+					{ duration: 200 },
+				),
+				transform: [
+					{ scale: withTiming(isSelected ? 1.0 : 0.98, { duration: 150 }) },
+				],
+				opacity: withTiming(isSelected ? 1 : 0.8, { duration: 200 }),
+			}));
 
 			const iconColor = isSelected
 				? theme.colors.primary
 				: theme.colors.textSecondary;
-
 			const textColor = isSelected
 				? theme.colors.primary
 				: theme.colors.textSecondary;
@@ -110,7 +114,7 @@ const SettingsScreen = React.memo(() => {
 		{ key: "dark", icon: "moon-outline", label: t("settings.darkMode") },
 	] as const;
 
-	const SettingsSection = React.memo(
+	const SettingsSection = useCallback(
 		({
 			title,
 			icon,
@@ -150,6 +154,7 @@ const SettingsScreen = React.memo(() => {
 				{children}
 			</AnimatedBox>
 		),
+		[theme],
 	);
 
 	return (
@@ -214,9 +219,11 @@ const SettingsScreen = React.memo(() => {
 						color={theme.colors.textMuted}
 					/>
 				</AnimatedBox>
+
 				<SettingsSection title={t("settings.language")} icon="language-outline">
 					<LanguageSelector />
 				</SettingsSection>
+
 				<SettingsSection
 					title={t("settings.theme")}
 					icon="color-palette-outline"
@@ -232,6 +239,7 @@ const SettingsScreen = React.memo(() => {
 						))}
 					</View>
 				</SettingsSection>
+
 				<SettingsSection
 					title={t("settings.appInfo")}
 					icon="information-circle-outline"
@@ -245,6 +253,7 @@ const SettingsScreen = React.memo(() => {
 						</Text>
 					</Box>
 				</SettingsSection>
+
 				<AnimatedBox
 					entering={FadeInUp.delay(theme.animations.delay.staggered.medium)
 						.duration(theme.animations.duration.extraSlow)

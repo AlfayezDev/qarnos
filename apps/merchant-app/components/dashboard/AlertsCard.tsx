@@ -37,13 +37,12 @@ export const AlertsCard = React.memo(
 				marginBottom="lg"
 				style={{ overflow: "hidden" }}
 			>
-				<Card variant="sage" rounded="lg" elevation="small">
+				<Box rounded="lg" elevation="small">
 					<Box
 						row
 						justifyContent="space-between"
 						alignItems="center"
 						marginBottom="md"
-						paddingHorizontal="md"
 						paddingTop="md"
 					>
 						<Text variant="lg" weight="semibold" fontFamily="serif">
@@ -55,7 +54,6 @@ export const AlertsCard = React.memo(
 									onPress={onViewAllAlerts}
 									style={({ pressed }) => ({
 										paddingVertical: theme.spacing.xs,
-										paddingHorizontal: theme.spacing.sm,
 										borderRadius: theme.spacing.sm,
 										backgroundColor: pressed
 											? theme.colors.backgroundAlt
@@ -85,7 +83,6 @@ export const AlertsCard = React.memo(
 						<Box
 							alignCenter
 							paddingVertical="lg"
-							paddingHorizontal="md"
 							bg="backgroundAlt"
 							style={{
 								borderBottomLeftRadius: theme.radius.lg,
@@ -118,7 +115,7 @@ export const AlertsCard = React.memo(
 							</Text>
 						</Box>
 					)}
-				</Card>
+				</Box>
 			</AnimatedBox>
 		);
 	},
@@ -210,7 +207,7 @@ const AlertItem = React.memo(
 					style={{
 						flexDirection: "row",
 						alignItems: "center",
-						padding: theme.spacing.md,
+						paddingVertical: theme.spacing.md,
 					}}
 					android_ripple={{ color: theme.colors.overlay }}
 				>
