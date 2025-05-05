@@ -6,7 +6,7 @@ export const spacing = {
 	lg: 24,
 	xl: 32,
 	xxl: 48,
-	screenPadding: 16,
+	screenPadding: 20,
 	cardPadding: 16,
 	itemSpacing: 12,
 	sectionSpacing: 24,

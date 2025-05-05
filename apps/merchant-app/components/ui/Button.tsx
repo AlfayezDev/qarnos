@@ -11,7 +11,19 @@ import { Text } from "./Text";
 
 interface ButtonProps extends TouchableOpacityProps {
 	title: string;
-	variant?: "primary" | "secondary" | "outline" | "ghost";
+	variant?:
+		| "primary"
+		| "secondary"
+		| "outline"
+		| "ghost"
+		| "sage"
+		| "peach"
+		| "lavender"
+		| "coral"
+		| "mint"
+		| "cream"
+		| "sky"
+		| "rose";
 	size?: "sm" | "md" | "lg";
 	leftIcon?: string;
 	rightIcon?: string;
@@ -42,6 +54,27 @@ export const Button = React.memo(
 		const theme = useTheme();
 
 		const getVariantStyles = () => {
+			// Handle lofi accent color variants
+			const accentVariants = [
+				"sage",
+				"peach",
+				"lavender",
+				"coral",
+				"mint",
+				"cream",
+				"sky",
+				"rose",
+			];
+
+			if (accentVariants.includes(variant)) {
+				const accentKey =
+					`accent${variant.charAt(0).toUpperCase() + variant.slice(1)}` as keyof typeof theme.colors;
+				return {
+					backgroundColor: theme.colors[accentKey],
+					textColorToken: theme.colors.text,
+				};
+			}
+
 			switch (variant) {
 				case "primary":
 					return {
@@ -132,10 +165,10 @@ export const Button = React.memo(
 						alignItems: "center",
 						justifyContent: "center",
 						width: fullWidth ? "100%" : undefined,
-					},
+					} as TouchableOpacityProps["style"],
 					style,
 				]}
-				activeOpacity={0.7}
+				activeOpacity={0.8}
 				disabled={loading || props.disabled}
 				accessibilityRole="button"
 				accessibilityLabel={accessibilityLabel || title}
@@ -157,7 +190,7 @@ export const Button = React.memo(
 						)}
 						<Text
 							variant={sizeStyle.fontSize}
-							weight="semibold"
+							weight="medium"
 							color={finalTextColor}
 						>
 							{title}

@@ -1,0 +1,11 @@
+# Add patterns to ignore here, one per line
+# Example:
+# *.log
+# tmp/
+**/*.log,tmp/
+**/Illustrations/**
+**/*.json
+**/Localization.ts
+**/SVGS/**
+**/generated/**
+/**/svgs/**

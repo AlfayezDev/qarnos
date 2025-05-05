@@ -99,6 +99,9 @@ importers:
       react-native-gesture-handler:
         specifier: ~2.24.0
         version: 2.24.0(react-native@0.79.0(@babel/core@7.26.10)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
+      react-native-mmkv:
+        specifier: ^3.2.0
+        version: 3.2.0(react-native@0.79.0(@babel/core@7.26.10)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
       react-native-reanimated:
         specifier: ~3.17.3
         version: 3.17.3(@babel/core@7.26.10)(react-native@0.79.0(@babel/core@7.26.10)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
@@ -2474,6 +2477,12 @@ packages:
 
   react-native-is-edge-to-edge@1.1.7:
     resolution: {integrity: sha512-EH6i7E8epJGIcu7KpfXYXiV2JFIYITtq+rVS8uEb+92naMRBdxhTuS8Wn2Q7j9sqyO0B+Xbaaf9VdipIAmGW4w==}
+    peerDependencies:
+      react: '*'
+      react-native: '*'
+
+  react-native-mmkv@3.2.0:
+    resolution: {integrity: sha512-9y7K//1MaU46TFrXkyU0wT5VGk9Y2FDLFV6NPl+z3jTbm2G7SC1UIxneF6CfhSmBX5CfKze9SO7kwDuRx7flpQ==}
     peerDependencies:
       react: '*'
       react-native: '*'
@@ -5902,6 +5911,11 @@ snapshots:
       react-native: 0.79.0(@babel/core@7.26.10)(@types/react@19.0.14)(react@19.0.0)
 
   react-native-is-edge-to-edge@1.1.7(react-native@0.79.0(@babel/core@7.26.10)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0):
+    dependencies:
+      react: 19.0.0
+      react-native: 0.79.0(@babel/core@7.26.10)(@types/react@19.0.14)(react@19.0.0)
+
+  react-native-mmkv@3.2.0(react-native@0.79.0(@babel/core@7.26.10)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0):
     dependencies:
       react: 19.0.0
       react-native: 0.79.0(@babel/core@7.26.10)(@types/react@19.0.14)(react@19.0.0)

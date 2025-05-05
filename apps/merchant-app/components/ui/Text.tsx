@@ -46,6 +46,8 @@ interface TextProps extends RNTextProps {
 		busy?: boolean;
 		expanded?: boolean;
 	};
+	// New lofi props
+	fontFamily?: "sans" | "serif" | "mono";
 }
 
 export const Text: React.FC<TextProps> = React.memo(
@@ -76,15 +78,18 @@ export const Text: React.FC<TextProps> = React.memo(
 		accessibilityLabel,
 		accessibilityHint,
 		accessibilityState,
+		fontFamily = "sans",
 		...props
 	}) => {
 		const theme = useTheme();
+
 		const getSpacingValue = (
 			value: SpacingToken | number | undefined,
 		): number | undefined => {
 			if (value === undefined) return undefined;
 			return typeof value === "number" ? value : theme.spacing[value];
 		};
+
 		const getColorValue = (
 			colorProp: ColorToken | string | undefined,
 		): string => {
@@ -92,10 +97,11 @@ export const Text: React.FC<TextProps> = React.memo(
 				return muted ? theme.colors.textSecondary : theme.colors.text;
 			}
 			if (typeof colorProp === "string" && colorProp in theme.colors) {
-				return theme.colors[colorProp as ColorToken];
+				return theme.colors[colorProp as ColorToken] as string;
 			}
 			return colorProp;
 		};
+
 		const textAlign = center ? "center" : align;
 		const textStyle: TextStyle = {
 			fontSize: theme.typography.sizes[variant],
@@ -116,7 +122,10 @@ export const Text: React.FC<TextProps> = React.memo(
 			paddingTop: getSpacingValue(paddingTop),
 			paddingBottom: getSpacingValue(paddingBottom),
 			padding: getSpacingValue(padding),
+			// Lofi-specific text styles
+			letterSpacing: 0.2,
 		};
+
 		return (
 			<RNText
 				style={[textStyle, style]}

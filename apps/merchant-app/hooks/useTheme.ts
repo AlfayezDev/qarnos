@@ -5,7 +5,7 @@ import { DarkTheme, DefaultTheme } from "@react-navigation/native";
 export const useTheme = () => {
 	const colorScheme = useColorScheme() || "light";
 	const isDark = colorScheme === "dark";
-	const mode: ThemeMode = isDark ? "dark" : "light";
+	const mode = isDark ? "dark" : "light";
 	const navTheme = isDark ? DarkTheme : DefaultTheme;
 
 	return {
@@ -29,9 +29,9 @@ export const useTheme = () => {
 				text: theme.colors[mode].text,
 				border: theme.colors[mode].divider,
 				notification: theme.colors[mode].primary,
-			},
-		},
-	};
+			} as const,
+		} as const,
+	} as const;
 };
 export type AppTheme = ReturnType<typeof useTheme>;
 export type SpacingToken = keyof typeof theme.spacing;

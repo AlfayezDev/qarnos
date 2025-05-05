@@ -81,19 +81,17 @@ export const Tabs = React.memo(
 						key={tabKey}
 						style={({ pressed }) => ({
 							flex: 1,
-							paddingVertical: 8,
+							paddingVertical: 10,
 							paddingHorizontal: 12,
 							alignItems: "center",
 							justifyContent: "center",
 							flexDirection: "row",
-							borderRadius: theme.radius.sm,
-							backgroundColor: isSelected ? theme.colors.card : undefined,
-							shadowOffset: isSelected ? { width: 0, height: 1 } : undefined,
-							shadowOpacity: isSelected ? 0.1 : undefined,
-							shadowRadius: isSelected ? 2 : undefined,
-							elevation: isSelected ? 2 : undefined,
-							shadowColor: isSelected ? theme.colors.shadow : undefined,
-							opacity: pressed ? 0.5 : 1,
+							// Much simpler tab styling
+							borderBottomWidth: isSelected ? 2 : 0,
+							borderBottomColor: isSelected
+								? theme.colors.primary
+								: "transparent",
+							opacity: pressed ? 0.7 : 1,
 							gap: theme.spacing.xs,
 						})}
 						onPress={() => handlePress(tab)}
@@ -114,7 +112,7 @@ export const Tabs = React.memo(
 						)}
 						<Text
 							variant="sm"
-							weight={isSelected ? "semibold" : "medium"}
+							weight={isSelected ? "medium" : "regular"}
 							color={isSelected ? "primary" : "textSecondary"}
 						>
 							{tabLabel}
@@ -136,9 +134,7 @@ export const Tabs = React.memo(
 		return (
 			<Box
 				row
-				bg={theme.colors.backgroundAlt}
-				rounded="md"
-				padding="xs"
+				bg="transparent" // No background
 				accessibilityRole="tablist"
 				accessibilityLabel={accessibilityLabel || "Tab navigation"}
 				accessibilityHint={accessibilityHint}

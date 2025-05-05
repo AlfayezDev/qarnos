@@ -9,11 +9,12 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import * as Haptics from "expo-haptics";
 import React, { useState, useCallback, useMemo } from "react";
-import { FlatList, ScrollView } from "react-native";
+import { FlatList, ScrollView, View } from "react-native";
 import Animated, { FadeInUp, FadeOutDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Card } from "@/components/ui/Card";
 
-const PREP_CARD_WIDTH = 170;
+const PREP_CARD_WIDTH = 200; // Slightly wider cards for lofi aesthetic
 
 const HomeScreen = React.memo(() => {
 	const theme = useTheme();
@@ -25,6 +26,22 @@ const HomeScreen = React.memo(() => {
 		return ["Today", "Week", "Month"];
 	}, [t]);
 
+	// Map periods to lofi color variants
+	const mapPeriodToVariant = (
+		period: string,
+	): "sage" | "peach" | "lavender" => {
+		switch (period) {
+			case "Breakfast":
+				return "sage";
+			case "Lunch":
+				return "peach";
+			case "Dinner":
+				return "lavender";
+			default:
+				return "sage";
+		}
+	};
+
 	const currentStats = useMemo(() => {
 		switch (selectedTab) {
 			case "Week":
@@ -33,11 +50,13 @@ const HomeScreen = React.memo(() => {
 						title: t("dashboard.newThisWeek"),
 						value: 52,
 						icon: "people-outline",
+						variant: "sky" as const,
 					},
 					{
 						title: t("dashboard.newThisMonth"),
 						value: "+3",
 						icon: "add-circle-outline",
+						variant: "mint" as const,
 					},
 				];
 			case "Month":
@@ -46,11 +65,13 @@ const HomeScreen = React.memo(() => {
 						title: t("dashboard.newThisWeek"),
 						value: 52,
 						icon: "people-outline",
+						variant: "rose" as const,
 					},
 					{
 						title: t("dashboard.newThisMonth"),
 						value: "+12",
 						icon: "add-circle-outline",
+						variant: "cream" as const,
 					},
 				];
 			default:
@@ -59,11 +80,13 @@ const HomeScreen = React.memo(() => {
 						title: t("dashboard.newThisWeek"),
 						value: 52,
 						icon: "people-outline",
+						variant: "lavender" as const,
 					},
 					{
 						title: t("dashboard.newThisMonth"),
 						value: "+12",
 						icon: "add-circle-outline",
+						variant: "peach" as const,
 					},
 				];
 		}
@@ -102,10 +125,17 @@ const HomeScreen = React.memo(() => {
 	}, []);
 
 	return (
-		<Box paddingTop={insets.top} bg={theme.colors.background} flex={1}>
+		<View
+			style={{
+				flex: 1,
+				backgroundColor: theme.colors.background,
+				paddingTop: insets.top,
+			}}
+		>
 			<ScrollView
 				contentContainerStyle={{
 					paddingBottom: theme.spacing.md,
+					paddingHorizontal: theme.spacing.xs, // Added horizontal padding
 				}}
 				showsVerticalScrollIndicator={false}
 			>
@@ -114,44 +144,56 @@ const HomeScreen = React.memo(() => {
 					alignItems="center"
 					paddingHorizontal="md"
 					paddingVertical="sm"
+					marginBottom="sm" // Added margin
 					style={{
 						height: theme.sizes.headerHeight,
 					}}
 				>
-					<Text variant="xl" weight="semibold" numberOfLines={1}>
+					<Text
+						variant="xl"
+						weight="semibold"
+						numberOfLines={1}
+						fontFamily="serif"
+					>
 						{currentDateString}
 					</Text>
 				</Box>
+
 				<AnimatedBox
-					marginHorizontal="md"
-					gap="lg"
+					marginHorizontal="sm" // Reduced margin
+					gap="md" // Reduced gap
 					entering={FadeInUp.delay(theme.animations.delay.staggered.medium)
 						.duration(theme.animations.duration.extraSlow)
 						.springify()
 						.damping(theme.animations.spring.damping.light)}
 					exiting={FadeOutDown.duration(theme.animations.duration.medium)}
 				>
-					<Tabs
-						tabs={tabItems}
-						selectedTab={selectedTab}
-						onSelectTab={handleSelectTab}
-						labelRender={(tab) => t(`dashboard.${tab.toLowerCase()}`)}
-					/>
+					<Card variant="cream" elevation="small" padding="xs">
+						<Tabs
+							tabs={tabItems}
+							selectedTab={selectedTab}
+							onSelectTab={handleSelectTab}
+							labelRender={(tab) => t(`dashboard.${tab.toLowerCase()}`)}
+						/>
+					</Card>
 					<StatsGrid stats={currentStats} key={selectedTab} />
 				</AnimatedBox>
+
 				<Animated.Text
 					entering={FadeInUp.duration(400)}
 					style={{
 						fontSize: theme.typography.sizes.lg,
-						fontWeight: theme.typography.weights.semibold,
+						fontWeight: theme.typography.weights.medium, // Less bold
 						color: theme.colors.text,
 						marginHorizontal: theme.spacing.md,
-						marginBottom: theme.spacing.sm,
+						marginVertical: theme.spacing.sm, // Added vertical margin
 						alignSelf: "flex-start",
+						letterSpacing: 0.5, // Added slight spacing
 					}}
 				>
 					{t("dashboard.todaysPrep")}
 				</Animated.Text>
+
 				<Animated.View
 					entering={FadeInUp.delay(theme.animations.delay.staggered.medium)
 						.duration(theme.animations.duration.extraSlow)
@@ -175,17 +217,19 @@ const HomeScreen = React.memo(() => {
 							<TodayPrepCard
 								summary={item}
 								onPress={() => handleViewSchedule(item.period)}
+								variant={mapPeriodToVariant(item.period)}
 							/>
 						)}
 					/>
 				</Animated.View>
+
 				<AlertsCard
 					alerts={ALERTS}
 					onViewAlert={handleViewAlert}
 					onViewAllAlerts={handleViewAllAlerts}
 				/>
 			</ScrollView>
-		</Box>
+		</View>
 	);
 });
 

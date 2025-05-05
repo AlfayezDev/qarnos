@@ -7,6 +7,7 @@ import {
 	View,
 } from "react-native";
 import { RadiusToken, SpacingToken, useTheme } from "@/hooks/useTheme";
+import { getRgba } from "@/constants/theme/colors";
 
 interface CardProps extends TouchableOpacityProps {
 	elevation?: "none" | "small" | "medium" | "large";
@@ -14,6 +15,16 @@ interface CardProps extends TouchableOpacityProps {
 	rounded?: string | RadiusToken;
 	style?: StyleProp<ViewStyle>;
 	children?: React.ReactNode;
+	variant?:
+		| "default"
+		| "sage"
+		| "peach"
+		| "lavender"
+		| "coral"
+		| "mint"
+		| "cream"
+		| "sky"
+		| "rose";
 }
 
 export const Card = React.memo(
@@ -21,9 +32,10 @@ export const Card = React.memo(
 		children,
 		elevation = "small",
 		padding = "md",
-		rounded = "card",
+		rounded = "md", // Less rounded by default
 		style,
 		onPress,
+		variant = "default",
 		...props
 	}: CardProps) => {
 		const theme = useTheme();
@@ -44,10 +56,29 @@ export const Card = React.memo(
 			return theme.radius[rounded as RadiusToken];
 		};
 
+		// Very subtle, barely noticeable background colors
+		const getBackgroundColor = () => {
+			// Default to white card
+			if (variant === "default") return theme.colors.card;
+
+			// For colored variants, mix the accent color with the card color at a very low opacity
+			const accentKey =
+				`accent${variant.charAt(0).toUpperCase() + variant.slice(1)}` as keyof typeof theme.colors;
+			const color = theme.colors[accentKey];
+			if (color) {
+				// Use rgba to create a very subtle background tint (almost white)
+				return getRgba(color, 0.08); // Very subtle tint
+			}
+
+			return theme.colors.card;
+		};
+
 		const cardStyle = {
-			backgroundColor: theme.colors.card,
+			backgroundColor: getBackgroundColor(),
 			borderRadius: getRadiusValue(),
 			padding: getPaddingValue(),
+			borderWidth: 1,
+			borderColor: theme.colors.divider,
 			...getElevation(),
 		};
 
@@ -55,7 +86,7 @@ export const Card = React.memo(
 
 		return (
 			<ContainerComponent
-				activeOpacity={onPress ? 0.7 : 1}
+				activeOpacity={onPress ? 0.85 : 1}
 				style={[cardStyle, style]}
 				onPress={onPress}
 				{...props}

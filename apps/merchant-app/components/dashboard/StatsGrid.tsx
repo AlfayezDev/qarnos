@@ -7,11 +7,21 @@ import {
 	LinearTransition,
 } from "react-native-reanimated";
 import { useTheme } from "@/hooks/useTheme";
+import { Card } from "@/components/ui/Card";
 
 interface StatItem {
 	title: string;
 	value: string | number;
 	icon: string;
+	variant?:
+		| "sage"
+		| "peach"
+		| "lavender"
+		| "coral"
+		| "mint"
+		| "cream"
+		| "sky"
+		| "rose";
 }
 
 interface StatsGridProps {
@@ -34,7 +44,12 @@ export const StatsGrid = React.memo(({ stats }: StatsGridProps) => {
 					layout={LinearTransition.duration(300)}
 					flex={1}
 				>
-					<Box card padding="md" rounded="lg" elevation="small">
+					<Card
+						variant={stat.variant}
+						padding="md"
+						rounded="lg"
+						elevation="small"
+					>
 						<Box row alignCenter marginBottom="sm" gap="sm">
 							<Box
 								width={theme.sizes.buttonSm}
@@ -50,14 +65,14 @@ export const StatsGrid = React.memo(({ stats }: StatsGridProps) => {
 									color={theme.colors.primary}
 								/>
 							</Box>
-							<Text variant="xs" weight="semibold" color="textSecondary">
+							<Text variant="xs" weight="medium" color="textSecondary">
 								{stat.title}
 							</Text>
 						</Box>
-						<Text variant="xl" weight="bold">
+						<Text variant="xl" weight="bold" fontFamily="serif">
 							{stat.value}
 						</Text>
-					</Box>
+					</Card>
 				</AnimatedBox>
 			))}
 		</Box>

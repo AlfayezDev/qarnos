@@ -11,7 +11,7 @@ import Animated, {
 	withTiming,
 } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
-import { AnimatedBox, Box, Text } from "@/components/ui";
+import { AnimatedBox, Box, Card, Text } from "@/components/ui";
 import { Tabs } from "@/components/ui/Tabs";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -124,10 +124,7 @@ const MealScreen = () => {
 	);
 };
 
-interface MealCardProps {
-	item: Meal;
-}
-export const MealCard = React.memo(({ item }: MealCardProps) => {
+const MealCard = React.memo(({ item }: { item: Meal }) => {
 	const theme = useTheme();
 	const { language } = useTranslation();
 	const isArabic = language === "ar";
@@ -155,8 +152,6 @@ export const MealCard = React.memo(({ item }: MealCardProps) => {
 					),
 				},
 			],
-			backgroundColor: theme.colors.card,
-			borderRadius: theme.radius.card,
 		};
 	});
 
@@ -169,54 +164,57 @@ export const MealCard = React.memo(({ item }: MealCardProps) => {
 			style={cardAnimatedStyle}
 		>
 			<Link asChild href={`/meals/${item.id}`}>
-				<Pressable
-					onPressIn={handlePressIn}
-					onPressOut={handlePressOut}
-					style={{
-						overflow: "hidden",
-						borderRadius: theme.radius.card,
-					}}
-				>
-					{item.image && (
-						<Animated.Image
-							source={{ uri: item.image }}
-							style={{
-								height: theme.sizes.mealCardImageHeight,
-								width: "100%",
-								borderTopLeftRadius: theme.radius.card,
-								borderTopRightRadius: theme.radius.card,
-							}}
-							resizeMode="cover"
-						/>
-					)}
-					<Box padding="md" gap="sm" alignItems="flex-start">
-						<Text variant="lg" weight="semibold">
-							{isArabic && item.name_ar ? item.name_ar : item.name}
-						</Text>
-						<Text
-							variant="sm"
-							color="textSecondary"
-							marginBottom="md"
-							numberOfLines={2}
-						>
-							{isArabic && item.description_ar
-								? item.description_ar
-								: item.description}
-						</Text>
-						<Box row marginBottom="sm">
-							<Box row alignCenter>
-								<Ionicons
-									name="flame-outline"
-									size={theme.sizes.iconSm}
-									color={theme.colors.textSecondary}
-									style={{ marginEnd: theme.spacing.xs }}
-								/>
-								<Text variant="sm" color="textSecondary">
-									{item.calories} cal
-								</Text>
+				<Pressable onPressIn={handlePressIn} onPressOut={handlePressOut}>
+					<Card
+						elevation="small"
+						style={{
+							overflow: "hidden",
+							marginBottom: theme.spacing.md, // More spacing between cards
+							marginHorizontal: theme.spacing.xs,
+						}}
+					>
+						{item.image && (
+							<Animated.Image
+								source={{ uri: item.image }}
+								style={{
+									height: theme.sizes.mealCardImageHeight - 20,
+									width: "100%",
+									borderTopLeftRadius: theme.radius.md,
+									borderTopRightRadius: theme.radius.md,
+								}}
+								resizeMode="cover"
+							/>
+						)}
+						<Box padding="md" gap="xs" alignItems="flex-start">
+							<Text variant="lg" weight="medium" style={{ letterSpacing: 0.3 }}>
+								{isArabic && item.name_ar ? item.name_ar : item.name}
+							</Text>
+							<Text
+								variant="sm"
+								color="textSecondary"
+								marginBottom="sm"
+								numberOfLines={2}
+								style={{ lineHeight: 20 }}
+							>
+								{isArabic && item.description_ar
+									? item.description_ar
+									: item.description}
+							</Text>
+							<Box row marginTop="xs">
+								<Box row alignCenter>
+									<Ionicons
+										name="flame-outline"
+										size={theme.sizes.iconXs}
+										color={theme.colors.textSecondary}
+										style={{ marginEnd: theme.spacing.xs }}
+									/>
+									<Text variant="xs" color="textSecondary">
+										{item.calories} cal
+									</Text>
+								</Box>
 							</Box>
 						</Box>
-					</Box>
+					</Card>
 				</Pressable>
 			</Link>
 		</Animated.View>

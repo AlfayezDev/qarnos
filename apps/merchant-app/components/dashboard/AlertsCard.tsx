@@ -12,6 +12,7 @@ import { AnimatedBox, Box, Text } from "@/components/ui";
 import { useTheme } from "@/hooks/useTheme";
 import { Alert } from "@/types";
 import { useTranslation } from "@/hooks/useTranslation";
+import { Card } from "@/components/ui/Card";
 
 interface AlertsCardProps {
 	alerts: Alert[];
@@ -32,93 +33,92 @@ export const AlertsCard = React.memo(
 					.springify()
 					.damping(theme.animations.spring.damping.light)}
 				exiting={FadeOutDown.duration(theme.animations.duration.medium)}
-				card
-				rounded="sm"
 				marginHorizontal="md"
 				marginBottom="lg"
-				elevation="small"
 				style={{ overflow: "hidden" }}
 			>
-				<Box
-					row
-					justifyContent="space-between"
-					alignItems="center"
-					marginBottom="md"
-					paddingHorizontal="md"
-					paddingTop="md"
-				>
-					<Text variant="lg" weight="semibold">
-						{t("dashboard.alerts")}
-					</Text>
-					{hasAlerts && (
-						<Animated.View>
-							<Pressable
-								onPress={onViewAllAlerts}
-								style={({ pressed }) => ({
-									paddingVertical: theme.spacing.xs,
-									paddingHorizontal: theme.spacing.sm,
-									borderRadius: theme.spacing.sm,
-									backgroundColor: pressed
-										? theme.colors.backgroundAlt
-										: undefined,
-									opacity: pressed ? 0.5 : 1,
-								})}
-							>
-								<Text variant="sm" color="primary" weight="medium">
-									{t("dashboard.viewAll")}
-								</Text>
-							</Pressable>
-						</Animated.View>
-					)}
-				</Box>
-				{hasAlerts ? (
-					<Box>
-						{alerts.map((alert, index) => (
-							<AlertItem
-								key={alert.id}
-								alert={alert}
-								onPress={() => onViewAlert(alert.id)}
-								isLast={index === alerts.length - 1}
-							/>
-						))}
-					</Box>
-				) : (
+				<Card variant="sage" rounded="lg" elevation="small">
 					<Box
-						alignCenter
-						paddingVertical="lg"
+						row
+						justifyContent="space-between"
+						alignItems="center"
+						marginBottom="md"
 						paddingHorizontal="md"
-						bg="backgroundAlt"
-						style={{
-							borderBottomLeftRadius: theme.radius.lg,
-							borderBottomRightRadius: theme.radius.lg,
-						}}
+						paddingTop="md"
 					>
+						<Text variant="lg" weight="semibold" fontFamily="serif">
+							{t("dashboard.alerts")}
+						</Text>
+						{hasAlerts && (
+							<Animated.View>
+								<Pressable
+									onPress={onViewAllAlerts}
+									style={({ pressed }) => ({
+										paddingVertical: theme.spacing.xs,
+										paddingHorizontal: theme.spacing.sm,
+										borderRadius: theme.spacing.sm,
+										backgroundColor: pressed
+											? theme.colors.backgroundAlt
+											: undefined,
+										opacity: pressed ? 0.7 : 1,
+									})}
+								>
+									<Text variant="sm" color="primary" weight="medium">
+										{t("dashboard.viewAll")}
+									</Text>
+								</Pressable>
+							</Animated.View>
+						)}
+					</Box>
+					{hasAlerts ? (
+						<Box>
+							{alerts.map((alert, index) => (
+								<AlertItem
+									key={alert.id}
+									alert={alert}
+									onPress={() => onViewAlert(alert.id)}
+									isLast={index === alerts.length - 1}
+								/>
+							))}
+						</Box>
+					) : (
 						<Box
-							rounded="round"
-							bg="primaryLight"
-							padding="md"
-							marginBottom="md"
+							alignCenter
+							paddingVertical="lg"
+							paddingHorizontal="md"
+							bg="backgroundAlt"
 							style={{
-								width: theme.sizes.avatarLg,
-								height: theme.sizes.avatarLg,
-								alignItems: "center",
-								justifyContent: "center",
+								borderBottomLeftRadius: theme.radius.lg,
+								borderBottomRightRadius: theme.radius.lg,
 							}}
 						>
-							<Ionicons
-								name="checkmark-circle"
-								size={theme.sizes.iconMd}
-								color={theme.colors.primary}
-							/>
+							<Box
+								rounded="round"
+								bg="accentMint"
+								padding="md"
+								marginBottom="md"
+								style={{
+									width: theme.sizes.avatarLg,
+									height: theme.sizes.avatarLg,
+									alignItems: "center",
+									justifyContent: "center",
+								}}
+							>
+								<Ionicons
+									name="checkmark-circle"
+									size={theme.sizes.iconMd}
+									color={theme.colors.text}
+								/>
+							</Box>
+							<Text color="textSecondary" center fontFamily="serif">
+								{t("dashboard.allCaughtUp")}
+							</Text>
+							<Text color="textMuted" variant="sm" center marginTop="xs">
+								{t("dashboard.noAlerts")}
+							</Text>
 						</Box>
-						<Text color="textSecondary" center>
-							{t("dashboard.allCaughtUp")}
-						</Text>
-						<Text color="textMuted" variant="sm" center marginTop="xs">
-							{t("dashboard.noAlerts")}
-						</Text>
-					</Box>
-				)}
+					)}
+				</Card>
 			</AnimatedBox>
 		);
 	},
@@ -135,11 +135,28 @@ const AlertItem = React.memo(
 		const theme = useTheme();
 		const { isRTL } = useTranslation();
 		const pressed = useSharedValue(0);
-		const iconColor = theme.colors[alert.type];
+
+		// Map alert types to lofi accent colors
+		const getAlertAccentColor = (type: string) => {
+			switch (type) {
+				case "warning":
+					return theme.colors.accentPeach;
+				case "info":
+					return theme.colors.accentSky;
+				case "error":
+					return theme.colors.accentCoral;
+				case "success":
+					return theme.colors.accentMint;
+				default:
+					return theme.colors.accentSky;
+			}
+		};
+
+		const iconColor = getAlertAccentColor(alert.type);
 
 		const handlePressIn = () => {
 			pressed.value = withTiming(1, {
-				duration: theme.animations.duration.fast,
+				duration: theme.animations.duration.medium,
 			});
 		};
 
@@ -204,14 +221,14 @@ const AlertItem = React.memo(
 							borderRadius: theme.radius.round,
 							alignItems: "center",
 							justifyContent: "center",
-							backgroundColor: theme.colors.primaryLight,
+							backgroundColor: iconColor,
 							marginStart: theme.spacing.sm,
 						}}
 					>
 						<Ionicons
 							name={alert.icon as any}
 							size={theme.sizes.iconSm}
-							color={iconColor}
+							color={theme.colors.text}
 						/>
 					</View>
 					<Box
@@ -228,22 +245,6 @@ const AlertItem = React.memo(
 								{alert.timestamp}
 							</Text>
 						)}
-					</Box>
-					<Box
-						marginStart="sm"
-						paddingVertical="xs"
-						paddingHorizontal="sm"
-						rounded="xs"
-						bg="backgroundAlt"
-					>
-						<Text
-							variant="xs"
-							weight="medium"
-							color={alert.type}
-							numberOfLines={1}
-						>
-							{alert.type.charAt(0).toUpperCase() + alert.type.slice(1)}
-						</Text>
 					</Box>
 					<Ionicons
 						name={isRTL ? "chevron-back" : "chevron-forward"}

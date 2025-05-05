@@ -13,17 +13,27 @@ import { Box, Text, Badge } from "@/components/ui";
 import { MealPrepSummary } from "@/types";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
+import { Card } from "@/components/ui/Card";
 
 interface TodayPrepCardProps {
 	summary: MealPrepSummary;
 	onPress: () => void;
+	variant?:
+		| "sage"
+		| "peach"
+		| "lavender"
+		| "coral"
+		| "mint"
+		| "cream"
+		| "sky"
+		| "rose";
 }
 
-const PREP_CARD_WIDTH = 180;
+const PREP_CARD_WIDTH = 200; // Wider cards for lofi aesthetic
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export const TodayPrepCard = React.memo(
-	({ summary, onPress }: TodayPrepCardProps) => {
+	({ summary, onPress, variant = "cream" }: TodayPrepCardProps) => {
 		const theme = useTheme();
 		const { t } = useTranslation();
 		const pressed = useSharedValue(0);
@@ -35,32 +45,31 @@ export const TodayPrepCard = React.memo(
 			Dinner: "fast-food-outline",
 		};
 
-		const periodColors: Record<
-			"Breakfast" | "Lunch" | "Dinner",
-			"info" | "primary" | "error"
-		> = {
-			Breakfast: "info",
-			Lunch: "primary",
-			Dinner: "error",
-		};
-
 		const translatedPeriod = t(`periods.${summary.period.toLowerCase()}`);
 
 		const handlePressIn = useCallback(() => {
 			Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-			pressed.value = withTiming(1, { duration: 100 });
+			pressed.value = withTiming(1, {
+				duration: theme.animations.duration.medium,
+			});
 		}, []);
 
 		const handlePressOut = useCallback(() => {
-			pressed.value = withTiming(0, { duration: 200 });
+			pressed.value = withTiming(0, {
+				duration: theme.animations.duration.slow,
+			});
 		}, []);
 
 		const handleHoverIn = useCallback(() => {
-			hovered.value = withTiming(1, { duration: 300 });
+			hovered.value = withTiming(1, {
+				duration: theme.animations.duration.medium,
+			});
 		}, []);
 
 		const handleHoverOut = useCallback(() => {
-			hovered.value = withTiming(0, { duration: 300 });
+			hovered.value = withTiming(0, {
+				duration: theme.animations.duration.medium,
+			});
 		}, []);
 
 		const handlePress = useCallback(() => {
@@ -72,18 +81,11 @@ export const TodayPrepCard = React.memo(
 			const scale = interpolate(
 				pressed.value,
 				[0, 1],
-				[1, 0.95],
-				Extrapolation.CLAMP,
-			);
-			const opacity = interpolate(
-				pressed.value,
-				[0, 1],
-				[1, 0.5],
+				[1, 0.98],
 				Extrapolation.CLAMP,
 			);
 			return {
 				transform: [{ scale }],
-				opacity,
 			};
 		});
 
@@ -97,45 +99,42 @@ export const TodayPrepCard = React.memo(
 				style={[
 					{
 						width: PREP_CARD_WIDTH,
-						margin: theme.spacing.xs / 2,
-						borderRadius: theme.radius.lg,
+						margin: theme.spacing.xs,
 					},
 					animatedCardStyle,
 				]}
 			>
-				<Box
-					card
-					rounded="lg"
+				<Card
+					variant={variant}
+					rounded="xl" // More rounded
 					padding="md"
 					elevation="small"
 					style={{
-						minHeight: theme.sizes.buttonLg * 4,
+						minHeight: theme.sizes.buttonLg * 3.5, // Reduced height
 					}}
 				>
-					<Box row alignCenter marginBottom="sm">
+					<Box row alignCenter marginBottom="xs">
+						{/* Reduced margin */}
 						<Ionicons
 							name={
 								periodIcons[summary.period as keyof typeof periodIcons] as any
 							}
 							size={theme.sizes.iconSm}
-							color={
-								theme.colors[
-									periodColors[summary.period as keyof typeof periodColors]
-								]
-							}
+							color={theme.colors.textSecondary}
 							style={{ marginEnd: theme.spacing.sm }}
 						/>
-						<Text variant="md" weight="semibold">
+						<Text variant="md" weight="medium" fontFamily="serif">
 							{translatedPeriod}
 						</Text>
 					</Box>
-					<Box marginTop="xs" flex={1} gap="sm">
+					<Box marginTop="xs" flex={1} gap="xs">
+						{/* Reduced gap */}
 						{summary.mealsToPrep.slice(0, 3).map((meal) => (
 							<Box
 								key={meal.id}
 								row
 								justifyContent="space-between"
-								paddingVertical={theme.spacing.xs / 1.5}
+								paddingVertical={theme.spacing.xs / 2} // Reduced padding
 							>
 								<Text
 									variant="sm"
@@ -155,19 +154,17 @@ export const TodayPrepCard = React.memo(
 					</Box>
 					<Box
 						row
-						justifyContent="space-between"
+						justifyContent="flex-start" // Changed from space-between
 						alignItems="flex-end"
-						paddingTop="sm"
+						paddingTop="xs" // Reduced padding
 					>
 						<Badge
 							text={`${summary.totalMeals} ${t("common.total")}`}
-							variant={
-								periodColors[summary.period as keyof typeof periodColors]
-							}
+							variant="default"
 							size="sm"
 						/>
 					</Box>
-				</Box>
+				</Card>
 			</AnimatedPressable>
 		);
 	},

@@ -1,11 +1,25 @@
 import React from "react";
-import { View, ViewProps, AccessibilityState } from "react-native";
+import { View, ViewProps, AccessibilityState, ViewStyle } from "react-native";
 import { useTheme } from "@/hooks/useTheme";
 import { Text } from "./Text";
 
 export interface BadgeProps extends ViewProps {
 	text: string | number;
-	variant?: "primary" | "success" | "warning" | "info" | "error" | "default";
+	variant?:
+		| "primary"
+		| "success"
+		| "warning"
+		| "info"
+		| "error"
+		| "default"
+		| "sage"
+		| "peach"
+		| "lavender"
+		| "coral"
+		| "mint"
+		| "cream"
+		| "sky"
+		| "rose";
 	size?: "sm" | "md";
 	accessibilityLabel?: string;
 }
@@ -22,11 +36,34 @@ export const Badge = React.memo(
 		const theme = useTheme();
 
 		const getBadgeStyles = () => {
+			// Base styles
 			const base = {
 				textColor: theme.colors.text,
 				bgColor: theme.colors.backgroundAlt,
 			};
 
+			// Handle lofi accent variants
+			const accentVariants = [
+				"sage",
+				"peach",
+				"lavender",
+				"coral",
+				"mint",
+				"cream",
+				"sky",
+				"rose",
+			];
+
+			if (accentVariants.includes(variant)) {
+				const accentKey =
+					`accent${variant.charAt(0).toUpperCase() + variant.slice(1)}` as keyof typeof theme.colors;
+				return {
+					textColor: theme.colors.text,
+					bgColor: theme.colors[accentKey],
+				};
+			}
+
+			// Semantic variants
 			switch (variant) {
 				case "primary":
 					return {
@@ -78,11 +115,13 @@ export const Badge = React.memo(
 		const badgeStyle = getBadgeStyles();
 		const sizeStyle = getSizeStyles();
 
-		const badgeStyles = {
-			backgroundColor: badgeStyle.bgColor,
+		const badgeStyles: ViewStyle = {
+			backgroundColor: badgeStyle.bgColor as string,
 			paddingHorizontal: sizeStyle.paddingHorizontal,
 			paddingVertical: sizeStyle.paddingVertical,
 			borderRadius: theme.radius.badge,
+			borderWidth: 1,
+			borderColor: theme.colors.divider,
 			alignItems: "center" as const,
 			justifyContent: "center" as const,
 			alignSelf: "flex-start" as const,
