@@ -4,154 +4,182 @@ import { StatsGrid } from "@/components/dashboard/StatsGrid";
 import { AnimatedBox, Box } from "@/components/ui";
 import { Tabs } from "@/components/ui/Tabs";
 import { Text } from "@/components/ui/Text";
+import { sizes } from "@/constants/theme/sizes";
 import { ALERTS, TODAY_PREP_SUMMARY } from "@/data";
 import { useTheme } from "@/stores/themeStore";
 import { useTranslation } from "@/stores/translationStore";
 import * as Haptics from "expo-haptics";
-import React, { useState, useCallback, useMemo } from "react";
-import { FlatList, ScrollView, View } from "react-native";
-import Animated, { FadeInUp, FadeOutDown } from "react-native-reanimated";
+import React, { useState, useCallback, useMemo, useRef } from "react";
+import { FlatList } from "react-native";
+import Animated, {
+	clamp,
+	FadeInUp,
+	FadeOutDown,
+	interpolate,
+	useAnimatedRef,
+	useAnimatedStyle,
+	useScrollViewOffset,
+	withClamp,
+	withSpring,
+	withTiming,
+} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const PREP_CARD_WIDTH = 200; // Slightly wider cards for lofi aesthetic
 
-const HomeScreen = React.memo(() => {
-	const theme = useTheme();
-	const insets = useSafeAreaInsets();
-	const { t, language } = useTranslation();
-	const [selectedTab, setSelectedTab] = useState("Today");
+const HomeScreen = React.memo(
+	() => {
+		const theme = useTheme();
+		const insets = useSafeAreaInsets();
+		const { t, language } = useTranslation();
+		const [selectedTab, setSelectedTab] = useState("Today");
 
-	const tabItems = useMemo(() => {
-		return ["Today", "Week", "Month"];
-	}, [t]);
+		const tabItems = useMemo(() => {
+			return ["Today", "Week", "Month"];
+		}, [t]);
 
-	// Map periods to lofi color variants
-	const mapPeriodToVariant = (
-		period: string,
-	): "sage" | "peach" | "lavender" => {
-		switch (period) {
-			case "Breakfast":
-				return "sage";
-			case "Lunch":
-				return "peach";
-			case "Dinner":
-				return "lavender";
-			default:
-				return "sage";
-		}
-	};
-
-	const currentStats = useMemo(() => {
-		switch (selectedTab) {
-			case "Week":
-				return [
-					{
-						title: t("dashboard.newThisWeek"),
-						value: 52,
-						icon: "people-outline",
-						variant: "sky" as const,
-					},
-					{
-						title: t("dashboard.newThisMonth"),
-						value: "+3",
-						icon: "add-circle-outline",
-						variant: "mint" as const,
-					},
-				];
-			case "Month":
-				return [
-					{
-						title: t("dashboard.newThisWeek"),
-						value: 52,
-						icon: "people-outline",
-						variant: "rose" as const,
-					},
-					{
-						title: t("dashboard.newThisMonth"),
-						value: "+12",
-						icon: "add-circle-outline",
-						variant: "cream" as const,
-					},
-				];
-			default:
-				return [
-					{
-						title: t("dashboard.newThisWeek"),
-						value: 52,
-						icon: "people-outline",
-						variant: "lavender" as const,
-					},
-					{
-						title: t("dashboard.newThisMonth"),
-						value: "+12",
-						icon: "add-circle-outline",
-						variant: "peach" as const,
-					},
-				];
-		}
-	}, [selectedTab, t]);
-
-	const currentDateString = useMemo(
-		() =>
-			new Date().toLocaleDateString(language, {
-				weekday: "long",
-				month: "short",
-				day: "numeric",
-			}),
-		[language],
-	);
-
-	const handleSelectTab = useCallback(
-		(tab: string) => {
-			if (tab !== selectedTab) {
-				Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-				setSelectedTab(tab);
+		// Map periods to lofi color variants
+		const mapPeriodToVariant = (
+			period: string,
+		): "sage" | "peach" | "lavender" => {
+			switch (period) {
+				case "Breakfast":
+					return "sage";
+				case "Lunch":
+					return "peach";
+				case "Dinner":
+					return "lavender";
+				default:
+					return "sage";
 			}
-		},
-		[selectedTab],
-	);
+		};
 
-	const handleViewSchedule = useCallback((period?: string) => {
-		console.log("Navigate to Schedule Screen, Filter:", period || "Full");
-	}, []);
+		const currentStats = useMemo(() => {
+			switch (selectedTab) {
+				case "Week":
+					return [
+						{
+							title: t("dashboard.newThisWeek"),
+							value: 52,
+							icon: "people-outline",
+							variant: "sky" as const,
+						},
+						{
+							title: t("dashboard.newThisMonth"),
+							value: "+3",
+							icon: "add-circle-outline",
+							variant: "mint" as const,
+						},
+					];
+				case "Month":
+					return [
+						{
+							title: t("dashboard.newThisWeek"),
+							value: 52,
+							icon: "people-outline",
+							variant: "rose" as const,
+						},
+						{
+							title: t("dashboard.newThisMonth"),
+							value: "+12",
+							icon: "add-circle-outline",
+							variant: "cream" as const,
+						},
+					];
+				default:
+					return [
+						{
+							title: t("dashboard.newThisWeek"),
+							value: 52,
+							icon: "people-outline",
+							variant: "lavender" as const,
+						},
+						{
+							title: t("dashboard.newThisMonth"),
+							value: "+12",
+							icon: "add-circle-outline",
+							variant: "peach" as const,
+						},
+					];
+			}
+		}, [selectedTab, t]);
 
-	const handleViewAlert = useCallback((id: string | number) => {
-		console.log("Navigate to Alert Details Screen, ID:", id);
-	}, []);
+		const currentDateString = useMemo(
+			() =>
+				new Date().toLocaleDateString(language, {
+					weekday: "long",
+					month: "short",
+					day: "numeric",
+				}),
+			[language],
+		);
 
-	const handleViewAllAlerts = useCallback(() => {
-		console.log("Navigate to All Alerts Screen");
-	}, []);
+		const handleSelectTab = useCallback(
+			(tab: string) => {
+				if (tab !== selectedTab) {
+					Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+					setSelectedTab(tab);
+				}
+			},
+			[selectedTab],
+		);
 
-	return (
-		<View
-			style={{
-				flex: 1,
-				backgroundColor: theme.colors.background,
-				paddingTop: insets.top,
-			}}
-		>
-			<ScrollView
+		const handleViewSchedule = useCallback((period?: string) => {
+			console.log("Navigate to Schedule Screen, Filter:", period || "Full");
+		}, []);
+
+		const handleViewAlert = useCallback((id: string | number) => {
+			console.log("Navigate to Alert Details Screen, ID:", id);
+		}, []);
+
+		const handleViewAllAlerts = useCallback(() => {
+			console.log("Navigate to All Alerts Screen");
+		}, []);
+
+		const scrollRef = useAnimatedRef<Animated.ScrollView>();
+
+		const scrollOffset = useScrollViewOffset(scrollRef);
+		const headerStyle = useAnimatedStyle(() => {
+			const headerSize = sizes.headerHeight;
+			return {
+				opacity: interpolate(
+					scrollOffset.value,
+					[0, headerSize * 0.6], // Uses percentage of header height
+					[1, 0],
+				),
+				transform: [
+					{
+						translateY: interpolate(
+							scrollOffset.value + headerSize,
+							[0, headerSize, headerSize, headerSize + 1],
+							[0, 0, 0, -1],
+						),
+					},
+				],
+			};
+		});
+		return (
+			<Animated.ScrollView
+				ref={scrollRef}
 				contentContainerStyle={{
-					paddingBottom: theme.spacing.md,
+					paddingBottom: insets.bottom + theme.spacing.xxl * 1.5,
+					paddingTop: insets.top,
 					paddingHorizontal: theme.spacing.xs, // Added horizontal padding
 				}}
 				showsVerticalScrollIndicator={false}
 			>
-				<Box
+				<AnimatedBox
 					row
 					alignItems="center"
 					paddingHorizontal="md"
 					paddingVertical="sm"
 					marginBottom="sm" // Added margin
-					style={{
-						height: theme.sizes.headerHeight,
-					}}
+					style={headerStyle}
 				>
 					<Text variant="xl" weight="semibold" numberOfLines={1}>
 						{currentDateString}
 					</Text>
-				</Box>
+				</AnimatedBox>
 
 				<AnimatedBox
 					marginHorizontal="sm" // Reduced margin
@@ -222,9 +250,10 @@ const HomeScreen = React.memo(() => {
 					onViewAlert={handleViewAlert}
 					onViewAllAlerts={handleViewAllAlerts}
 				/>
-			</ScrollView>
-		</View>
-	);
-});
+			</Animated.ScrollView>
+		);
+	},
+	() => true,
+);
 
 export default HomeScreen;

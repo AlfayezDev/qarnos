@@ -7,6 +7,7 @@ import {
 	AccessibilityRole,
 } from "react-native";
 import { useTheme } from "@/stores/themeStore";
+import Animated from "react-native-reanimated";
 
 interface TextProps extends RNTextProps {
 	variant?: FontSizeVariant;
@@ -148,3 +149,4 @@ export const Text: React.FC<TextProps> = React.memo(
 		);
 	},
 );
+export const AnimatedText = Animated.createAnimatedComponent(Text);
