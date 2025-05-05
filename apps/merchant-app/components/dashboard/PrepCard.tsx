@@ -9,11 +9,11 @@ import Animated, {
 	Extrapolation,
 } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
-import { Box, Text, Badge } from "@/components/ui";
+import { Box, Text } from "@/components/ui";
 import { MealPrepSummary } from "@/types";
 import { useTheme } from "@/hooks/useTheme";
-import { useTranslation } from "@/hooks/useTranslation";
 import { Card } from "@/components/ui/Card";
+import { useTranslation } from "@/stores/translationStore";
 
 interface TodayPrepCardProps {
 	summary: MealPrepSummary;

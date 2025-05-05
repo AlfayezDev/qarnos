@@ -11,8 +11,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { AnimatedBox, Box, Text } from "@/components/ui";
 import { useTheme } from "@/hooks/useTheme";
 import { Alert } from "@/types";
-import { useTranslation } from "@/hooks/useTranslation";
-import { Card } from "@/components/ui/Card";
+import { useTranslation } from "@/stores/translationStore";
 
 interface AlertsCardProps {
 	alerts: Alert[];

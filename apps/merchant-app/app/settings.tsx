@@ -22,7 +22,7 @@ import { AnimatedBox, Avatar, Box, Text } from "@/components/ui";
 
 import { useMemoizedCallback } from "@/hooks/useMemoizedCallback";
 import { useTheme } from "@/hooks/useTheme";
-import { useTranslation } from "@/hooks/useTranslation";
+import { useTranslation } from "@/stores/translationStore";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 

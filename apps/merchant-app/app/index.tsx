@@ -6,13 +6,12 @@ import { Tabs } from "@/components/ui/Tabs";
 import { Text } from "@/components/ui/Text";
 import { ALERTS, TODAY_PREP_SUMMARY } from "@/data";
 import { useTheme } from "@/hooks/useTheme";
-import { useTranslation } from "@/hooks/useTranslation";
+import { useTranslation } from "@/stores/translationStore";
 import * as Haptics from "expo-haptics";
 import React, { useState, useCallback, useMemo } from "react";
 import { FlatList, ScrollView, View } from "react-native";
 import Animated, { FadeInUp, FadeOutDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Card } from "@/components/ui/Card";
 
 const PREP_CARD_WIDTH = 200; // Slightly wider cards for lofi aesthetic
 

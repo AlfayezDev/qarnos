@@ -1,11 +1,11 @@
 import { AnimatedBox, Box, Text } from "@/components/ui";
 import { useTheme } from "@/hooks/useTheme";
-import { useTranslation } from "@/hooks/useTranslation";
 import { useRouter } from "expo-router";
 import React from "react";
 import { FadeIn } from "react-native-reanimated";
 import { DeleteButton } from "./DeleteButton";
 import { BackButton } from "@/components/common/BackButton";
+import { useTranslation } from "@/stores/translationStore";
 
 interface MealFormHeaderProps {
 	title: string;

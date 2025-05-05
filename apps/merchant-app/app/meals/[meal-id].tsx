@@ -27,7 +27,7 @@ import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 
 import { useMealForm } from "@/hooks/useMealForm";
 import { useTheme } from "@/hooks/useTheme";
-import { useTranslation } from "@/hooks/useTranslation";
+import { useTranslation } from "@/stores/translationStore";
 
 const MealFormScreen = () => {
 	const { "meal-id": mealId } = useLocalSearchParams<{ "meal-id": string }>();

@@ -8,24 +8,24 @@ import "react-native-reanimated";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useTheme } from "@/hooks/useTheme";
 import { Ionicons } from "@expo/vector-icons";
-import { useTranslation } from "@/hooks/useTranslation";
 import { LogBox } from "react-native";
+import { useTranslation } from "@/stores/translationStore";
 
 LogBox.ignoreLogs([
 	"Sending `onAnimatedValueUpdate` with no listeners registered.",
 ]);
 
-SplashScreen.preventAutoHideAsync();
-
 export default function RootLayout() {
 	const { isDark, navTheme, colors } = useTheme();
-	const { t } = useTranslation();
+	const { t, translationCache } = useTranslation();
 
 	const [loaded, error] = useFonts({
 		SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
 	});
 
 	useEffect(() => {
+		translationCache;
+		SplashScreen.preventAutoHideAsync();
 		if (error) throw error;
 	}, [error]);
 

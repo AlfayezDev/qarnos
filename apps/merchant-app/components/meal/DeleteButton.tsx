@@ -1,7 +1,6 @@
 import React from "react";
 import { TouchableOpacity } from "react-native";
 import { useTheme } from "@/hooks/useTheme";
-import { useTranslation } from "@/hooks/useTranslation";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, {
 	useSharedValue,
@@ -11,6 +10,7 @@ import Animated, {
 	interpolateColor,
 } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
+import { useTranslation } from "@/stores/translationStore";
 
 interface DeleteButtonProps {
 	onPress: () => void;

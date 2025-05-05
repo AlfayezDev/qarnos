@@ -3,8 +3,8 @@ import { Image, TouchableOpacity } from "react-native";
 import { Box, Text, AnimatedBox } from "@/components/ui";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/hooks/useTheme";
-import { useTranslation } from "@/hooks/useTranslation";
 import { FadeInUp } from "react-native-reanimated";
+import { useTranslation } from "@/stores/translationStore";
 
 interface MealImagePreviewProps {
 	image?: string;

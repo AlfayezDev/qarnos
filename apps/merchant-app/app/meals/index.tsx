@@ -9,7 +9,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import MealCard from "@/components/meal/MealCard";
 import { useMealStore } from "@/stores/mealStore";
 import { useTheme } from "@/hooks/useTheme";
-import { useTranslation } from "@/hooks/useTranslation";
+import { useTranslation } from "@/stores/translationStore";
 
 const MealScreen = () => {
 	const theme = useTheme();

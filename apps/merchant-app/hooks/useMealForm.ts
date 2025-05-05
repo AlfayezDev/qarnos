@@ -9,7 +9,6 @@ import { Meal } from "@/types";
 export const useMealForm = (mealId?: string) => {
 	const router = useRouter();
 	const {
-		meals,
 		selectedMeal,
 		loading,
 		setSelectedMeal,
