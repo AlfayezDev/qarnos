@@ -33,17 +33,10 @@ export const AlertsCard = React.memo(
 					.damping(theme.animations.spring.damping.light)}
 				exiting={FadeOutDown.duration(theme.animations.duration.medium)}
 				marginHorizontal="md"
-				marginBottom="lg"
 				style={{ overflow: "hidden" }}
 			>
 				<Box rounded="lg" elevation="small">
-					<Box
-						row
-						justifyContent="space-between"
-						alignItems="center"
-						marginBottom="md"
-						paddingTop="md"
-					>
+					<Box row justifyContent="space-between" alignItems="center">
 						<Text variant="lg" weight="semibold" fontFamily="serif">
 							{t("dashboard.alerts")}
 						</Text>
@@ -52,11 +45,7 @@ export const AlertsCard = React.memo(
 								<Pressable
 									onPress={onViewAllAlerts}
 									style={({ pressed }) => ({
-										paddingVertical: theme.spacing.xs,
-										borderRadius: theme.spacing.sm,
-										backgroundColor: pressed
-											? theme.colors.backgroundAlt
-											: undefined,
+										backgroundColor: "transparent",
 										opacity: pressed ? 0.7 : 1,
 									})}
 								>
@@ -210,23 +199,20 @@ const AlertItem = React.memo(
 					}}
 					android_ripple={{ color: theme.colors.overlay }}
 				>
-					<View
-						style={{
-							width: theme.sizes.buttonSm,
-							height: theme.sizes.buttonSm,
-							borderRadius: theme.radius.round,
-							alignItems: "center",
-							justifyContent: "center",
-							backgroundColor: iconColor,
-							marginStart: theme.spacing.sm,
-						}}
+					<Box
+						width={32}
+						height={32}
+						rounded="xs"
+						alignItems="center"
+						bg="primaryLight"
+						justifyContent="center"
 					>
 						<Ionicons
 							name={alert.icon as any}
 							size={theme.sizes.iconSm}
 							color={theme.colors.text}
 						/>
-					</View>
+					</Box>
 					<Box
 						flex={1}
 						marginStart="sm"

@@ -54,7 +54,7 @@ export const StatsGrid = React.memo(({ stats }: StatsGridProps) => {
 							<Box
 								width={theme.sizes.buttonSm}
 								height={theme.sizes.buttonSm}
-								rounded="sm"
+								rounded="xs"
 								bg="primaryLight"
 								alignItems="center"
 								justifyContent="center"
@@ -69,7 +69,7 @@ export const StatsGrid = React.memo(({ stats }: StatsGridProps) => {
 								{stat.title}
 							</Text>
 						</Box>
-						<Text variant="xl" weight="bold" fontFamily="serif">
+						<Text variant="xl" weight="bold" fontFamily="serif" color="text">
 							{stat.value}
 						</Text>
 					</Card>

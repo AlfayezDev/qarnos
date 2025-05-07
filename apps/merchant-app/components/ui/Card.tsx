@@ -11,6 +11,7 @@ import { getRgba } from "@/constants/theme/colors";
 
 interface CardProps extends TouchableOpacityProps {
 	elevation?: "none" | "small" | "medium" | "large";
+	gap?: SpacingToken;
 	padding?: string | number | SpacingToken;
 	rounded?: string | RadiusToken;
 	style?: StyleProp<ViewStyle>;
@@ -30,6 +31,7 @@ interface CardProps extends TouchableOpacityProps {
 export const Card = React.memo(
 	({
 		children,
+		gap,
 		elevation = "small",
 		padding = "md",
 		rounded = "md", // Less rounded by default
@@ -56,6 +58,11 @@ export const Card = React.memo(
 			return theme.radius[rounded as RadiusToken];
 		};
 
+		const getSpacingValue = (spacing?: SpacingToken) => {
+			if (!spacing) return 0;
+			return theme.spacing[spacing];
+		};
+
 		// Very subtle, barely noticeable background colors
 		const getBackgroundColor = () => {
 			// Default to white card
@@ -75,6 +82,7 @@ export const Card = React.memo(
 
 		const cardStyle = {
 			backgroundColor: getBackgroundColor(),
+			gap: getSpacingValue(gap),
 			borderRadius: getRadiusValue(),
 			padding: getPaddingValue(),
 			borderWidth: 1,

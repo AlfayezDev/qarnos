@@ -5,6 +5,7 @@ import {
 	StyleProp,
 	TextStyle,
 	AccessibilityRole,
+	FlexAlignType,
 } from "react-native";
 import { useTheme } from "@/stores/themeStore";
 import Animated from "react-native-reanimated";
@@ -12,7 +13,7 @@ import Animated from "react-native-reanimated";
 interface TextProps extends RNTextProps {
 	variant?: FontSizeVariant;
 	weight?: FontWeightVariant;
-	color?: ColorToken | string;
+	color?: ColorToken | `#${string}`;
 	center?: boolean;
 	muted?: boolean;
 	marginBottom?: SpacingToken | number;
@@ -34,6 +35,7 @@ interface TextProps extends RNTextProps {
 	accessibilityRole?: AccessibilityRole;
 	accessibilityLabel?: string;
 	accessibilityHint?: string;
+	alignSelf?: FlexAlignType;
 	accessibilityState?: {
 		disabled?: boolean;
 		selected?: boolean;
@@ -50,6 +52,7 @@ export const Text: React.FC<TextProps> = React.memo(
 		children,
 		variant = "md",
 		weight = "regular",
+		alignSelf = "flex-start",
 		color,
 		center,
 		muted,
@@ -117,6 +120,7 @@ export const Text: React.FC<TextProps> = React.memo(
 			paddingTop: getSpacingValue(paddingTop),
 			paddingBottom: getSpacingValue(paddingBottom),
 			padding: getSpacingValue(padding),
+			alignSelf,
 		};
 
 		return (

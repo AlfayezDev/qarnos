@@ -23,144 +23,146 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const PREP_CARD_WIDTH = 200; // Slightly wider cards for lofi aesthetic
 
-const HomeScreen = React.memo(
-	() => {
-		const theme = useTheme();
-		const insets = useSafeAreaInsets();
-		const { t, language } = useTranslation();
-		const [selectedTab, setSelectedTab] = useState("Today");
+const HomeScreen = () => {
+	const theme = useTheme();
+	const insets = useSafeAreaInsets();
+	const { t, language } = useTranslation();
+	const [selectedTab, setSelectedTab] = useState("Today");
 
-		const tabItems = useMemo(() => {
-			return ["Today", "Week", "Month"];
-		}, [t]);
+	const tabItems = useMemo(() => {
+		return ["Today", "Week", "Month"];
+	}, [t]);
 
-		// Map periods to lofi color variants
-		const mapPeriodToVariant = (
-			period: string,
-		): "sage" | "peach" | "lavender" => {
-			switch (period) {
-				case "Breakfast":
-					return "sage";
-				case "Lunch":
-					return "peach";
-				case "Dinner":
-					return "lavender";
-				default:
-					return "sage";
-			}
-		};
+	// Map periods to lofi color variants
+	const mapPeriodToVariant = (
+		period: string,
+	): "sage" | "peach" | "lavender" => {
+		switch (period) {
+			case "Breakfast":
+				return "sage";
+			case "Lunch":
+				return "peach";
+			case "Dinner":
+				return "lavender";
+			default:
+				return "sage";
+		}
+	};
 
-		const currentStats = useMemo(() => {
-			switch (selectedTab) {
-				case "Week":
-					return [
-						{
-							title: t("dashboard.newThisWeek"),
-							value: 52,
-							icon: "people-outline",
-							variant: "sky" as const,
-						},
-						{
-							title: t("dashboard.newThisMonth"),
-							value: "+3",
-							icon: "add-circle-outline",
-							variant: "mint" as const,
-						},
-					];
-				case "Month":
-					return [
-						{
-							title: t("dashboard.newThisWeek"),
-							value: 52,
-							icon: "people-outline",
-							variant: "rose" as const,
-						},
-						{
-							title: t("dashboard.newThisMonth"),
-							value: "+12",
-							icon: "add-circle-outline",
-							variant: "cream" as const,
-						},
-					];
-				default:
-					return [
-						{
-							title: t("dashboard.newThisWeek"),
-							value: 52,
-							icon: "people-outline",
-							variant: "lavender" as const,
-						},
-						{
-							title: t("dashboard.newThisMonth"),
-							value: "+12",
-							icon: "add-circle-outline",
-							variant: "peach" as const,
-						},
-					];
-			}
-		}, [selectedTab, t]);
-
-		const currentDateString = useMemo(
-			() =>
-				new Date().toLocaleDateString(language, {
-					weekday: "long",
-					month: "short",
-					day: "numeric",
-				}),
-			[language],
-		);
-
-		const handleSelectTab = useCallback(
-			(tab: string) => {
-				if (tab !== selectedTab) {
-					Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-					setSelectedTab(tab);
-				}
-			},
-			[selectedTab],
-		);
-
-		const handleViewSchedule = useCallback((period?: string) => {
-			console.log("Navigate to Schedule Screen, Filter:", period || "Full");
-		}, []);
-
-		const handleViewAlert = useCallback((id: string | number) => {
-			console.log("Navigate to Alert Details Screen, ID:", id);
-		}, []);
-
-		const handleViewAllAlerts = useCallback(() => {
-			console.log("Navigate to All Alerts Screen");
-		}, []);
-
-		const scrollRef = useAnimatedRef<Animated.ScrollView>();
-
-		const scrollOffset = useScrollViewOffset(scrollRef);
-		const headerStyle = useAnimatedStyle(() => {
-			const headerSize = sizes.headerHeight;
-			return {
-				opacity: interpolate(
-					scrollOffset.value,
-					[0, headerSize * 0.6], // Uses percentage of header height
-					[1, 0],
-				),
-				transform: [
+	const currentStats = useMemo(() => {
+		switch (selectedTab) {
+			case "Week":
+				return [
 					{
-						translateY: interpolate(
-							scrollOffset.value + headerSize,
-							[0, headerSize, headerSize, headerSize + 1],
-							[0, 0, 0, -1],
-						),
+						title: t("dashboard.newThisWeek"),
+						value: 52,
+						icon: "people-outline",
+						variant: "sky" as const,
 					},
-				],
-			};
-		});
-		return (
+					{
+						title: t("dashboard.newThisMonth"),
+						value: "+3",
+						icon: "add-circle-outline",
+						variant: "mint" as const,
+					},
+				];
+			case "Month":
+				return [
+					{
+						title: t("dashboard.newThisWeek"),
+						value: 52,
+						icon: "people-outline",
+						variant: "rose" as const,
+					},
+					{
+						title: t("dashboard.newThisMonth"),
+						value: "+12",
+						icon: "add-circle-outline",
+						variant: "cream" as const,
+					},
+				];
+			default:
+				return [
+					{
+						title: t("dashboard.newThisWeek"),
+						value: 52,
+						icon: "people-outline",
+						variant: "lavender" as const,
+					},
+					{
+						title: t("dashboard.newThisMonth"),
+						value: "+12",
+						icon: "add-circle-outline",
+						variant: "peach" as const,
+					},
+				];
+		}
+	}, [selectedTab, t]);
+
+	const currentDateString = useMemo(
+		() =>
+			new Date().toLocaleDateString(language, {
+				weekday: "long",
+				month: "short",
+				day: "numeric",
+			}),
+		[language],
+	);
+
+	const handleSelectTab = useCallback(
+		(tab: string) => {
+			if (tab !== selectedTab) {
+				Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+				setSelectedTab(tab);
+			}
+		},
+		[selectedTab],
+	);
+
+	const handleViewSchedule = useCallback((period?: string) => {
+		console.log("Navigate to Schedule Screen, Filter:", period || "Full");
+	}, []);
+
+	const handleViewAlert = useCallback((id: string | number) => {
+		console.log("Navigate to Alert Details Screen, ID:", id);
+	}, []);
+
+	const handleViewAllAlerts = useCallback(() => {
+		console.log("Navigate to All Alerts Screen");
+	}, []);
+
+	const scrollRef = useAnimatedRef<Animated.ScrollView>();
+
+	const scrollOffset = useScrollViewOffset(scrollRef);
+	const headerStyle = useAnimatedStyle(() => {
+		const headerSize = sizes.headerHeight;
+		return {
+			opacity: interpolate(
+				scrollOffset.value,
+				[0, headerSize * 0.6], // Uses percentage of header height
+				[1, 0],
+			),
+			transform: [
+				{
+					translateY: interpolate(
+						scrollOffset.value + headerSize,
+						[0, headerSize, headerSize, headerSize + 1],
+						[0, 0, 0, -1],
+					),
+				},
+			],
+		};
+	});
+	return (
+		<>
 			<Animated.ScrollView
 				ref={scrollRef}
 				contentContainerStyle={{
 					paddingBottom: insets.bottom + theme.spacing.xxl * 1.5,
 					paddingTop: insets.top,
 					paddingHorizontal: theme.spacing.xs, // Added horizontal padding
+					backgroundColor: theme.colors.background,
+					gap: theme.spacing.xs,
 				}}
 				showsVerticalScrollIndicator={false}
 			>
@@ -197,59 +199,52 @@ const HomeScreen = React.memo(
 					<StatsGrid stats={currentStats} key={selectedTab} />
 				</AnimatedBox>
 
-				<Animated.Text
-					entering={FadeInUp.duration(400)}
-					style={{
-						fontSize: theme.typography.sizes.lg,
-						fontWeight: theme.typography.weights.medium, // Less bold
-						color: theme.colors.text,
-						marginHorizontal: theme.spacing.md,
-						marginVertical: theme.spacing.sm, // Added vertical margin
-						alignSelf: "flex-start",
-						letterSpacing: 0.5, // Added slight spacing
-					}}
-				>
-					{t("dashboard.todaysPrep")}
-				</Animated.Text>
-
-				<Animated.View
-					entering={FadeInUp.delay(theme.animations.delay.staggered.medium)
-						.duration(theme.animations.duration.extraSlow)
-						.springify()
-						.damping(theme.animations.spring.damping.light)}
-					exiting={FadeOutDown.duration(theme.animations.duration.medium)}
-				>
-					<FlatList
-						horizontal
-						data={TODAY_PREP_SUMMARY}
-						keyExtractor={(item) => item.period}
-						showsHorizontalScrollIndicator={false}
-						contentContainerStyle={{
-							paddingHorizontal: theme.spacing.md,
-							paddingVertical: theme.spacing.sm,
-							gap: theme.spacing.sm,
-						}}
-						snapToInterval={PREP_CARD_WIDTH + theme.spacing.sm}
-						decelerationRate="fast"
-						renderItem={({ item }) => (
-							<TodayPrepCard
-								summary={item}
-								onPress={() => handleViewSchedule(item.period)}
-								variant={mapPeriodToVariant(item.period)}
-							/>
-						)}
-					/>
-				</Animated.View>
-
+				<Box>
+					<Text
+						marginHorizontal={"md"}
+						variant="lg"
+						weight="semibold"
+						fontFamily="serif"
+					>
+						{t("dashboard.todaysPrep")}
+					</Text>
+					<Animated.View
+						entering={FadeInUp.delay(theme.animations.delay.staggered.medium)
+							.duration(theme.animations.duration.extraSlow)
+							.springify()
+							.damping(theme.animations.spring.damping.light)}
+						exiting={FadeOutDown.duration(theme.animations.duration.medium)}
+					>
+						<FlatList
+							horizontal
+							data={TODAY_PREP_SUMMARY}
+							keyExtractor={(item) => item.period}
+							showsHorizontalScrollIndicator={false}
+							contentContainerStyle={{
+								paddingHorizontal: theme.spacing.md,
+								paddingVertical: theme.spacing.sm,
+								gap: theme.spacing.sm,
+							}}
+							snapToInterval={PREP_CARD_WIDTH + theme.spacing.sm}
+							decelerationRate="fast"
+							renderItem={({ item }) => (
+								<TodayPrepCard
+									summary={item}
+									onPress={() => handleViewSchedule(item.period)}
+									variant={mapPeriodToVariant(item.period)}
+								/>
+							)}
+						/>
+					</Animated.View>
+				</Box>
 				<AlertsCard
 					alerts={ALERTS}
 					onViewAlert={handleViewAlert}
 					onViewAllAlerts={handleViewAllAlerts}
 				/>
 			</Animated.ScrollView>
-		);
-	},
-	() => true,
-);
+		</>
+	);
+};
 
 export default HomeScreen;

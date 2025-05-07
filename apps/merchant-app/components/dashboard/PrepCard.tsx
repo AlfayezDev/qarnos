@@ -31,20 +31,17 @@ interface TodayPrepCardProps {
 
 const PREP_CARD_WIDTH = 200;
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
-
 export const TodayPrepCard = React.memo(
 	({ summary, onPress, variant = "cream" }: TodayPrepCardProps) => {
 		const theme = useTheme();
 		const { t } = useTranslation();
 		const pressed = useSharedValue(0);
 		const hovered = useSharedValue(0);
-
 		const periodIcons = {
 			Breakfast: "cafe-outline",
 			Lunch: "restaurant-outline",
 			Dinner: "fast-food-outline",
 		};
-
 		const translatedPeriod = t(`periods.${summary.period.toLowerCase()}`);
 
 		const handlePressIn = useCallback(() => {
@@ -84,9 +81,7 @@ export const TodayPrepCard = React.memo(
 				[1, 0.98],
 				Extrapolation.CLAMP,
 			);
-			return {
-				transform: [{ scale }],
-			};
+			return { transform: [{ scale }] };
 		});
 
 		return (
@@ -96,13 +91,7 @@ export const TodayPrepCard = React.memo(
 				onPressOut={handlePressOut}
 				onHoverIn={handleHoverIn}
 				onHoverOut={handleHoverOut}
-				style={[
-					{
-						width: PREP_CARD_WIDTH,
-						margin: theme.spacing.xs,
-					},
-					animatedCardStyle,
-				]}
+				style={[{ width: PREP_CARD_WIDTH }, animatedCardStyle]}
 			>
 				<Card
 					variant={variant}
@@ -111,40 +100,55 @@ export const TodayPrepCard = React.memo(
 					elevation="small"
 					style={{
 						minHeight: theme.sizes.buttonLg * 3.5,
+						borderWidth: 1,
+						borderColor: theme.colors.divider,
 					}}
+					gap="xs"
 				>
-					<Box row alignCenter marginBottom="xs">
-						<Ionicons
-							name={
-								periodIcons[summary.period as keyof typeof periodIcons] as any
-							}
-							size={theme.sizes.iconSm}
-							color={theme.colors.textSecondary}
-							style={{ marginEnd: theme.spacing.sm }}
-						/>
-						<Text variant="md" weight="medium" fontFamily="serif">
+					<Box row alignCenter gap={"xs"}>
+						<Box
+							width={32}
+							height={32}
+							rounded="xs"
+							alignItems="center"
+							bg="primaryLight"
+							justifyContent="center"
+						>
+							<Ionicons
+								name={
+									periodIcons[summary.period as keyof typeof periodIcons] as any
+								}
+								size={theme.sizes.iconSm}
+								color={theme.colors.primary}
+							/>
+						</Box>
+						<Text variant="md" weight="semibold" color="primary">
 							{translatedPeriod}
 						</Text>
 					</Box>
-					<Box marginTop="xs" flex={1} gap="xs" justifyContent="space-between">
-						{summary.mealsToPrep.slice(0, 3).map((meal) => (
+
+					<Box flex={1} gap="xs" justifyContent="space-between">
+						{summary.mealsToPrep.slice(0, 3).map((meal, index) => (
 							<Box
 								key={meal.id}
+								height={45}
+								alignCenter
 								row
 								justifyContent="space-between"
-								paddingVertical={theme.spacing.xs / 2}
+								borderColor="divider"
+								style={{
+									borderBottomWidth: index === 2 ? 0 : 0.5,
+								}}
 							>
 								<Text
 									variant="sm"
+									weight="medium"
 									numberOfLines={1}
-									style={{
-										flexShrink: 1,
-										marginEnd: theme.spacing.sm,
-									}}
+									style={{ flexShrink: 1 }}
 								>
 									{meal.name}
 								</Text>
-								<Text variant="sm" weight="medium" color="textSecondary">
+								<Text variant="md" weight="semibold">
 									{meal.count}
 								</Text>
 							</Box>

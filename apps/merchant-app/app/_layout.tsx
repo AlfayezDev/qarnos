@@ -22,7 +22,7 @@ LogBox.ignoreLogs([
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-	const { isDark, navTheme } = useTheme();
+	const { isDark, navTheme, colors } = useTheme();
 	const { t } = useTranslation();
 
 	const [loaded, error] = useFonts({
@@ -52,7 +52,7 @@ export default function RootLayout() {
 			<SafeAreaProvider>
 				<ThemeProvider value={navTheme}>
 					<Tabs asChild>
-						<TabSlot />
+						<TabSlot style={{ backgroundColor: colors.background }} />
 						<TabList asChild>
 							<FloatingTabBarLayout>
 								<TabTrigger name="home" href="/" asChild>

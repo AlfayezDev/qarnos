@@ -6,8 +6,7 @@ import React, {
 } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
-import { AnimatedBox, AnimatedText, Box, Text } from "@/components/ui";
+import { AnimatedBox, AnimatedText, Box } from "@/components/ui";
 import { useTheme } from "@/stores/themeStore";
 import {
 	useAnimatedProps,
@@ -26,17 +25,17 @@ type TabButtonProps = {
 
 export const TabButton = React.memo(
 	({ icon, label, isFocused, onPress }: TabButtonProps) => {
-		const { colors, radius } = useTheme();
+		const { colors } = useTheme();
 
-		// Memoize press handler to prevent re-renders
 		const handlePress = useCallback(() => {
 			if (onPress) onPress();
 		}, [onPress]);
-		const iconStyle = useAnimatedStyle(() => ({
-			color: withTiming(isFocused ? colors.primary : colors.textMuted),
+		const iconStyle = useAnimatedProps(() => ({
+			color: isFocused ? colors.primaryDark : colors.textMuted,
 		}));
 		const textStyle = useAnimatedStyle(() => ({
-			color: withTiming(isFocused ? colors.primary : colors.textMuted),
+			color: withTiming(isFocused ? colors.primaryDark : colors.textMuted),
+			fontWeight: isFocused ? "bold" : "normal",
 		}));
 
 		const containerStyle = useAnimatedStyle(() => ({
@@ -46,22 +45,30 @@ export const TabButton = React.memo(
 		}));
 
 		return (
-			<Pressable style={[styles.tabItem]} onPress={handlePress}>
+			<Pressable onPress={handlePress} style={{ flex: 1 }}>
 				<AnimatedBox
+					width={"100%"}
+					padding={"xs"}
 					rounded={"xs"}
 					alignCenter
-					style={[styles.tabItem, containerStyle]}
+					style={containerStyle}
+					flex={1}
 				>
-					<AnimatedIonicons name={icon as any} size={22} style={iconStyle} />
-					<AnimatedText variant="xs" marginTop="xs" style={textStyle}>
+					<AnimatedIonicons
+						key={`${label}-icon-selected-${isFocused}`}
+						name={icon as any}
+						size={22}
+						animatedProps={iconStyle}
+					/>
+					<AnimatedText variant="xs" style={textStyle} alignSelf={"center"}>
 						{label}
 					</AnimatedText>
 				</AnimatedBox>
 			</Pressable>
 		);
 	},
-	// Optimize re-renders - only re-render on focus change or label change
-	(prevProps, nextProps) => true,
+
+	(prevProps, nextProps) => prevProps.isFocused === nextProps.isFocused,
 );
 TabButton.displayName = "TabButton";
 
@@ -73,7 +80,7 @@ const FloatingTabBarLayoutComponent: ForwardRefRenderFunction<
 	View,
 	FloatingTabBarLayoutProps
 > = ({ children, style }, ref) => {
-	const { colors, radius } = useTheme();
+	const { colors } = useTheme();
 	const insets = useSafeAreaInsets();
 
 	return (
@@ -81,25 +88,25 @@ const FloatingTabBarLayoutComponent: ForwardRefRenderFunction<
 			ref={ref}
 			style={[
 				styles.container,
-				{ paddingBottom: insets.bottom ? insets.bottom : 12 }, // reduced bottom padding
+				{ paddingBottom: insets.bottom ? insets.bottom : 12 },
 				style,
 			]}
 		>
 			<Box
-				style={[
-					styles.tabBarContainer,
-					{
-						backgroundColor: colors.card,
-						borderRadius: radius.xl,
-						shadowColor: colors.shadow,
-						shadowOffset: { width: 0, height: 3 }, // less intense shadow
-						shadowOpacity: 0.12, // reduced opacity
-						shadowRadius: 12,
-						elevation: 6,
-						borderWidth: 1,
-						borderColor: colors.divider,
-					},
-				]}
+				row
+				width={"100%"}
+				rounded={"xs"}
+				bg="card"
+				elevation="large"
+				borderColor="divider"
+				borderWidth={1}
+				padding={"xs"}
+				style={{
+					shadowColor: colors.shadow,
+					shadowOffset: { width: 0, height: 3 },
+					shadowOpacity: 0.12,
+					shadowRadius: 12,
+				}}
 			>
 				{children}
 			</Box>
@@ -109,9 +116,8 @@ const FloatingTabBarLayoutComponent: ForwardRefRenderFunction<
 
 export const FloatingTabBarLayout = React.memo(
 	forwardRef(FloatingTabBarLayoutComponent),
-	// Add deep comparison to prevent layout re-renders
-	(prevProps, nextProps) => {
-		// Only re-render when children change in a meaningful way
+
+	(_) => {
 		return false;
 	},
 );
@@ -120,21 +126,8 @@ FloatingTabBarLayout.displayName = "FloatingTabBarLayout";
 const styles = StyleSheet.create({
 	container: {
 		position: "absolute",
-		bottom: 12, // reduced from 16
+		bottom: 12,
 		left: 16,
 		right: 16,
-	},
-	tabBarContainer: {
-		flexDirection: "row",
-		paddingVertical: 6, // reduced from 10
-		paddingHorizontal: 12, // reduced from 16
-		width: "100%",
-	},
-	tabItem: {
-		flex: 1,
-		paddingVertical: 4, // reduced from 8
-		paddingHorizontal: 4, // reduced from 12
-		alignItems: "center",
-		width: "100%",
 	},
 });

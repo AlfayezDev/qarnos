@@ -83,13 +83,7 @@ export const Tabs = React.memo(
 							alignItems: "center",
 							justifyContent: "center",
 							flexDirection: "row",
-							// backgroundColor: isSelected ? "rgba(0,0,0,0.1)" : undefined,
 							borderRadius: radius.md,
-							// Much simpler tab styling
-							// borderBottomWidth: isSelected ? 2 : 0,
-							// borderBottomColor: isSelected
-							// 	? theme.colors.primary
-							// 	: "transparent",
 							opacity: pressed ? 0.7 : 1,
 							gap: theme.spacing.xs,
 						})}
@@ -108,7 +102,11 @@ export const Tabs = React.memo(
 								}
 							/>
 						)}
-						<Text variant="sm" color={isSelected ? "primary" : "textSecondary"}>
+						<Text
+							variant="sm"
+							color={isSelected ? "primary" : "textSecondary"}
+							weight={isSelected ? "bold" : "medium"}
+						>
 							{tabLabel}
 						</Text>
 						{iconRight && (
