@@ -52,7 +52,7 @@ export const Text: React.FC<TextProps> = React.memo(
 		children,
 		variant = "md",
 		weight = "regular",
-		alignSelf = "flex-start",
+		alignSelf,
 		color,
 		center,
 		muted,

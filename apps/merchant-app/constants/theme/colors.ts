@@ -49,10 +49,10 @@ export const colorPalette = {
 		rose: "#E5E1E2",
 	},
 	semantic: {
-		success: "#B7C9BB",
-		warning: "#D7CCB8",
-		info: "#B8C4D0",
-		error: "#D7C0C0",
+		success: "#4CAF50",
+		warning: "#FFC107",
+		info: "#2196F3",
+		error: "#E53935",
 	},
 };
 
@@ -99,7 +99,7 @@ export const colors = {
 		accentCream: "#F0EBE0",
 		accentSky: "#DEE5EB",
 		accentRose: "#E8DFE0",
-	},
+	} as const,
 	dark: {
 		primary: colorPalette.primary[400],
 		primaryDark: colorPalette.primary[500],
@@ -135,5 +135,5 @@ export const colors = {
 		accentCream: getRgba(colorPalette.accent.cream, 0.15),
 		accentSky: getRgba(colorPalette.accent.sky, 0.15),
 		accentRose: getRgba(colorPalette.accent.rose, 0.15),
-	},
+	} as const,
 };
