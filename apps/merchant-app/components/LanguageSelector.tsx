@@ -1,20 +1,16 @@
-import React, { useCallback } from "react";
 import { TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Text } from "@/components/ui/Text";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useTheme } from "@/stores/themeStore";
 
-export const LanguageSelector = React.memo(() => {
+export const LanguageSelector = () => {
 	const { changeLanguage, language } = useLanguage();
 	const theme = useTheme();
 
-	const handleLanguageChange = useCallback(
-		(newLanguage: "en" | "ar") => {
-			changeLanguage(newLanguage);
-		},
-		[changeLanguage],
-	);
+	const handleLanguageChange = (newLanguage: "en" | "ar") => {
+		changeLanguage(newLanguage);
+	};
 
 	return (
 		<View style={{ alignItems: "flex-start" }}>
@@ -115,4 +111,4 @@ export const LanguageSelector = React.memo(() => {
 			</View>
 		</View>
 	);
-});
+};

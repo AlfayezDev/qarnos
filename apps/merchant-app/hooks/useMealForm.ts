@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from "react";
+import { useEffect } from "react";
 import { Keyboard } from "react-native";
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
@@ -28,40 +28,37 @@ export const useMealForm = (mealId?: string) => {
 		}
 	}, [mealId, isEdit, setSelectedMeal]);
 
-	const handleFormSubmit = useCallback(
-		(values: MealSchemaType) => {
-			Keyboard.dismiss();
-			Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-			setLoading(true);
+	const handleFormSubmit = (values: MealSchemaType) => {
+		Keyboard.dismiss();
+		Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+		setLoading(true);
 
-			setTimeout(() => {
-				if (isEdit && values.id) {
-					updateMeal(values as Meal);
-				} else {
-					const newMeal = {
-						...values,
-						id: values.id || `meal-${Date.now()}`,
-					} as Meal;
-					addMeal(newMeal);
-				}
-				setLoading(false);
-				router.back();
-			}, 500);
-		},
-		[isEdit, router, setLoading, updateMeal, addMeal],
-	);
+		setTimeout(() => {
+			if (isEdit && values.id) {
+				updateMeal(values as Meal);
+			} else {
+				const newMeal = {
+					...values,
+					id: values.id || `meal-${Date.now()}`,
+				} as Meal;
+				addMeal(newMeal);
+			}
+			setLoading(false);
+			router.back();
+		}, 500);
+	};
 
-	const handleDelete = useCallback(() => {
+	const handleDelete = () => {
 		if (isEdit && mealId) {
 			Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
 			deleteMeal(mealId);
 		}
 		router.back();
-	}, [isEdit, mealId, deleteMeal, router]);
+	};
 
-	const handleSelectImage = useCallback(() => {
+	const handleSelectImage = () => {
 		console.log("Select image");
-	}, []);
+	};
 
 	return {
 		meal: selectedMeal || {

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState } from "react";
 import { FlatList, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, { FadeInUp } from "react-native-reanimated";
@@ -21,15 +21,12 @@ const MealScreen = () => {
 
 	const filteredMeals = meals.filter((meal) => meal.period === selectedPeriod);
 
-	const handleSelectPeriod = useCallback(
-		(period: string) => {
-			if (period !== selectedPeriod) {
-				Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-				setSelectedPeriod(period);
-			}
-		},
-		[selectedPeriod],
-	);
+	const handleSelectPeriod = (period: string) => {
+		if (period !== selectedPeriod) {
+			Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+			setSelectedPeriod(period);
+		}
+	};
 
 	function renderEmptyList() {
 		return (

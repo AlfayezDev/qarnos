@@ -28,7 +28,7 @@ interface StatsGridProps {
 	stats: StatItem[];
 }
 
-export const StatsGrid = React.memo(({ stats }: StatsGridProps) => {
+export const StatsGrid = ({ stats }: StatsGridProps) => {
 	const theme = useTheme();
 
 	return (
@@ -77,4 +77,4 @@ export const StatsGrid = React.memo(({ stats }: StatsGridProps) => {
 			))}
 		</Box>
 	);
-});
+};

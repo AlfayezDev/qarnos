@@ -47,110 +47,93 @@ interface TextProps extends RNTextProps {
 	fontFamily?: "sans" | "serif" | "mono";
 }
 
-export const Text: React.FC<TextProps> = React.memo(
-	({
-		children,
-		variant = "md",
-		weight = "regular",
+export const Text: React.FC<TextProps> = ({
+	children,
+	variant = "md",
+	weight = "regular",
+	alignSelf,
+	color,
+	center,
+	muted,
+	marginBottom,
+	marginTop,
+	marginStart,
+	marginEnd,
+	marginHorizontal,
+	marginVertical,
+	margin,
+	paddingStart,
+	paddingEnd,
+	paddingHorizontal,
+	paddingVertical,
+	paddingTop,
+	paddingBottom,
+	padding,
+	style,
+	align,
+	accessibilityRole,
+	accessibilityLabel,
+	accessibilityHint,
+	accessibilityState,
+	fontFamily = "sans",
+	...props
+}) => {
+	const theme = useTheme();
+
+	const getSpacingValue = (
+		value: SpacingToken | number | undefined,
+	): number | undefined => {
+		if (value === undefined) return undefined;
+		return typeof value === "number" ? value : theme.spacing[value];
+	};
+
+	const getColorValue = (
+		colorProp: ColorToken | string | undefined,
+	): string => {
+		if (colorProp === undefined) {
+			return muted ? theme.colors.textSecondary : theme.colors.text;
+		}
+		if (typeof colorProp === "string" && colorProp in theme.colors) {
+			return theme.colors[colorProp as ColorToken] as string;
+		}
+		return colorProp;
+	};
+
+	const textAlign = center ? "center" : align;
+	const textStyle: TextStyle = {
+		fontSize: theme.typography.sizes[variant],
+		fontWeight: theme.typography.weights[weight],
+		color: getColorValue(color),
+		textAlign,
+		marginBottom: getSpacingValue(marginBottom),
+		marginTop: getSpacingValue(marginTop),
+		marginStart: getSpacingValue(marginStart),
+		marginEnd: getSpacingValue(marginEnd),
+		marginHorizontal: getSpacingValue(marginHorizontal),
+		marginVertical: getSpacingValue(marginVertical),
+		margin: getSpacingValue(margin),
+		paddingStart: getSpacingValue(paddingStart),
+		paddingEnd: getSpacingValue(paddingEnd),
+		paddingHorizontal: getSpacingValue(paddingHorizontal),
+		paddingVertical: getSpacingValue(paddingVertical),
+		paddingTop: getSpacingValue(paddingTop),
+		paddingBottom: getSpacingValue(paddingBottom),
+		padding: getSpacingValue(padding),
 		alignSelf,
-		color,
-		center,
-		muted,
-		marginBottom,
-		marginTop,
-		marginStart,
-		marginEnd,
-		marginHorizontal,
-		marginVertical,
-		margin,
-		paddingStart,
-		paddingEnd,
-		paddingHorizontal,
-		paddingVertical,
-		paddingTop,
-		paddingBottom,
-		padding,
-		style,
-		align,
-		accessibilityRole,
-		accessibilityLabel,
-		accessibilityHint,
-		accessibilityState,
-		fontFamily = "sans",
-		...props
-	}) => {
-		const theme = useTheme();
+	};
 
-		const getSpacingValue = (
-			value: SpacingToken | number | undefined,
-		): number | undefined => {
-			if (value === undefined) return undefined;
-			return typeof value === "number" ? value : theme.spacing[value];
-		};
+	return (
+		<RNText
+			style={[textStyle, style]}
+			accessibilityRole={accessibilityRole}
+			accessibilityLabel={accessibilityLabel}
+			accessibilityHint={accessibilityHint}
+			accessibilityState={accessibilityState}
+			{...props}
+		>
+			{children}
+		</RNText>
+	);
+};
 
-		const getColorValue = (
-			colorProp: ColorToken | string | undefined,
-		): string => {
-			if (colorProp === undefined) {
-				return muted ? theme.colors.textSecondary : theme.colors.text;
-			}
-			if (typeof colorProp === "string" && colorProp in theme.colors) {
-				return theme.colors[colorProp as ColorToken] as string;
-			}
-			return colorProp;
-		};
-
-		const textAlign = center ? "center" : align;
-		const textStyle: TextStyle = {
-			fontSize: theme.typography.sizes[variant],
-			fontWeight: theme.typography.weights[weight],
-			color: getColorValue(color),
-			textAlign,
-			marginBottom: getSpacingValue(marginBottom),
-			marginTop: getSpacingValue(marginTop),
-			marginStart: getSpacingValue(marginStart),
-			marginEnd: getSpacingValue(marginEnd),
-			marginHorizontal: getSpacingValue(marginHorizontal),
-			marginVertical: getSpacingValue(marginVertical),
-			margin: getSpacingValue(margin),
-			paddingStart: getSpacingValue(paddingStart),
-			paddingEnd: getSpacingValue(paddingEnd),
-			paddingHorizontal: getSpacingValue(paddingHorizontal),
-			paddingVertical: getSpacingValue(paddingVertical),
-			paddingTop: getSpacingValue(paddingTop),
-			paddingBottom: getSpacingValue(paddingBottom),
-			padding: getSpacingValue(padding),
-			alignSelf,
-		};
-
-		return (
-			<RNText
-				style={[textStyle, style]}
-				accessibilityRole={accessibilityRole}
-				accessibilityLabel={accessibilityLabel}
-				accessibilityHint={accessibilityHint}
-				accessibilityState={accessibilityState}
-				{...props}
-			>
-				{children}
-			</RNText>
-		);
-	},
-	(prevProps, nextProps) => {
-		// Custom equality check for Text component
-		const equalChildren = prevProps.children === nextProps.children;
-		const equalVariant = prevProps.variant === nextProps.variant;
-		const equalWeight = prevProps.weight === nextProps.weight;
-		const equalColor = prevProps.color === nextProps.color;
-
-		return (
-			equalChildren &&
-			equalVariant &&
-			equalWeight &&
-			equalColor &&
-			prevProps.numberOfLines === nextProps.numberOfLines &&
-			prevProps.center === nextProps.center
-		);
-	},
-);
 export const AnimatedText = Animated.createAnimatedComponent(Text);

@@ -1,4 +1,3 @@
-import React, { useCallback, useMemo } from "react";
 import { Pressable, ScrollView, TouchableOpacity, View } from "react-native";
 import { Stack } from "expo-router";
 import Animated, {
@@ -23,65 +22,56 @@ const SettingsScreen = () => {
 	const { t } = useTranslation();
 	const restaurantName = "The Gourmet Spot";
 
-	const handleThemeChange = useCallback(
-		(newTheme: "light" | "dark") => {
-			Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-			setTheme(newTheme);
+	const handleThemeChange = (newTheme: "light" | "dark") => {
+		Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+		setTheme(newTheme);
+	};
+
+	const themeOptions = [
+		{
+			key: "light" as const,
+			icon: "sunny-outline",
+			label: t("settings.lightMode"),
 		},
-		[setTheme],
-	);
+		{
+			key: "dark" as const,
+			icon: "moon-outline",
+			label: t("settings.darkMode"),
+		},
+	];
 
-	const themeOptions = useMemo(
-		() => [
-			{
-				key: "light" as const,
-				icon: "sunny-outline",
-				label: t("settings.lightMode"),
-			},
-			{
-				key: "dark" as const,
-				icon: "moon-outline",
-				label: t("settings.darkMode"),
-			},
-		],
-		[t],
-	);
-
-	const SettingsSection = useCallback(
-		({
-			title,
-			icon,
-			children,
-		}: {
-			title: string;
-			icon: any;
-			children: React.ReactNode;
-		}) => (
-			<Box
-				padding="lg"
-				marginBottom="lg"
-				bg="card"
-				rounded="xs"
-				style={{
-					borderWidth: 1,
-					borderColor: theme.colors.divider,
-				}}
-			>
-				<Box row alignCenter marginBottom="md">
-					<Ionicons
-						name={icon}
-						size={theme.sizes.iconSm}
-						color={theme.colors.primary}
-						style={{ marginEnd: theme.spacing.sm }}
-					/>
-					<Text variant="lg" weight="semibold" color="textSecondary">
-						{title}
-					</Text>
-				</Box>
-				{children}
+	const SettingsSection = ({
+		title,
+		icon,
+		children,
+	}: {
+		title: string;
+		icon: any;
+		children: React.ReactNode;
+	}) => (
+		<Box
+			padding="lg"
+			marginBottom="lg"
+			bg="card"
+			rounded="xs"
+			style={{
+				borderWidth: 1,
+				borderColor: theme.colors.divider,
+			}}
+		>
+			<Box row alignCenter marginBottom="md">
+				<Ionicons
+					name={icon}
+					size={theme.sizes.iconSm}
+					color={theme.colors.primary}
+					style={{ marginEnd: theme.spacing.sm }}
+				/>
+				<Text variant="lg" weight="semibold" color="textSecondary">
+					{title}
+				</Text>
 			</Box>
-		),
-		[theme],
+			{children}
+		</Box>
 	);
 
 	const scrollRef = useAnimatedRef<Animated.ScrollView>();
@@ -225,81 +215,72 @@ interface ThemeOptionProps {
 	onPress: (theme: "light" | "dark") => void;
 }
 
-const ThemeOption = React.memo(
-	({ option, currentTheme, onPress }: ThemeOptionProps) => {
-		const theme = useTheme();
-		const isSelected = currentTheme === option.key;
+const ThemeOption = ({ option, currentTheme, onPress }: ThemeOptionProps) => {
+	const theme = useTheme();
+	const isSelected = currentTheme === option.key;
 
-		const animatedStyle = useAnimatedStyle(() => ({
-			backgroundColor: withTiming(
-				isSelected ? theme.colors.primaryLight : theme.colors.backgroundAlt,
-				{ duration: 200 },
-			),
-			borderColor: withTiming(
-				isSelected ? theme.colors.primary : theme.colors.divider,
-				{ duration: 200 },
-			),
-			transform: [
-				{ scale: withTiming(isSelected ? 1.0 : 0.98, { duration: 150 }) },
-			],
-			opacity: withTiming(isSelected ? 1 : 0.8, { duration: 200 }),
-		}));
+	const animatedStyle = useAnimatedStyle(() => ({
+		backgroundColor: withTiming(
+			isSelected ? theme.colors.primaryLight : theme.colors.backgroundAlt,
+			{ duration: 200 },
+		),
+		borderColor: withTiming(
+			isSelected ? theme.colors.primary : theme.colors.divider,
+			{ duration: 200 },
+		),
+		transform: [
+			{ scale: withTiming(isSelected ? 1.0 : 0.98, { duration: 150 }) },
+		],
+		opacity: withTiming(isSelected ? 1 : 0.8, { duration: 200 }),
+	}));
 
-		const iconColor = isSelected
-			? theme.colors.primary
-			: theme.colors.textSecondary;
+	const iconColor = isSelected
+		? theme.colors.primary
+		: theme.colors.textSecondary;
 
-		const animatedTextColor = useAnimatedStyle(() => ({
-			color: withTiming(
-				isSelected ? theme.colors.primary : theme.colors.textSecondary,
-			),
-		}));
+	const animatedTextColor = useAnimatedStyle(() => ({
+		color: withTiming(
+			isSelected ? theme.colors.primary : theme.colors.textSecondary,
+		),
+	}));
 
-		const handlePress = useCallback(() => {
-			onPress(option.key);
-		}, [option.key, onPress]);
+	const handlePress = () => {
+		onPress(option.key);
+	};
 
-		return (
-			<AnimatedPressable
-				style={[
-					{
-						flex: 1,
-						marginHorizontal: theme.spacing.xs,
-						paddingVertical: theme.spacing.md,
-						paddingHorizontal: theme.spacing.sm,
-						borderRadius: theme.radius.lg,
-						borderWidth: 2,
-						alignItems: "center",
-						justifyContent: "center",
-						minHeight: theme.sizes.buttonLg * 1.8,
-					},
-					animatedStyle,
-				]}
-				onPress={handlePress}
-				accessible={true}
-				accessibilityRole="button"
-				accessibilityLabel={`Set theme to ${option.label}`}
-				accessibilityState={{ selected: isSelected }}
-			>
-				<Ionicons
-					name={option.icon as any}
-					size={theme.sizes.iconLg}
-					color={iconColor}
-					style={{ marginBottom: theme.spacing.sm }}
-				/>
-				<AnimatedText variant="sm" weight="semibold" style={animatedTextColor}>
-					{option.label}
-				</AnimatedText>
-			</AnimatedPressable>
-		);
-	},
-	(prevProps, nextProps) => {
-		return (
-			prevProps.option.key === nextProps.option.key &&
-			prevProps.currentTheme === nextProps.currentTheme &&
-			prevProps.option.label === nextProps.option.label
-		);
-	},
-);
+	return (
+		<AnimatedPressable
+			style={[
+				{
+					flex: 1,
+					marginHorizontal: theme.spacing.xs,
+					paddingVertical: theme.spacing.md,
+					paddingHorizontal: theme.spacing.sm,
+					borderRadius: theme.radius.lg,
+					borderWidth: 2,
+					alignItems: "center",
+					justifyContent: "center",
+					minHeight: theme.sizes.buttonLg * 1.8,
+				},
+				animatedStyle,
+			]}
+			onPress={handlePress}
+			accessible={true}
+			accessibilityRole="button"
+			accessibilityLabel={`Set theme to ${option.label}`}
+			accessibilityState={{ selected: isSelected }}
+		>
+			<Ionicons
+				name={option.icon as any}
+				size={theme.sizes.iconLg}
+				color={iconColor}
+				style={{ marginBottom: theme.spacing.sm }}
+			/>
+			<AnimatedText variant="sm" weight="semibold" style={animatedTextColor}>
+				{option.label}
+			</AnimatedText>
+		</AnimatedPressable>
+	);
+};
 
 export default SettingsScreen;

@@ -1,9 +1,4 @@
-import React, {
-	PropsWithChildren,
-	forwardRef,
-	ForwardRefRenderFunction,
-	useCallback,
-} from "react";
+import React, { PropsWithChildren, ForwardRefRenderFunction } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AnimatedBox, AnimatedText, Box } from "@/components/ui";
@@ -23,63 +18,65 @@ type TabButtonProps = {
 	route?: string;
 };
 
-export const TabButton = React.memo(
-	({ icon, label, isFocused, onPress }: TabButtonProps) => {
-		const { colors } = useTheme();
+export const TabButton = ({
+	icon,
+	label,
+	isFocused,
+	onPress,
+}: TabButtonProps) => {
+	const { colors } = useTheme();
 
-		const handlePress = useCallback(() => {
-			if (onPress) onPress();
-		}, [onPress]);
-		const iconStyle = useAnimatedProps(() => ({
-			color: isFocused ? colors.primaryDark : colors.textMuted,
-		}));
-		const textStyle = useAnimatedStyle(() => ({
-			color: withTiming(isFocused ? colors.primaryDark : colors.textMuted),
-			fontWeight: isFocused ? "bold" : "normal",
-		}));
+	const handlePress = () => {
+		if (onPress) onPress();
+	};
+	const iconStyle = useAnimatedProps(() => ({
+		color: isFocused ? colors.primaryDark : colors.textMuted,
+	}));
+	const textStyle = useAnimatedStyle(() => ({
+		color: withTiming(isFocused ? colors.primaryDark : colors.textMuted),
+		fontWeight: isFocused ? "bold" : "normal",
+	}));
 
-		const containerStyle = useAnimatedStyle(() => ({
-			backgroundColor: withTiming(
-				isFocused ? colors.primaryLight : "transparent",
-			),
-		}));
+	const containerStyle = useAnimatedStyle(() => ({
+		backgroundColor: withTiming(
+			isFocused ? colors.primaryLight : "transparent",
+		),
+	}));
 
-		return (
-			<Pressable onPress={handlePress} style={{ flex: 1 }}>
-				<AnimatedBox
-					width={"100%"}
-					padding={"xs"}
-					rounded={"xs"}
-					alignCenter
-					style={containerStyle}
-					flex={1}
-					row
-					justifyCenter
-					gap={"sm"}
-				>
-					<AnimatedIonicons
-						key={`${label}-icon-selected-${isFocused}`}
-						name={icon as any}
-						size={22}
-						animatedProps={iconStyle}
-					/>
-					<AnimatedText variant="xs" style={textStyle} alignSelf={"center"}>
-						{label}
-					</AnimatedText>
-				</AnimatedBox>
-			</Pressable>
-		);
-	},
+	return (
+		<Pressable onPress={handlePress} style={{ flex: 1 }}>
+			<AnimatedBox
+				width={"100%"}
+				padding={"xs"}
+				rounded={"xs"}
+				alignCenter
+				style={containerStyle}
+				flex={1}
+				row
+				justifyCenter
+				gap={"sm"}
+			>
+				<AnimatedIonicons
+					key={`${label}-icon-selected-${isFocused}`}
+					name={icon as any}
+					size={22}
+					animatedProps={iconStyle}
+				/>
+				<AnimatedText variant="xs" style={textStyle} alignSelf={"center"}>
+					{label}
+				</AnimatedText>
+			</AnimatedBox>
+		</Pressable>
+	);
+};
 
-	(prevProps, nextProps) => prevProps.isFocused === nextProps.isFocused,
-);
 TabButton.displayName = "TabButton";
 
 type FloatingTabBarLayoutProps = PropsWithChildren<{
 	style?: React.ComponentProps<typeof View>["style"];
 }>;
 
-const FloatingTabBarLayoutComponent: ForwardRefRenderFunction<
+export const FloatingTabBarLayout: ForwardRefRenderFunction<
 	View,
 	FloatingTabBarLayoutProps
 > = ({ children, style }, ref) => {
@@ -117,13 +114,6 @@ const FloatingTabBarLayoutComponent: ForwardRefRenderFunction<
 	);
 };
 
-export const FloatingTabBarLayout = React.memo(
-	forwardRef(FloatingTabBarLayoutComponent),
-
-	(_) => {
-		return false;
-	},
-);
 FloatingTabBarLayout.displayName = "FloatingTabBarLayout";
 
 const styles = StyleSheet.create({

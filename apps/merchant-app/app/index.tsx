@@ -9,7 +9,7 @@ import { ALERTS, TODAY_PREP_SUMMARY } from "@/data";
 import { useTheme } from "@/stores/themeStore";
 import { useTranslation } from "@/stores/translationStore";
 import * as Haptics from "expo-haptics";
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { FlatList } from "react-native";
 import Animated, {
 	FadeInUp,
@@ -109,28 +109,24 @@ const HomeScreen = () => {
 		[language],
 	);
 
-	const handleSelectTab = useCallback(
-		(tab: string) => {
-			if (tab !== selectedTab) {
-				Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-				setSelectedTab(tab);
-			}
-		},
-		[selectedTab],
-	);
+	const handleSelectTab = (tab: string) => {
+		if (tab !== selectedTab) {
+			Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+			setSelectedTab(tab);
+		}
+	};
 
-	const handleViewSchedule = useCallback((period?: string) => {
+	const handleViewSchedule = (period?: string) => {
 		console.log("Navigate to Schedule Screen, Filter:", period || "Full");
-	}, []);
+	};
 
-	const handleViewAlert = useCallback((id: string | number) => {
+	const handleViewAlert = (id: string | number) => {
 		console.log("Navigate to Alert Details Screen, ID:", id);
-	}, []);
+	};
 
-	const handleViewAllAlerts = useCallback(() => {
+	const handleViewAllAlerts = () => {
 		console.log("Navigate to All Alerts Screen");
-	}, []);
-
+	};
 	const scrollRef = useAnimatedRef<Animated.ScrollView>();
 
 	const scrollOffset = useScrollViewOffset(scrollRef);

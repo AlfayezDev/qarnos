@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { z, ZodObject, AnyZodObject } from "zod";
 
 const createFormSchema = <T extends AnyZodObject>(schema: T) => {
@@ -66,63 +66,53 @@ export function useZodForm<T extends AnyZodObject>(
 
 	const formSchema = useMemo(() => createFormSchema(schema), [schema]);
 
-	const setValue = useCallback(
-		(field: keyof SchemaOutputType, value: any) => {
-			setValues((prev) => ({ ...prev, [field]: value }));
+	const setValue = (field: keyof SchemaOutputType, value: any) => {
+		setValues((prev) => ({ ...prev, [field]: value }));
 
-			const validation = formSchema.validateField(field, value);
+		const validation = formSchema.validateField(field, value);
 
-			if (!validation.valid && validation.error) {
-				setErrors((prev) => ({ ...prev, [field]: validation.error }));
-			} else {
-				setErrors((prev) => {
-					const newErrors = { ...prev };
+		if (!validation.valid && validation.error) {
+			setErrors((prev) => ({ ...prev, [field]: validation.error }));
+		} else {
+			setErrors((prev) => {
+				const newErrors = { ...prev };
+				delete newErrors[field];
+				return newErrors;
+			});
+		}
+	};
+
+	const handleBlur = (field: keyof SchemaOutputType) => {
+		setTouched((prev) => ({ ...prev, [field]: true }));
+
+		const value = values[field];
+		const validation = formSchema.validateField(field, value);
+
+		if (!validation.valid && validation.error) {
+			setErrors((prev) => ({ ...prev, [field]: validation.error }));
+		} else {
+			setErrors((prev) => {
+				const newErrors = { ...prev };
+
+				if (validation.valid && newErrors[field]) {
 					delete newErrors[field];
-					return newErrors;
-				});
-			}
-		},
-		[formSchema],
-	);
+				}
+				return newErrors;
+			});
+		}
+	};
 
-	const handleBlur = useCallback(
-		(field: keyof SchemaOutputType) => {
-			setTouched((prev) => ({ ...prev, [field]: true }));
-
-			const value = values[field];
-			const validation = formSchema.validateField(field, value);
-
-			if (!validation.valid && validation.error) {
-				setErrors((prev) => ({ ...prev, [field]: validation.error }));
-			} else {
-				setErrors((prev) => {
-					const newErrors = { ...prev };
-
-					if (validation.valid && newErrors[field]) {
-						delete newErrors[field];
-					}
-					return newErrors;
-				});
-			}
-		},
-		[values, formSchema],
-	);
-
-	const validateForm = useCallback(() => {
+	const validateForm = () => {
 		const result = formSchema.validateForm(values);
 
 		setErrors(result.errors as Partial<Record<keyof SchemaOutputType, string>>);
 		return result.valid;
-	}, [values, formSchema]);
-
-	const resetForm = useCallback(
-		(newValues: Partial<SchemaOutputType> = initialValues) => {
-			setValues(newValues);
-			setErrors({});
-			setTouched({});
-		},
-		[initialValues],
-	);
+	};
+	const resetForm = (newValues: Partial<SchemaOutputType> = initialValues) => {
+		setValues(newValues);
+		setErrors({});
+		setTouched({});
+	};
 
 	const isValid = useMemo(() => Object.keys(errors).length === 0, [errors]);
 	const isDirty = useMemo(() => Object.keys(touched).length > 0, [touched]);

@@ -18,16 +18,16 @@ interface MealFormBasicInfoProps {
 	descInputRef: React.RefObject<TextInput>;
 	descArInputRef: React.RefObject<TextInput>;
 	handleSubmitEditing: (nextInput: React.RefObject<TextInput | null>) => void;
-	periodOptions: Array<{
+	periodOptions: {
 		value: string;
 		label: string;
 		icon: string;
-	}>;
-	dietaryOptions: Array<{
+	}[];
+	dietaryOptions: {
 		value: string;
 		label: string;
 		description: string;
-	}>;
+	}[];
 }
 
 export const MealFormBasicInfo: React.FC<MealFormBasicInfoProps> = ({

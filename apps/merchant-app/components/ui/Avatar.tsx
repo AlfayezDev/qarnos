@@ -11,79 +11,81 @@ interface AvatarProps extends ViewProps {
 	backgroundColor?: string;
 }
 
-export const Avatar = React.memo(
-	({
-		size = "md",
-		source,
-		text,
-		color,
-		backgroundColor,
-		style,
-		...props
-	}: AvatarProps) => {
-		const theme = useTheme();
+export const Avatar = ({
+	size = "md",
+	source,
+	text,
+	color,
+	backgroundColor,
+	style,
+	...props
+}: AvatarProps) => {
+	const theme = useTheme();
 
-		const getSize = () => {
-			if (typeof size === "number") return size;
-			switch (size) {
-				case "sm":
-					return theme.sizes.avatarSm;
-				case "md":
-					return theme.sizes.avatarMd;
-				case "lg":
-					return theme.sizes.avatarLg;
-				default:
-					return theme.sizes.avatarMd;
-			}
-		};
+	const getSize = () => {
+		if (typeof size === "number") return size;
+		switch (size) {
+			case "sm":
+				return theme.sizes.avatarSm;
+			case "md":
+				return theme.sizes.avatarMd;
+			case "lg":
+				return theme.sizes.avatarLg;
+			default:
+				return theme.sizes.avatarMd;
+		}
+	};
 
-		const getFontVariant = () => {
-			if (typeof size === "number") return "md";
-			switch (size) {
-				case "sm":
-					return "sm";
-				case "md":
-					return "lg";
-				case "lg":
-					return "xl";
-				default:
-					return "lg";
-			}
-		};
+	const getFontVariant = () => {
+		if (typeof size === "number") return "md";
+		switch (size) {
+			case "sm":
+				return "sm";
+			case "md":
+				return "lg";
+			case "lg":
+				return "xl";
+			default:
+				return "lg";
+		}
+	};
 
-		const avatarSize = getSize();
-		const bgColor = backgroundColor
-			? theme.colors[backgroundColor as ColorToken] || backgroundColor
-			: theme.colors.primaryLight;
-		const textColor = color
-			? theme.colors[color as ColorToken] || color
-			: theme.colors.primary;
+	const avatarSize = getSize();
+	const bgColor = backgroundColor
+		? theme.colors[backgroundColor as ColorToken] || backgroundColor
+		: theme.colors.primaryLight;
+	const textColor = color
+		? theme.colors[color as ColorToken] || color
+		: theme.colors.primary;
 
-		const containerStyle = {
-			width: avatarSize,
-			height: avatarSize,
-			borderRadius: avatarSize / 2,
-			backgroundColor: bgColor,
-			alignItems: "center" as const,
-			justifyContent: "center" as const,
-			overflow: "hidden" as const,
-		};
+	const containerStyle = {
+		width: avatarSize,
+		height: avatarSize,
+		borderRadius: avatarSize / 2,
+		backgroundColor: bgColor,
+		alignItems: "center" as const,
+		justifyContent: "center" as const,
+		overflow: "hidden" as const,
+	};
 
-		const imageStyle = {
-			width: avatarSize,
-			height: avatarSize,
-		};
+	const imageStyle = {
+		width: avatarSize,
+		height: avatarSize,
+	};
 
-		return (
-			<View style={[containerStyle, style]} {...props}>
-				{source ? (
-					<Image source={source} style={imageStyle} resizeMode="cover" />
-				) : (
-					<Text variant={getFontVariant()} weight="bold" color={textColor}>
-						{text ? text.charAt(0).toUpperCase() : "?"}
-					</Text>
-				)}
-			</View>
-		);
-	},
-);
+	return (
+		<View style={[containerStyle, style]} {...props}>
+			{source ? (
+				<Image source={source} style={imageStyle} resizeMode="cover" />
+			) : (
+				<Text
+					variant={getFontVariant()}
+					weight="bold"
+					color={textColor as ColorToken}
+				>
+					{text ? text.charAt(0).toUpperCase() : "?"}
+				</Text>
+			)}
+		</View>
+	);
+};
