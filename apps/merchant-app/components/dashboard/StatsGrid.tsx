@@ -8,7 +8,6 @@ import {
 } from "react-native-reanimated";
 import { useTheme } from "@/stores/themeStore";
 import { Card } from "@/components/ui/Card";
-
 interface StatItem {
 	title: string;
 	value: string | number;
@@ -23,14 +22,11 @@ interface StatItem {
 		| "sky"
 		| "rose";
 }
-
 interface StatsGridProps {
 	stats: StatItem[];
 }
-
 export const StatsGrid = ({ stats }: StatsGridProps) => {
 	const theme = useTheme();
-
 	return (
 		<Box row marginHorizontal="sm" marginBottom="lg" gap="sm">
 			{stats.map((stat) => (

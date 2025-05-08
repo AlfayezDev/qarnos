@@ -9,7 +9,7 @@ import { ALERTS, TODAY_PREP_SUMMARY } from "@/data";
 import { useTheme } from "@/stores/themeStore";
 import { useTranslation } from "@/stores/translationStore";
 import * as Haptics from "expo-haptics";
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { FlatList } from "react-native";
 import Animated, {
 	FadeInUp,
@@ -21,18 +21,14 @@ import Animated, {
 	useScrollViewOffset,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
 const PREP_CARD_WIDTH = 200;
-
 const HomeScreen = () => {
 	const theme = useTheme();
 	const insets = useSafeAreaInsets();
 	const { t, language } = useTranslation();
 	const [selectedTab, setSelectedTab] = useState("Today");
 
-	const tabItems = useMemo(() => {
-		return ["Today", "Week", "Month"];
-	}, [t]);
+	const tabItems = ["Today", "Week", "Month"];
 
 	const mapPeriodToVariant = (
 		period: string,
@@ -49,7 +45,7 @@ const HomeScreen = () => {
 		}
 	};
 
-	const currentStats = useMemo(() => {
+	const currentStats = (() => {
 		switch (selectedTab) {
 			case "Week":
 				return [
@@ -97,17 +93,13 @@ const HomeScreen = () => {
 					},
 				];
 		}
-	}, [selectedTab, t]);
+	})();
 
-	const currentDateString = useMemo(
-		() =>
-			new Date().toLocaleDateString(language, {
-				weekday: "long",
-				month: "short",
-				day: "numeric",
-			}),
-		[language],
-	);
+	const currentDateString = new Date().toLocaleDateString(language, {
+		weekday: "long",
+		month: "short",
+		day: "numeric",
+	});
 
 	const handleSelectTab = (tab: string) => {
 		if (tab !== selectedTab) {
@@ -115,20 +107,16 @@ const HomeScreen = () => {
 			setSelectedTab(tab);
 		}
 	};
-
 	const handleViewSchedule = (period?: string) => {
 		console.log("Navigate to Schedule Screen, Filter:", period || "Full");
 	};
-
 	const handleViewAlert = (id: string | number) => {
 		console.log("Navigate to Alert Details Screen, ID:", id);
 	};
-
 	const handleViewAllAlerts = () => {
 		console.log("Navigate to All Alerts Screen");
 	};
 	const scrollRef = useAnimatedRef<Animated.ScrollView>();
-
 	const scrollOffset = useScrollViewOffset(scrollRef);
 	const headerStyle = useAnimatedStyle(() => {
 		const headerSize = sizes.headerHeight;
@@ -180,7 +168,6 @@ const HomeScreen = () => {
 						{currentDateString}
 					</AnimatedText>
 				</AnimatedBox>
-
 				<AnimatedBox
 					marginHorizontal="sm"
 					gap="md"
@@ -201,7 +188,6 @@ const HomeScreen = () => {
 					</Box>
 					<StatsGrid stats={currentStats} key={selectedTab} />
 				</AnimatedBox>
-
 				<AnimatedBox
 					entering={FadeInUp.delay(theme.animations.delay.staggered.medium)
 						.duration(theme.animations.duration.extraSlow)
@@ -251,5 +237,4 @@ const HomeScreen = () => {
 		</>
 	);
 };
-
 export default HomeScreen;

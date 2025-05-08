@@ -1,9 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { z, ZodObject, AnyZodObject } from "zod";
-
 const createFormSchema = <T extends AnyZodObject>(schema: T) => {
 	type SchemaOutputType = z.infer<T>;
-
 	return {
 		validateField: (field: keyof SchemaOutputType, value: any) => {
 			if (!(schema instanceof ZodObject)) {
@@ -13,9 +11,7 @@ const createFormSchema = <T extends AnyZodObject>(schema: T) => {
 					error: "Invalid schema type for field validation.",
 				};
 			}
-
 			const fieldSchema = schema.shape[field as string];
-
 			if (!fieldSchema) {
 				console.warn(`Field "${String(field)}" not found in schema shape.`);
 				return { valid: true };
@@ -47,16 +43,13 @@ const createFormSchema = <T extends AnyZodObject>(schema: T) => {
 		},
 	};
 };
-
 export function useZodForm<T extends AnyZodObject>(
 	schema: T,
 	initialValues: Partial<z.infer<T>> = {},
 ) {
 	type SchemaOutputType = z.infer<T>;
-
 	const [values, setValues] =
 		useState<Partial<SchemaOutputType>>(initialValues);
-
 	const [errors, setErrors] = useState<
 		Partial<Record<keyof SchemaOutputType, string>>
 	>({});
@@ -64,13 +57,11 @@ export function useZodForm<T extends AnyZodObject>(
 		Partial<Record<keyof SchemaOutputType, boolean>>
 	>({});
 
-	const formSchema = useMemo(() => createFormSchema(schema), [schema]);
+	const formSchema = createFormSchema(schema);
 
 	const setValue = (field: keyof SchemaOutputType, value: any) => {
 		setValues((prev) => ({ ...prev, [field]: value }));
-
 		const validation = formSchema.validateField(field, value);
-
 		if (!validation.valid && validation.error) {
 			setErrors((prev) => ({ ...prev, [field]: validation.error }));
 		} else {
@@ -81,19 +72,15 @@ export function useZodForm<T extends AnyZodObject>(
 			});
 		}
 	};
-
 	const handleBlur = (field: keyof SchemaOutputType) => {
 		setTouched((prev) => ({ ...prev, [field]: true }));
-
 		const value = values[field];
 		const validation = formSchema.validateField(field, value);
-
 		if (!validation.valid && validation.error) {
 			setErrors((prev) => ({ ...prev, [field]: validation.error }));
 		} else {
 			setErrors((prev) => {
 				const newErrors = { ...prev };
-
 				if (validation.valid && newErrors[field]) {
 					delete newErrors[field];
 				}
@@ -101,10 +88,8 @@ export function useZodForm<T extends AnyZodObject>(
 			});
 		}
 	};
-
 	const validateForm = () => {
 		const result = formSchema.validateForm(values);
-
 		setErrors(result.errors as Partial<Record<keyof SchemaOutputType, string>>);
 		return result.valid;
 	};
@@ -114,8 +99,8 @@ export function useZodForm<T extends AnyZodObject>(
 		setTouched({});
 	};
 
-	const isValid = useMemo(() => Object.keys(errors).length === 0, [errors]);
-	const isDirty = useMemo(() => Object.keys(touched).length > 0, [touched]);
+	const isValid = Object.keys(errors).length === 0;
+	const isDirty = Object.keys(touched).length > 0;
 
 	return {
 		values,

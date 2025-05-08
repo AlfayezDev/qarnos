@@ -1,5 +1,5 @@
 import { useTheme } from "@/stores/themeStore";
-import React, { memo } from "react";
+import React from "react";
 import {
 	DimensionValue,
 	FlexAlignType,
@@ -10,7 +10,6 @@ import {
 	ViewStyle,
 } from "react-native";
 import Animated from "react-native-reanimated";
-
 type JustifyContentType =
 	| "flex-start"
 	| "flex-end"
@@ -18,7 +17,6 @@ type JustifyContentType =
 	| "space-between"
 	| "space-around"
 	| "space-evenly";
-
 interface BoxProps extends ViewProps {
 	flex?: number;
 	row?: boolean;
@@ -55,141 +53,131 @@ interface BoxProps extends ViewProps {
 	activeOpacity?: number;
 }
 
-export const Box: React.FC<BoxProps> = memo(
-	({
-		children,
+// Removed memo wrapper - React Compiler will handle this optimization
+export const Box: React.FC<BoxProps> = ({
+	children,
+	flex,
+	row,
+	gap,
+	center,
+	alignCenter,
+	paddingTop,
+	alignItems,
+	paddingBottom,
+	justifyCenter,
+	justifyContent,
+	card,
+	padding,
+	margin,
+	marginTop,
+	marginBottom,
+	marginStart,
+	marginEnd,
+	marginHorizontal,
+	marginVertical,
+	paddingHorizontal,
+	paddingVertical,
+	paddingStart,
+	paddingEnd,
+	rounded,
+	width,
+	height,
+	borderWidth,
+	borderColor,
+	bg,
+	elevation,
+	style,
+	onPress,
+	activeOpacity = 0.7,
+	...props
+}) => {
+	const theme = useTheme();
+	let finalAlignItems: FlexAlignType | undefined;
+	let finalJustifyContent: JustifyContentType | undefined;
+	if (center) {
+		finalAlignItems = "center";
+		finalJustifyContent = "center";
+	} else {
+		finalAlignItems = alignCenter ? "center" : alignItems;
+		finalJustifyContent = justifyCenter ? "center" : justifyContent;
+	}
+	const getSpacingValue = (
+		value: SpacingToken | number | undefined,
+	): number | undefined => {
+		if (value === undefined) return undefined;
+		return typeof value === "number" ? value : theme.spacing[value];
+	};
+	const getRadiusValue = (
+		value: RadiusToken | number | undefined,
+	): number | undefined => {
+		if (value === undefined) return undefined;
+		return typeof value === "number" ? value : theme.radius[value];
+	};
+	const getColorValue = (
+		color: ColorToken | string | undefined,
+	): string | undefined => {
+		if (color === undefined) return undefined;
+		if (typeof color === "string" && color in theme.colors) {
+			return theme.colors[color as ColorToken];
+		}
+		return color;
+	};
+	const getElevation = (level?: "none" | "small" | "medium" | "large") => {
+		if (!level || level === "none") return {};
+		const shadowStyle = theme.shadows[level];
+		return { ...shadowStyle, shadowColor: theme.colors.shadow };
+	};
+	const boxStyle: ViewStyle = {
 		flex,
-		row,
-		gap,
-		center,
-		alignCenter,
-		paddingTop,
-		alignItems,
-		paddingBottom,
-		justifyCenter,
-		justifyContent,
-		card,
-		padding,
-		margin,
-		marginTop,
-		marginBottom,
-		marginStart,
-		marginEnd,
-		marginHorizontal,
-		marginVertical,
-		paddingHorizontal,
-		paddingVertical,
-		paddingStart,
-		paddingEnd,
-		rounded,
+		flexDirection: row ? "row" : "column",
+		alignItems: finalAlignItems,
+		justifyContent: finalJustifyContent,
+		padding: getSpacingValue(padding),
+		margin: getSpacingValue(margin),
+		marginTop: getSpacingValue(marginTop),
+		marginBottom: getSpacingValue(marginBottom),
+		marginStart: getSpacingValue(marginStart),
+		marginEnd: getSpacingValue(marginEnd),
+		marginHorizontal: getSpacingValue(marginHorizontal),
+		marginVertical: getSpacingValue(marginVertical),
+		paddingHorizontal: getSpacingValue(paddingHorizontal),
+		paddingVertical: getSpacingValue(paddingVertical),
+		gap: getSpacingValue(gap),
+		paddingTop: getSpacingValue(paddingTop),
+		paddingBottom: getSpacingValue(paddingBottom),
+		paddingStart: getSpacingValue(paddingStart),
+		paddingEnd: getSpacingValue(paddingEnd),
+		borderRadius: getRadiusValue(rounded),
 		width,
 		height,
 		borderWidth,
-		borderColor,
-		bg,
-		elevation,
-		style,
-		onPress,
-		activeOpacity = 0.7,
-		...props
-	}) => {
-		const theme = useTheme();
-
-		let finalAlignItems: FlexAlignType | undefined;
-		let finalJustifyContent: JustifyContentType | undefined;
-
-		if (center) {
-			finalAlignItems = "center";
-			finalJustifyContent = "center";
-		} else {
-			finalAlignItems = alignCenter ? "center" : alignItems;
-			finalJustifyContent = justifyCenter ? "center" : justifyContent;
-		}
-
-		const getSpacingValue = (
-			value: SpacingToken | number | undefined,
-		): number | undefined => {
-			if (value === undefined) return undefined;
-			return typeof value === "number" ? value : theme.spacing[value];
-		};
-
-		const getRadiusValue = (
-			value: RadiusToken | number | undefined,
-		): number | undefined => {
-			if (value === undefined) return undefined;
-			return typeof value === "number" ? value : theme.radius[value];
-		};
-
-		const getColorValue = (
-			color: ColorToken | string | undefined,
-		): string | undefined => {
-			if (color === undefined) return undefined;
-			if (typeof color === "string" && color in theme.colors) {
-				return theme.colors[color as ColorToken];
-			}
-			return color;
-		};
-
-		const getElevation = (level?: "none" | "small" | "medium" | "large") => {
-			if (!level || level === "none") return {};
-			const shadowStyle = theme.shadows[level];
-			return { ...shadowStyle, shadowColor: theme.colors.shadow };
-		};
-
-		const boxStyle: ViewStyle = {
-			flex,
-			flexDirection: row ? "row" : "column",
-			alignItems: finalAlignItems,
-			justifyContent: finalJustifyContent,
-			padding: getSpacingValue(padding),
-			margin: getSpacingValue(margin),
-			marginTop: getSpacingValue(marginTop),
-			marginBottom: getSpacingValue(marginBottom),
-			marginStart: getSpacingValue(marginStart),
-			marginEnd: getSpacingValue(marginEnd),
-			marginHorizontal: getSpacingValue(marginHorizontal),
-			marginVertical: getSpacingValue(marginVertical),
-			paddingHorizontal: getSpacingValue(paddingHorizontal),
-			paddingVertical: getSpacingValue(paddingVertical),
-			gap: getSpacingValue(gap),
-			paddingTop: getSpacingValue(paddingTop),
-			paddingBottom: getSpacingValue(paddingBottom),
-			paddingStart: getSpacingValue(paddingStart),
-			paddingEnd: getSpacingValue(paddingEnd),
-			borderRadius: getRadiusValue(rounded),
-			width,
-			height,
-			borderWidth,
-			borderColor: getColorValue(borderColor),
-			backgroundColor: card ? theme.colors.card : getColorValue(bg),
-			...(card ? getElevation("small") : {}),
-			...(elevation ? getElevation(elevation) : {}),
-		};
-
-		if (onPress) {
-			return (
-				<Pressable
-					onPress={onPress}
-					style={({ pressed }) => [
-						boxStyle,
-						{ opacity: pressed ? activeOpacity : 1 },
-						style,
-					]}
-					{...props}
-					android_ripple={{ color: theme.colors.overlay }}
-				>
-					{children}
-				</Pressable>
-			);
-		}
-
+		borderColor: getColorValue(borderColor),
+		backgroundColor: card ? theme.colors.card : getColorValue(bg),
+		...(card ? getElevation("small") : {}),
+		...(elevation ? getElevation(elevation) : {}),
+	};
+	if (onPress) {
 		return (
-			<View style={[boxStyle, style]} {...props}>
+			<Pressable
+				onPress={onPress}
+				style={({ pressed }) => [
+					boxStyle,
+					{ opacity: pressed ? activeOpacity : 1 },
+					style,
+				]}
+				{...props}
+				android_ripple={{ color: theme.colors.overlay }}
+			>
 				{children}
-			</View>
+			</Pressable>
 		);
-	},
-);
+	}
+	return (
+		<View style={[boxStyle, style]} {...props}>
+			{children}
+		</View>
+	);
+};
 
 export default Box;
 export const AnimatedBox = Animated.createAnimatedComponent(Box);
