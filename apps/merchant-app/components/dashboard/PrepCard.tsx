@@ -96,12 +96,11 @@ export const TodayPrepCard = React.memo(
 				<Card
 					variant={variant}
 					rounded="sm"
-					padding="md"
 					elevation="small"
 					style={{
-						minHeight: theme.sizes.buttonLg * 3.5,
 						borderWidth: 1,
 						borderColor: theme.colors.divider,
+						paddingBottom: theme.spacing.sm,
 					}}
 					gap="xs"
 				>
@@ -126,7 +125,6 @@ export const TodayPrepCard = React.memo(
 							{translatedPeriod}
 						</Text>
 					</Box>
-
 					<Box flex={1} gap="xs" justifyContent="space-between">
 						{summary.mealsToPrep.slice(0, 3).map((meal, index) => (
 							<Box

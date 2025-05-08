@@ -53,6 +53,9 @@ export const TabButton = React.memo(
 					alignCenter
 					style={containerStyle}
 					flex={1}
+					row
+					justifyCenter
+					gap={"sm"}
 				>
 					<AnimatedIonicons
 						key={`${label}-icon-selected-${isFocused}`}
@@ -126,7 +129,7 @@ FloatingTabBarLayout.displayName = "FloatingTabBarLayout";
 const styles = StyleSheet.create({
 	container: {
 		position: "absolute",
-		bottom: 12,
+		bottom: 0,
 		left: 16,
 		right: 16,
 	},

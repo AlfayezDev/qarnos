@@ -3,7 +3,7 @@ import { TodayPrepCard } from "@/components/dashboard/PrepCard";
 import { StatsGrid } from "@/components/dashboard/StatsGrid";
 import { AnimatedBox, Box } from "@/components/ui";
 import { Tabs } from "@/components/ui/Tabs";
-import { Text } from "@/components/ui/Text";
+import { AnimatedText, Text } from "@/components/ui/Text";
 import { sizes } from "@/constants/theme/sizes";
 import { ALERTS, TODAY_PREP_SUMMARY } from "@/data";
 import { useTheme } from "@/stores/themeStore";
@@ -15,13 +15,14 @@ import Animated, {
 	FadeInUp,
 	FadeOutDown,
 	interpolate,
+	LinearTransition,
 	useAnimatedRef,
 	useAnimatedStyle,
 	useScrollViewOffset,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const PREP_CARD_WIDTH = 200; // Slightly wider cards for lofi aesthetic
+const PREP_CARD_WIDTH = 200;
 
 const HomeScreen = () => {
 	const theme = useTheme();
@@ -33,7 +34,6 @@ const HomeScreen = () => {
 		return ["Today", "Week", "Month"];
 	}, [t]);
 
-	// Map periods to lofi color variants
 	const mapPeriodToVariant = (
 		period: string,
 	): "sage" | "peach" | "lavender" => {
@@ -137,11 +137,7 @@ const HomeScreen = () => {
 	const headerStyle = useAnimatedStyle(() => {
 		const headerSize = sizes.headerHeight;
 		return {
-			opacity: interpolate(
-				scrollOffset.value,
-				[0, headerSize * 0.6], // Uses percentage of header height
-				[1, 0],
-			),
+			opacity: interpolate(scrollOffset.value, [0, headerSize * 0.6], [1, 0]),
 			transform: [
 				{
 					translateY: interpolate(
@@ -160,7 +156,7 @@ const HomeScreen = () => {
 				contentContainerStyle={{
 					paddingBottom: insets.bottom + theme.spacing.xxl * 1.5,
 					paddingTop: insets.top,
-					paddingHorizontal: theme.spacing.xs, // Added horizontal padding
+					paddingHorizontal: theme.spacing.xs,
 					backgroundColor: theme.colors.background,
 					gap: theme.spacing.xs,
 				}}
@@ -171,22 +167,33 @@ const HomeScreen = () => {
 					alignItems="center"
 					paddingHorizontal="md"
 					paddingVertical="sm"
-					marginBottom="sm" // Added margin
+					marginBottom="sm"
 					style={headerStyle}
 				>
-					<Text variant="xl" weight="semibold" numberOfLines={1}>
+					<AnimatedText
+						entering={FadeInUp.delay(theme.animations.delay.staggered.medium)
+							.duration(theme.animations.duration.extraSlow)
+							.springify()
+							.damping(theme.animations.spring.damping.light)}
+						exiting={FadeOutDown.duration(theme.animations.duration.medium)}
+						layout={LinearTransition.delay(500)}
+						variant="xl"
+						weight="semibold"
+						numberOfLines={1}
+					>
 						{currentDateString}
-					</Text>
+					</AnimatedText>
 				</AnimatedBox>
 
 				<AnimatedBox
-					marginHorizontal="sm" // Reduced margin
-					gap="md" // Reduced gap
+					marginHorizontal="sm"
+					gap="md"
 					entering={FadeInUp.delay(theme.animations.delay.staggered.medium)
 						.duration(theme.animations.duration.extraSlow)
 						.springify()
 						.damping(theme.animations.spring.damping.light)}
 					exiting={FadeOutDown.duration(theme.animations.duration.medium)}
+					layout={LinearTransition.delay(200)}
 				>
 					<Box elevation="small" padding="xs">
 						<Tabs
@@ -199,22 +206,24 @@ const HomeScreen = () => {
 					<StatsGrid stats={currentStats} key={selectedTab} />
 				</AnimatedBox>
 
-				<Box>
+				<AnimatedBox
+					entering={FadeInUp.delay(theme.animations.delay.staggered.medium)
+						.duration(theme.animations.duration.extraSlow)
+						.springify()
+						.damping(theme.animations.spring.damping.light)}
+					exiting={FadeOutDown.duration(theme.animations.duration.medium)}
+					layout={LinearTransition.delay(200)}
+				>
 					<Text
 						marginHorizontal={"md"}
 						variant="lg"
 						weight="semibold"
 						fontFamily="serif"
+						alignSelf="flex-start"
 					>
 						{t("dashboard.todaysPrep")}
 					</Text>
-					<Animated.View
-						entering={FadeInUp.delay(theme.animations.delay.staggered.medium)
-							.duration(theme.animations.duration.extraSlow)
-							.springify()
-							.damping(theme.animations.spring.damping.light)}
-						exiting={FadeOutDown.duration(theme.animations.duration.medium)}
-					>
+					<Animated.View>
 						<FlatList
 							horizontal
 							data={TODAY_PREP_SUMMARY}
@@ -236,7 +245,7 @@ const HomeScreen = () => {
 							)}
 						/>
 					</Animated.View>
-				</Box>
+				</AnimatedBox>
 				<AlertsCard
 					alerts={ALERTS}
 					onViewAlert={handleViewAlert}
