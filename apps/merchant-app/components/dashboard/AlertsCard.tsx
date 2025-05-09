@@ -114,24 +114,6 @@ const AlertItem = ({ alert, onPress, isLast = false }: AlertItemProps) => {
 	const { isRTL } = useTranslation();
 	const pressed = useSharedValue(0);
 
-	// Map alert types to lofi accent colors
-	const getAlertAccentColor = (type: string) => {
-		switch (type) {
-			case "warning":
-				return theme.colors.accentPeach;
-			case "info":
-				return theme.colors.accentSky;
-			case "error":
-				return theme.colors.accentCoral;
-			case "success":
-				return theme.colors.accentMint;
-			default:
-				return theme.colors.accentSky;
-		}
-	};
-
-	const iconColor = getAlertAccentColor(alert.type);
-
 	const handlePressIn = () => {
 		pressed.value = withTiming(1, {
 			duration: theme.animations.duration.medium,
@@ -189,8 +171,11 @@ const AlertItem = ({ alert, onPress, isLast = false }: AlertItemProps) => {
 					flexDirection: "row",
 					alignItems: "center",
 					paddingVertical: theme.spacing.md,
+					paddingHorizontal: theme.spacing.xs,
 				}}
-				android_ripple={{ color: theme.colors.overlay }}
+				android_ripple={{
+					color: theme.colors.overlay,
+				}}
 			>
 				<Box
 					width={32}

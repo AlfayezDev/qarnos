@@ -26,21 +26,6 @@ const HomeScreen = () => {
 	const insets = useSafeAreaInsets();
 	const { t, language } = useTranslation();
 
-	const mapPeriodToVariant = (
-		period: string,
-	): "sage" | "peach" | "lavender" => {
-		switch (period) {
-			case "Breakfast":
-				return "sage";
-			case "Lunch":
-				return "peach";
-			case "Dinner":
-				return "lavender";
-			default:
-				return "sage";
-		}
-	};
-
 	const currentDateString = new Date().toLocaleDateString(language, {
 		weekday: "long",
 		month: "short",
@@ -222,7 +207,6 @@ const HomeScreen = () => {
 								<TodayPrepCard
 									summary={item}
 									onPress={() => handleViewSchedule(item.period)}
-									variant={mapPeriodToVariant(item.period)}
 								/>
 							)}
 						/>

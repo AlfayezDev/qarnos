@@ -81,7 +81,7 @@ const MealCard = ({ item }: MealCardProps) => {
 							/>
 						)}
 						<Box padding="md" gap="xs" alignItems="flex-start">
-							<Text variant="lg" weight="medium" style={{ letterSpacing: 0.3 }}>
+							<Text variant="lg" weight="medium">
 								{isArabic && item.name_ar ? item.name_ar : item.name}
 							</Text>
 							<Text
@@ -95,19 +95,6 @@ const MealCard = ({ item }: MealCardProps) => {
 									? item.description_ar
 									: item.description}
 							</Text>
-							<Box row marginTop="xs">
-								<Box row alignCenter>
-									<Ionicons
-										name="flame-outline"
-										size={theme.sizes.iconXs}
-										color={theme.colors.textSecondary}
-										style={{ marginEnd: theme.spacing.xs }}
-									/>
-									<Text variant="xs" color="textSecondary">
-										{item.calories} cal
-									</Text>
-								</Box>
-							</Box>
 						</Box>
 					</Card>
 				</Pressable>

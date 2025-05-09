@@ -17,24 +17,11 @@ import { useTranslation } from "@/stores/translationStore";
 interface TodayPrepCardProps {
 	summary: MealPrepSummary;
 	onPress: () => void;
-	variant?:
-		| "sage"
-		| "peach"
-		| "lavender"
-		| "coral"
-		| "mint"
-		| "cream"
-		| "sky"
-		| "rose";
 }
 
 const PREP_CARD_WIDTH = 200;
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
-export const TodayPrepCard = ({
-	summary,
-	onPress,
-	variant = "cream",
-}: TodayPrepCardProps) => {
+export const TodayPrepCard = ({ summary, onPress }: TodayPrepCardProps) => {
 	const theme = useTheme();
 	const { t, language } = useTranslation();
 	const pressed = useSharedValue(0);
@@ -96,7 +83,7 @@ export const TodayPrepCard = ({
 			style={[{ width: PREP_CARD_WIDTH }, animatedCardStyle]}
 		>
 			<Card
-				variant={variant}
+				variant={"cream"}
 				rounded="sm"
 				elevation="small"
 				style={{
