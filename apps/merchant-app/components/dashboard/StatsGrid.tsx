@@ -28,7 +28,7 @@ interface StatsGridProps {
 export const StatsGrid = ({ stats }: StatsGridProps) => {
 	const theme = useTheme();
 	return (
-		<Box row marginHorizontal="sm" marginBottom="lg" gap="sm">
+		<Box row gap="sm">
 			{stats.map((stat) => (
 				<AnimatedBox
 					key={stat.title}

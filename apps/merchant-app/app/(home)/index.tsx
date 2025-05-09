@@ -9,7 +9,7 @@ import { ALERTS, TODAY_PREP_SUMMARY } from "@/data";
 import { useTheme } from "@/stores/themeStore";
 import { useTranslation } from "@/stores/translationStore";
 import React, { useState } from "react";
-import { FlatList } from "react-native";
+import { FlatList, View } from "react-native";
 import Animated, {
 	FadeInUp,
 	FadeOutDown,
@@ -118,8 +118,9 @@ const HomeScreen = () => {
 		})();
 		return (
 			<AnimatedBox
-				marginHorizontal="sm"
 				gap="md"
+				paddingHorizontal={"md"}
+				width={"100%"}
 				entering={FadeInUp.delay(theme.animations.delay.staggered.medium)
 					.duration(theme.animations.duration.extraSlow)
 					.springify()
@@ -144,35 +145,35 @@ const HomeScreen = () => {
 				contentContainerStyle={{
 					paddingBottom: insets.bottom + theme.spacing.xxl * 1.5,
 					paddingTop: insets.top,
-					paddingHorizontal: theme.spacing.xs,
 					backgroundColor: theme.colors.background,
-					gap: theme.spacing.xs,
+					gap: theme.spacing.lg,
 				}}
 				showsVerticalScrollIndicator={false}
 			>
-				<AnimatedBox
-					row
-					alignItems="center"
-					paddingHorizontal="md"
-					paddingVertical="sm"
-					marginBottom="sm"
-					style={headerStyle}
-				>
-					<AnimatedText
-						entering={FadeInUp.delay(theme.animations.delay.staggered.medium)
-							.duration(theme.animations.duration.extraSlow)
-							.springify()
-							.damping(theme.animations.spring.damping.light)}
-						exiting={FadeOutDown.duration(theme.animations.duration.medium)}
-						layout={LinearTransition.delay(500)}
-						variant="xl"
-						weight="semibold"
-						numberOfLines={1}
+				<View>
+					<AnimatedBox
+						row
+						alignItems="center"
+						paddingHorizontal="md"
+						paddingTop="sm"
+						style={headerStyle}
 					>
-						{currentDateString}
-					</AnimatedText>
-				</AnimatedBox>
-				<StatsGridSection />
+						<AnimatedText
+							entering={FadeInUp.delay(theme.animations.delay.staggered.medium)
+								.duration(theme.animations.duration.extraSlow)
+								.springify()
+								.damping(theme.animations.spring.damping.light)}
+							exiting={FadeOutDown.duration(theme.animations.duration.medium)}
+							layout={LinearTransition.delay(500)}
+							variant="xl"
+							weight="semibold"
+							numberOfLines={1}
+						>
+							{currentDateString}
+						</AnimatedText>
+					</AnimatedBox>
+					<StatsGridSection />
+				</View>
 				<AnimatedBox
 					entering={FadeInUp.delay(theme.animations.delay.staggered.medium)
 						.duration(theme.animations.duration.extraSlow)
