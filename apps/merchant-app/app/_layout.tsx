@@ -5,7 +5,6 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import "react-native-reanimated";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { LogBox } from "react-native";
 import { useTranslation } from "@/stores/translationStore";
 import { useTheme } from "@/stores/themeStore";
 import { Tabs, TabList, TabTrigger, TabSlot } from "expo-router/ui";
@@ -13,11 +12,6 @@ import {
 	FloatingTabBarLayout,
 	TabButton,
 } from "@/components/navigation/FloatingTabBar";
-
-// Ignore specific warnings
-LogBox.ignoreLogs([
-	"Sending `onAnimatedValueUpdate` with no listeners registered.",
-]);
 
 SplashScreen.preventAutoHideAsync();
 

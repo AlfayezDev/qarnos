@@ -1,32 +1,52 @@
 import React, { useState } from "react";
-import { FlatList, View } from "react-native";
+import { View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import Animated, { FadeInUp } from "react-native-reanimated";
-import * as Haptics from "expo-haptics";
-import { AnimatedBox, Box, Text } from "@/components/ui";
+import Animated, {
+	FadeInUp,
+	useAnimatedRef,
+	useDerivedValue,
+	useScrollViewOffset,
+} from "react-native-reanimated";
+import { Box, Text } from "@/components/ui";
 import { Tabs } from "@/components/ui/Tabs";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import MealCard from "@/components/meal/MealCard";
 import { useMealStore } from "@/stores/mealStore";
 import { useTheme } from "@/stores/themeStore";
 import { useTranslation } from "@/stores/translationStore";
+const periods = ["Breakfast", "Lunch", "Dinner"];
 
+const Header = ({
+	selectedPeriod,
+	setSelectedPeriod,
+}: { selectedPeriod: string; setSelectedPeriod: (inp: string) => void }) => {
+	const { t } = useTranslation();
+	return (
+		<Box
+			gap="lg"
+			width={"100%"}
+			style={{
+				position: "absolute",
+				zIndex: 2,
+			}}
+		>
+			<Tabs
+				tabs={periods}
+				selectedTab={selectedPeriod}
+				onSelectTab={setSelectedPeriod}
+				labelRender={(tab) => t(`periods.${tab.toLowerCase()}`)}
+			/>
+		</Box>
+	);
+};
 const MealScreen = () => {
 	const theme = useTheme();
 	const { t } = useTranslation();
-	const [selectedPeriod, setSelectedPeriod] = useState<string>("Breakfast");
 	const insets = useSafeAreaInsets();
 	const { meals } = useMealStore();
-	const periods = ["Breakfast", "Lunch", "Dinner"];
+	const [selectedPeriod, setSelectedPeriod] = useState<string>("Breakfast");
 
 	const filteredMeals = meals.filter((meal) => meal.period === selectedPeriod);
-
-	const handleSelectPeriod = (period: string) => {
-		if (period !== selectedPeriod) {
-			Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-			setSelectedPeriod(period);
-		}
-	};
 
 	function renderEmptyList() {
 		return (
@@ -53,58 +73,35 @@ const MealScreen = () => {
 			</View>
 		);
 	}
+	const scrollRef2 = useAnimatedRef<Animated.ScrollView>();
+	const scrollY = useScrollViewOffset(scrollRef2);
+	useDerivedValue(() => {
+		console.log(scrollY.value);
+	});
 
 	return (
-		<View
-			style={{
-				flex: 1,
-				backgroundColor: theme.colors.background,
-				paddingTop: insets.top,
-			}}
-		>
-			<Box
-				row
-				alignItems="center"
-				paddingHorizontal="md"
-				paddingVertical="sm"
-				style={{
-					height: theme.sizes.headerHeight,
-				}}
-			>
-				<Text variant="xl" weight="semibold" numberOfLines={1}>
-					{t("meals.title")}
-				</Text>
-			</Box>
-			<AnimatedBox
-				marginHorizontal="md"
-				gap="lg"
+		<>
+			<Header
+				setSelectedPeriod={setSelectedPeriod}
+				selectedPeriod={selectedPeriod}
+			/>
+			<Animated.FlatList
+				ref={scrollRef2 as any}
 				entering={FadeInUp.delay(50).duration(400).springify().damping(15)}
-			>
-				<Tabs
-					tabs={periods}
-					selectedTab={selectedPeriod}
-					onSelectTab={handleSelectPeriod}
-					labelRender={(tab) => t(`periods.${tab.toLowerCase()}`)}
-				/>
-			</AnimatedBox>
-			<Animated.View style={{ flex: 1 }}>
-				{filteredMeals.length > 0 ? (
-					<FlatList
-						data={filteredMeals}
-						keyExtractor={(item) => item.id}
-						renderItem={({ item }) => <MealCard item={item} />}
-						showsVerticalScrollIndicator={false}
-						contentContainerStyle={{
-							padding: theme.spacing.md,
-							paddingBottom: theme.spacing.xxl,
-							gap: theme.spacing.md,
-						}}
-					/>
-				) : (
-					renderEmptyList()
-				)}
-			</Animated.View>
-		</View>
+				key={"meals-list"}
+				data={filteredMeals}
+				keyExtractor={(item) => item.id}
+				renderItem={({ item }) => <MealCard item={item} />}
+				showsVerticalScrollIndicator={false}
+				style={{
+					paddingHorizontal: theme.spacing.md,
+					paddingTop: insets.top,
+					paddingBottom: insets.bottom + theme.spacing.xxl,
+					gap: theme.spacing.md,
+				}}
+				ListEmptyComponent={renderEmptyList}
+			/>
+		</>
 	);
 };
 

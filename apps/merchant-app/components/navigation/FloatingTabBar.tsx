@@ -1,5 +1,5 @@
 import React, { PropsWithChildren, ForwardRefRenderFunction } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, View, ViewProps } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AnimatedBox, AnimatedText, Box } from "@/components/ui";
 import { useTheme } from "@/stores/themeStore";
@@ -76,19 +76,23 @@ type FloatingTabBarLayoutProps = PropsWithChildren<{
 	style?: React.ComponentProps<typeof View>["style"];
 }>;
 
-export const FloatingTabBarLayout: ForwardRefRenderFunction<
-	View,
-	FloatingTabBarLayoutProps
-> = ({ children, style }, ref) => {
+export const FloatingTabBarLayout: React.FC<
+	ViewProps & FloatingTabBarLayoutProps
+> = ({ children, style }) => {
 	const { colors } = useTheme();
 	const insets = useSafeAreaInsets();
 
 	return (
 		<View
-			ref={ref}
 			style={[
-				styles.container,
-				{ paddingBottom: insets.bottom ? insets.bottom : 12 },
+				{
+					position: "absolute",
+					bottom: 0,
+					left: 16,
+					right: 16,
+					paddingBottom: insets.bottom ? insets.bottom : 12,
+				},
+
 				style,
 			]}
 		>
@@ -115,12 +119,3 @@ export const FloatingTabBarLayout: ForwardRefRenderFunction<
 };
 
 FloatingTabBarLayout.displayName = "FloatingTabBarLayout";
-
-const styles = StyleSheet.create({
-	container: {
-		position: "absolute",
-		bottom: 0,
-		left: 16,
-		right: 16,
-	},
-});

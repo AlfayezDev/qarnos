@@ -3,8 +3,6 @@ export interface BaseModel {
 	createdAt?: string;
 	updatedAt?: string;
 }
-
-// General types
 export type Period = "Breakfast" | "Lunch" | "Dinner";
 export type AlertType = "warning" | "info" | "error" | "success";
 export type DietaryRestriction =
@@ -13,37 +11,35 @@ export type DietaryRestriction =
 	| "vegan"
 	| "glutenFree"
 	| "dairyFree";
-
-// Enhanced meal types
 export interface MealCount {
 	name: string;
+	name_ar: string;
 	count: number;
 	id: string;
 }
-
 export interface MealPrepSummary {
 	period: Period;
 	totalMeals: number;
 	mealsToPrep: MealCount[];
 }
-
 export interface Alert extends BaseModel {
 	type: AlertType;
 	title: string;
+	title_ar?: string;
 	icon: string;
 	timestamp?: string;
 	message?: string;
+	message_ar?: string;
 	read?: boolean;
 }
-
 export interface StatItem {
 	title: string;
+	title_ar?: string;
 	value: string | number;
 	icon: string;
 	change?: number;
 	changeDirection?: "up" | "down" | "neutral";
 }
-
 export interface OverviewStats {
 	activeSubscriptions: number;
 	newThisWeek: number;
@@ -55,21 +51,20 @@ export interface OverviewStats {
 		monthly?: number;
 	};
 }
-
 export interface QuickActionItem {
 	label: string;
+	label_ar?: string;
 	icon: string;
 	action: () => void;
 	accessibilityLabel?: string;
 	accessibilityHint?: string;
 }
-
 export interface Ingredient {
 	name: string;
+	name_ar?: string;
 	quantity?: number;
 	unit?: string;
 }
-
 export interface Meal extends BaseModel {
 	dietaryRestriction?: DietaryRestriction;
 	featured: boolean;
@@ -84,7 +79,6 @@ export interface Meal extends BaseModel {
 	period: Period;
 	available: boolean;
 	image?: string;
-	// Additional properties
 	nutritionalInfo?: {
 		protein?: number;
 		carbs?: number;
@@ -95,8 +89,6 @@ export interface Meal extends BaseModel {
 	allergens?: string[];
 	tags?: string[];
 }
-
-// Enhanced navigation types
 export type RootStackParamList = {
 	Home: undefined;
 	Meals: undefined;
@@ -105,8 +97,6 @@ export type RootStackParamList = {
 	};
 	Settings: undefined;
 };
-
-// Theme types
 export interface ThemeTypography {
 	sizes: {
 		xs: number;
@@ -130,22 +120,21 @@ export interface ThemeTypography {
 		loose: number;
 	};
 }
-
-// Form field common props
 export interface FieldCommonProps {
 	label?: string;
+	label_ar?: string;
 	error?: string;
+	error_ar?: string;
 	required?: boolean;
 	disabled?: boolean;
 	accessibilityLabel?: string;
 	accessibilityHint?: string;
 }
-
-// Input field props
 export interface InputFieldProps extends FieldCommonProps {
 	value: string;
 	onChangeText: (text: string) => void;
 	placeholder?: string;
+	placeholder_ar?: string;
 	keyboardType?: "default" | "numeric" | "email-address" | "phone-pad";
 	secureTextEntry?: boolean;
 	multiline?: boolean;
@@ -154,20 +143,19 @@ export interface InputFieldProps extends FieldCommonProps {
 	rightIcon?: string;
 	leftIcon?: string;
 }
-
-// Select field options
 export interface SelectOption {
 	value: string;
 	label: string;
+	label_ar?: string;
 	icon?: string;
 	description?: string;
+	description_ar?: string;
 }
-
-// User profile and authentication types
 export interface UserProfile {
 	id: string;
 	email: string;
 	name: string;
+	name_ar?: string;
 	role: "admin" | "staff" | "cook";
 	avatarUrl?: string;
 	preferences?: {
@@ -177,8 +165,16 @@ export interface UserProfile {
 	};
 }
 
-// Enhanced type exports to ensure proper type checking
+export interface Customer extends BaseModel {
+	name: string;
+	name_ar?: string;
+	subscriptionType: string;
+	subscriptionType_ar?: string;
+	totalSpent: number;
+	orders: number;
+	joinDate: string;
+}
+
 export type MealId = Meal["id"];
 export type AlertId = Alert["id"];
-
 export {};

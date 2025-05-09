@@ -71,15 +71,7 @@ export const AlertsCard = ({
 						))}
 					</Box>
 				) : (
-					<Box
-						alignCenter
-						paddingVertical="lg"
-						bg="backgroundAlt"
-						style={{
-							borderBottomLeftRadius: theme.radius.lg,
-							borderBottomRightRadius: theme.radius.lg,
-						}}
-					>
+					<Box alignCenter paddingVertical="lg" bg="backgroundAlt">
 						<Box
 							rounded="round"
 							bg="accentMint"
@@ -221,7 +213,7 @@ const AlertItem = ({ alert, onPress, isLast = false }: AlertItemProps) => {
 					alignItems="flex-start"
 				>
 					<Text variant="sm" weight="medium" numberOfLines={1}>
-						{alert.title}
+						{isRTL ? alert.title_ar : alert.title}
 					</Text>
 					{alert.timestamp && (
 						<Text variant="xs" color="textMuted">

@@ -36,7 +36,7 @@ export const TodayPrepCard = ({
 	variant = "cream",
 }: TodayPrepCardProps) => {
 	const theme = useTheme();
-	const { t } = useTranslation();
+	const { t, language } = useTranslation();
 	const pressed = useSharedValue(0);
 	const hovered = useSharedValue(0);
 	const periodIcons = {
@@ -146,7 +146,7 @@ export const TodayPrepCard = ({
 								numberOfLines={1}
 								style={{ flexShrink: 1 }}
 							>
-								{meal.name}
+								{language === "ar" ? meal.name_ar : meal.name}
 							</Text>
 							<Text variant="md" weight="semibold">
 								{meal.count}

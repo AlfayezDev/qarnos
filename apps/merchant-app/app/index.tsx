@@ -1,14 +1,13 @@
 import { AlertsCard } from "@/components/dashboard/AlertsCard";
 import { TodayPrepCard } from "@/components/dashboard/PrepCard";
 import { StatsGrid } from "@/components/dashboard/StatsGrid";
-import { AnimatedBox, Box } from "@/components/ui";
+import { AnimatedBox } from "@/components/ui";
 import { Tabs } from "@/components/ui/Tabs";
 import { AnimatedText, Text } from "@/components/ui/Text";
 import { sizes } from "@/constants/theme/sizes";
 import { ALERTS, TODAY_PREP_SUMMARY } from "@/data";
 import { useTheme } from "@/stores/themeStore";
 import { useTranslation } from "@/stores/translationStore";
-import * as Haptics from "expo-haptics";
 import React, { useState } from "react";
 import { FlatList } from "react-native";
 import Animated, {
@@ -26,9 +25,6 @@ const HomeScreen = () => {
 	const theme = useTheme();
 	const insets = useSafeAreaInsets();
 	const { t, language } = useTranslation();
-	const [selectedTab, setSelectedTab] = useState("Today");
-
-	const tabItems = ["Today", "Week", "Month"];
 
 	const mapPeriodToVariant = (
 		period: string,
@@ -45,68 +41,12 @@ const HomeScreen = () => {
 		}
 	};
 
-	const currentStats = (() => {
-		switch (selectedTab) {
-			case "Week":
-				return [
-					{
-						title: t("dashboard.newThisWeek"),
-						value: 52,
-						icon: "people-outline",
-						variant: "sky" as const,
-					},
-					{
-						title: t("dashboard.newThisMonth"),
-						value: "+3",
-						icon: "add-circle-outline",
-						variant: "mint" as const,
-					},
-				];
-			case "Month":
-				return [
-					{
-						title: t("dashboard.newThisWeek"),
-						value: 52,
-						icon: "people-outline",
-						variant: "rose" as const,
-					},
-					{
-						title: t("dashboard.newThisMonth"),
-						value: "+12",
-						icon: "add-circle-outline",
-						variant: "cream" as const,
-					},
-				];
-			default:
-				return [
-					{
-						title: t("dashboard.newThisWeek"),
-						value: 52,
-						icon: "people-outline",
-						variant: "lavender" as const,
-					},
-					{
-						title: t("dashboard.newThisMonth"),
-						value: "+12",
-						icon: "add-circle-outline",
-						variant: "peach" as const,
-					},
-				];
-		}
-	})();
-
 	const currentDateString = new Date().toLocaleDateString(language, {
 		weekday: "long",
 		month: "short",
 		day: "numeric",
 	});
 
-	const handleSelectTab = (tab: string) => {
-		if (tab !== selectedTab) {
-			Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-			setSelectedTab(tab);
-		}
-	};
 	const handleViewSchedule = (period?: string) => {
 		console.log("Navigate to Schedule Screen, Filter:", period || "Full");
 	};
@@ -133,6 +73,85 @@ const HomeScreen = () => {
 			],
 		};
 	});
+	const StatsGridSection = () => {
+		const [selectedTab, setSelectedTab] = useState("Today");
+		const tabItems = ["Today", "Week", "Month"];
+		const handleSelectTab = (tab: string) => {
+			if (tab !== selectedTab) {
+				setSelectedTab(tab);
+			}
+		};
+
+		const currentStats = (() => {
+			switch (selectedTab) {
+				case "Week":
+					return [
+						{
+							title: t("dashboard.newThisWeek"),
+							value: 52,
+							icon: "people-outline",
+							variant: "sky" as const,
+						},
+						{
+							title: t("dashboard.newThisMonth"),
+							value: "+3",
+							icon: "add-circle-outline",
+							variant: "mint" as const,
+						},
+					];
+				case "Month":
+					return [
+						{
+							title: t("dashboard.newThisWeek"),
+							value: 52,
+							icon: "people-outline",
+							variant: "rose" as const,
+						},
+						{
+							title: t("dashboard.newThisMonth"),
+							value: "+12",
+							icon: "add-circle-outline",
+							variant: "cream" as const,
+						},
+					];
+				default:
+					return [
+						{
+							title: t("dashboard.newThisWeek"),
+							value: 52,
+							icon: "people-outline",
+							variant: "lavender" as const,
+						},
+						{
+							title: t("dashboard.newThisMonth"),
+							value: "+12",
+							icon: "add-circle-outline",
+							variant: "peach" as const,
+						},
+					];
+			}
+		})();
+		return (
+			<AnimatedBox
+				marginHorizontal="sm"
+				gap="md"
+				entering={FadeInUp.delay(theme.animations.delay.staggered.medium)
+					.duration(theme.animations.duration.extraSlow)
+					.springify()
+					.damping(theme.animations.spring.damping.light)}
+				exiting={FadeOutDown.duration(theme.animations.duration.medium)}
+				layout={LinearTransition.delay(200)}
+			>
+				<Tabs
+					tabs={tabItems}
+					selectedTab={selectedTab}
+					onSelectTab={handleSelectTab}
+					labelRender={(tab) => t(`dashboard.${tab.toLowerCase()}`)}
+				/>
+				<StatsGrid stats={currentStats} key={selectedTab} />
+			</AnimatedBox>
+		);
+	};
 	return (
 		<>
 			<Animated.ScrollView
@@ -168,26 +187,7 @@ const HomeScreen = () => {
 						{currentDateString}
 					</AnimatedText>
 				</AnimatedBox>
-				<AnimatedBox
-					marginHorizontal="sm"
-					gap="md"
-					entering={FadeInUp.delay(theme.animations.delay.staggered.medium)
-						.duration(theme.animations.duration.extraSlow)
-						.springify()
-						.damping(theme.animations.spring.damping.light)}
-					exiting={FadeOutDown.duration(theme.animations.duration.medium)}
-					layout={LinearTransition.delay(200)}
-				>
-					<Box elevation="small" padding="xs">
-						<Tabs
-							tabs={tabItems}
-							selectedTab={selectedTab}
-							onSelectTab={handleSelectTab}
-							labelRender={(tab) => t(`dashboard.${tab.toLowerCase()}`)}
-						/>
-					</Box>
-					<StatsGrid stats={currentStats} key={selectedTab} />
-				</AnimatedBox>
+				<StatsGridSection />
 				<AnimatedBox
 					entering={FadeInUp.delay(theme.animations.delay.staggered.medium)
 						.duration(theme.animations.duration.extraSlow)
