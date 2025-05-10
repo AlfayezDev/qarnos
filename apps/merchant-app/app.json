@@ -45,6 +45,10 @@
 			},
 			"reactCanary": true,
 			"reactCompiler": true
-		}
+		},
+		"extra": {
+			"supportsRTL": true
+		},
+		"plugins": ["expo-localization"]
 	}
 }

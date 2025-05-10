@@ -4,6 +4,7 @@ import { Box } from "./Box";
 import { Text } from "./Text";
 import { useTheme } from "@/stores/themeStore";
 import * as Haptics from "expo-haptics";
+import { Ionicons } from "@expo/vector-icons";
 import { radius } from "@/constants/theme/radius";
 import Animated, {
 	interpolate,
@@ -15,6 +16,9 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 type TabItem = {
 	key: string;
 	label: string;
+	label_ar?: string;
+	iconLeft?: string;
+	iconRight?: string;
 	accessibilityLabel?: string;
 	accessibilityHint?: string;
 };
@@ -52,7 +56,8 @@ const TabItem = ({
 				? labelRender(tab)
 				: tab
 			: tab.label;
-
+	const iconLeft = typeof tab !== "string" ? tab.iconLeft : undefined;
+	const iconRight = typeof tab !== "string" ? tab.iconRight : undefined;
 	const tabAccessibilityLabel =
 		typeof tab !== "string" ? tab.accessibilityLabel || tabLabel : tabLabel;
 	const tabAccessibilityHint =
@@ -105,6 +110,13 @@ const TabItem = ({
 			accessibilityLabel={tabAccessibilityLabel}
 			accessibilityHint={tabAccessibilityHint}
 		>
+			{iconLeft && (
+				<Ionicons
+					name={iconLeft as any}
+					size={theme.sizes.iconSm}
+					color={isSelected ? theme.colors.primary : theme.colors.textSecondary}
+				/>
+			)}
 			<Text
 				variant="sm"
 				color={isSelected ? "primary" : "textSecondary"}
@@ -112,6 +124,13 @@ const TabItem = ({
 			>
 				{tabLabel}
 			</Text>
+			{iconRight && (
+				<Ionicons
+					name={iconRight as any}
+					size={theme.sizes.iconSm}
+					color={isSelected ? theme.colors.primary : theme.colors.textSecondary}
+				/>
+			)}
 		</AnimatedPressable>
 	);
 };

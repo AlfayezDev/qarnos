@@ -1,45 +1,26 @@
-import { Tabs } from "@/components/ui";
 import { useTranslation } from "@/stores/translationStore";
-import { Period } from "@/types";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
-import { View } from "react-native";
+import { Stack } from "expo-router";
 import "react-native-reanimated";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function MealLayout() {
-	const PeriodsTab = () => {
-		const { t } = useTranslation();
-		const insets = useSafeAreaInsets();
-		const tabParam = useLocalSearchParams<{ tab: Period }>().tab ?? "breakfast";
-		const [tab, setTab] = useState<string>(tabParam);
-		const route = useRouter();
-		return (
-			<View style={{ paddingTop: insets.top }}>
-				<Tabs
-					tabs={["breakfast", "lunch", "dinner"]}
-					selectedTab={tab.toLowerCase()}
-					onSelectTab={(tab) => {
-						setTab(tab.toLowerCase());
-						route.setParams({
-							tab: tab.toLowerCase(),
-						});
-					}}
-					labelRender={(tab) => t(`periods.${tab.toLowerCase()}`)}
-				/>
-			</View>
-		);
-	};
+	const { t } = useTranslation();
 	return (
 		<Stack>
 			<Stack.Screen
 				name="index"
-				initialParams={{
-					tab: "breakfast",
-				}}
 				options={{
+					title: t("meals.title"),
 					headerTransparent: true,
-					header: PeriodsTab,
+					headerLargeTitleShadowVisible: false,
+					headerLargeStyle: {
+						backgroundColor: "transparent",
+					},
+					headerTitleStyle: {},
+					headerSearchBarOptions: {
+						shouldShowHintSearchIcon: true,
+						textAlign: "right",
+					},
+					headerLargeTitle: true,
 					headerShadowVisible: false,
 				}}
 			/>
@@ -54,7 +35,6 @@ export default function MealLayout() {
 						backgroundColor: "transparent",
 					},
 					headerLargeTitle: true,
-					// Hide small header shadow for continuous blur
 					headerShadowVisible: false,
 				}}
 			/>

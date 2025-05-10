@@ -1,5 +1,5 @@
-import React, { PropsWithChildren, ForwardRefRenderFunction } from "react";
-import { Pressable, View, ViewProps } from "react-native";
+import React, { PropsWithChildren } from "react";
+import { Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AnimatedBox, AnimatedText, Box } from "@/components/ui";
 import { useTheme } from "@/stores/themeStore";
@@ -9,6 +9,9 @@ import {
 	withTiming,
 } from "react-native-reanimated";
 import { AnimatedIonicons } from "../common/AnimatedIcons";
+import { BlurView } from "expo-blur";
+
+const TAB_BAR_HEIGHT = 52;
 
 type TabButtonProps = {
 	icon: string;
@@ -72,49 +75,74 @@ export const TabButton = ({
 
 TabButton.displayName = "TabButton";
 
+function TabBarBlur() {
+	const totalHeight = TAB_BAR_HEIGHT;
+	return (
+		<View style={[StyleSheet.absoluteFill]}>
+			<BlurView
+				intensity={15}
+				tint={"systemChromeMaterial"}
+				experimentalBlurMethod="dimezisBlurView"
+				style={{
+					position: "absolute",
+					bottom: 0,
+					left: 0,
+					right: 0,
+					height: totalHeight,
+					borderTopLeftRadius: 8,
+					borderTopRightRadius: 8,
+				}}
+			/>
+		</View>
+	);
+}
 type FloatingTabBarLayoutProps = PropsWithChildren<{
 	style?: React.ComponentProps<typeof View>["style"];
 }>;
 
-export const FloatingTabBarLayout: React.FC<
-	ViewProps & FloatingTabBarLayoutProps
-> = ({ children, style }) => {
+export const FloatingTabBarLayout = ({
+	children,
+	style,
+}: FloatingTabBarLayoutProps) => {
 	const { colors } = useTheme();
 	const insets = useSafeAreaInsets();
 
 	return (
-		<View
-			style={[
-				{
-					position: "absolute",
-					bottom: 0,
-					left: 16,
-					right: 16,
-					paddingBottom: insets.bottom ? insets.bottom : 12,
-				},
-
-				style,
-			]}
-		>
-			<Box
-				row
-				width={"100%"}
-				rounded={"xs"}
-				bg="card"
-				elevation="large"
-				borderColor="divider"
-				borderWidth={1}
-				padding={"xs"}
-				style={{
-					shadowColor: colors.shadow,
-					shadowOffset: { width: 0, height: 3 },
-					shadowOpacity: 0.12,
-					shadowRadius: 12,
-				}}
+		<>
+			<TabBarBlur />
+			<View
+				style={[
+					{
+						position: "absolute",
+						bottom: 0,
+						left: 16,
+						right: 16,
+						paddingBottom: insets.bottom || 12,
+					},
+					style,
+				]}
 			>
-				{children}
-			</Box>
-		</View>
+				<Box
+					row
+					width={"100%"}
+					rounded={"xs"}
+					bg="card"
+					elevation="large"
+					borderColor="divider"
+					borderWidth={1}
+					padding={"xs"}
+					style={{
+						height: TAB_BAR_HEIGHT,
+						shadowColor: colors.shadow,
+						shadowOffset: { width: 0, height: 3 },
+						shadowOpacity: 0.12,
+						shadowRadius: 12,
+					}}
+				>
+					{children}
+				</Box>
+			</View>
+		</>
 	);
 };
 

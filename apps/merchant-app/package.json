@@ -28,6 +28,7 @@
 		"expo-font": "~13.1.2",
 		"expo-haptics": "~14.1.2",
 		"expo-linking": "~7.1.2",
+		"expo-localization": "~16.1.5",
 		"expo-router": "~5.0.2-preview.4",
 		"expo-splash-screen": "~0.30.4",
 		"expo-status-bar": "~2.2.1",
@@ -52,6 +53,7 @@
 	"devDependencies": {
 		"@babel/core": "^7.25.2",
 		"@types/react": "catalog:react-native",
+		"eas-build-cache-provider": "^16.4.2",
 		"eslint": "^9.0.0",
 		"eslint-config-expo": "~9.2.0",
 		"typescript": "catalog:"
