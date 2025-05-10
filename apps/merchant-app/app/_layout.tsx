@@ -8,10 +8,12 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useTheme } from "@/stores/themeStore";
 import { ReanimatedScreenProvider } from "react-native-screens/reanimated";
 import { Stack } from "expo-router";
+import { useLanguage } from "@/hooks/useLanguage";
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+	useLanguage();
 	const { isDark, navTheme } = useTheme();
 
 	const [loaded, error] = useFonts({

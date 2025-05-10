@@ -18,7 +18,6 @@ export default function MealLayout() {
 					headerTitleStyle: {},
 					headerSearchBarOptions: {
 						shouldShowHintSearchIcon: true,
-						textAlign: "right",
 					},
 					headerLargeTitle: true,
 					headerShadowVisible: false,

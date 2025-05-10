@@ -27,6 +27,7 @@
 			"favicon": "./assets/images/favicon.png"
 		},
 		"plugins": [
+			"expo-localization",
 			"expo-router",
 			[
 				"expo-splash-screen",
@@ -45,10 +46,6 @@
 			},
 			"reactCanary": true,
 			"reactCompiler": true
-		},
-		"extra": {
-			"supportsRTL": true
-		},
-		"plugins": ["expo-localization"]
+		}
 	}
 }
