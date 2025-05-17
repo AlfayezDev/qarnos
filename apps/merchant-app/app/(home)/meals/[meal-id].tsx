@@ -1,464 +1,581 @@
 import React, { useState } from "react";
-import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
+import { View, Pressable, StatusBar } from "react-native";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import Animated, { FadeInRight, FadeInUp } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { AnimatedBox, Box, Button, Text } from "@/components/ui";
-import { TabType, Tabs } from "@/components/ui/Tabs";
-import { ErrorBoundary } from "@/components/common/ErrorBoundary";
-import { MealFormHeader } from "@/components/meal/MealFormHeader";
-import { MealImagePreview } from "@/components/meal/MealImagePreview";
 import {
-	Form,
-	FormCategory,
-	FormInput,
-	FormRadio,
-	FormSwitch,
-} from "@/components/compound/form";
-import { mealSchema } from "@/schemas/mealSchema";
-import {
-	caloriesSchema,
-	descriptionSchema,
-	nameSchema,
-	priceSchema,
-} from "@/utils/validation";
-import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
+	Gesture,
+	GestureDetector,
+	GestureHandlerRootView,
+} from "react-native-gesture-handler";
+import Animated, {
+	useAnimatedStyle,
+	useSharedValue,
+	withSpring,
+	withTiming,
+	interpolate,
+	useAnimatedScrollHandler,
+	Extrapolation,
+	FadeIn,
+	FadeInUp,
+	runOnJS,
+} from "react-native-reanimated";
+import * as Haptics from "expo-haptics";
 
-import { useMealForm } from "@/hooks/useMealForm";
+import { Box, Text } from "@/components/ui";
+import { Card } from "@/components/ui/Card";
+import { SwitchField } from "@/components/fields/SwitchField";
+import { useMealStore } from "@/stores/mealStore";
 import { useTheme } from "@/stores/themeStore";
 import { useTranslation } from "@/stores/translationStore";
 
-const MealFormScreen = () => {
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
+const MealDetailScreen = () => {
 	const { "meal-id": mealId } = useLocalSearchParams<{ "meal-id": string }>();
 	const theme = useTheme();
 	const { t, language } = useTranslation();
 	const insets = useSafeAreaInsets();
 	const router = useRouter();
-	const { isTablet, isLandscape } = useResponsiveLayout();
 	const isArabic = language === "ar";
-	const useTwoColumnLayout = isTablet && isLandscape;
-	const [activeSection, setActiveSection] = useState<string>("basic");
 
-	const {
-		meal,
-		loading,
-		isEdit,
-		handleFormSubmit,
-		handleDelete,
-		handleSelectImage,
-	} = useMealForm(mealId);
+	const { meals, setSelectedMeal, selectedMeal, deleteMeal } = useMealStore();
+	const [loading, setLoading] = useState(false);
 
-	const periodOptions = [
-		{ value: "Breakfast", label: t("periods.breakfast"), icon: "cafe-outline" },
-		{ value: "Lunch", label: t("periods.lunch"), icon: "restaurant-outline" },
-		{ value: "Dinner", label: t("periods.dinner"), icon: "fast-food-outline" },
-	];
+	// Animation values
+	const scrollY = useSharedValue(0);
+	const deletePressed = useSharedValue(0);
+	const editPressed = useSharedValue(0);
+	const imageHeight = theme.sizes.mealImageHeight * 1.1;
+	const headerHeight = 54 + (insets.top || 0);
 
-	const dietaryOptions = [
-		{ value: "none", label: "Regular", description: "No dietary restrictions" },
-		{
-			value: "vegetarian",
-			label: "Vegetarian",
-			description: "No meat, may include dairy and eggs",
-		},
-		{ value: "vegan", label: "Vegan", description: "No animal products" },
-		{
-			value: "glutenFree",
-			label: "Gluten Free",
-			description: "No wheat or gluten",
-		},
-	];
+	React.useEffect(() => {
+		if (mealId) setSelectedMeal(mealId);
+	}, [mealId, setSelectedMeal]);
 
-	const sectionTabs: TabType[] = [
-		{
-			key: "basic",
-			label: t("meals.basicInfo"),
-			iconLeft: "information-circle-outline",
+	const meal = selectedMeal || meals.find((m) => m.id === mealId);
+
+	if (!meal) {
+		return (
+			<Box flex={1} center bg="background" padding="lg">
+				<Text>Meal not found</Text>
+			</Box>
+		);
+	}
+
+	// Actions
+	const triggerHaptic = () =>
+		Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+	const handleEdit = () => {
+		triggerHaptic();
+		router.push(`/meals/${meal.id}`);
+	};
+
+	const handleDelete = () => {
+		Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+		setLoading(true);
+		setTimeout(() => {
+			deleteMeal(meal.id);
+			setLoading(false);
+			router.back();
+		}, 500);
+	};
+
+	// Icon mappings
+	const periodIcons = {
+		Breakfast: "cafe-outline",
+		Lunch: "restaurant-outline",
+		Dinner: "fast-food-outline",
+	};
+
+	// Gesture handlers
+	const scrollHandler = useAnimatedScrollHandler({
+		onScroll: (event) => {
+			scrollY.value = event.contentOffset.y;
 		},
-		{
-			key: "settings",
-			label: t("common.settings"),
-			iconLeft: "settings-outline",
-		},
-	];
+	});
+
+	// Tap gestures
+	const tapEdit = Gesture.Tap()
+		.onBegin(() => {
+			editPressed.value = withTiming(1, { duration: 100 });
+			runOnJS(triggerHaptic)();
+		})
+		.onFinalize(() => {
+			editPressed.value = withTiming(0, { duration: 200 });
+			runOnJS(handleEdit)();
+		});
+
+	const tapDelete = Gesture.Tap()
+		.onBegin(() => {
+			deletePressed.value = withTiming(1, { duration: 100 });
+			runOnJS(triggerHaptic)();
+		})
+		.onFinalize(() => {
+			deletePressed.value = withTiming(0, { duration: 200 });
+			runOnJS(handleDelete)();
+		});
+
+	// Animated styles
+	const imageAnimatedStyle = useAnimatedStyle(() => {
+		const translateY = interpolate(
+			scrollY.value,
+			[-imageHeight, 0, imageHeight],
+			[-imageHeight / 2, 0, imageHeight / 4],
+			Extrapolation.CLAMP,
+		);
+
+		const scale = interpolate(
+			scrollY.value,
+			[-imageHeight, 0, imageHeight],
+			[1.3, 1, 1],
+			Extrapolation.CLAMP,
+		);
+
+		return {
+			transform: [{ translateY }, { scale }],
+			height: imageHeight,
+		};
+	});
+
+	const headerOpacityStyle = useAnimatedStyle(() => ({
+		opacity: interpolate(scrollY.value, [-50, 0], [0, 1], Extrapolation.CLAMP),
+	}));
+
+	const headerBgStyle = useAnimatedStyle(() => {
+		const opacity = interpolate(
+			scrollY.value,
+			[0, headerHeight],
+			[0, 1],
+			Extrapolation.CLAMP,
+		);
+
+		return {
+			opacity,
+			backgroundColor: theme.colors.background,
+		};
+	});
+
+	const editButtonStyle = useAnimatedStyle(() => ({
+		transform: [
+			{
+				scale: withSpring(editPressed.value === 1 ? 0.95 : 1, {
+					damping: theme.animations.spring.damping.light,
+				}),
+			},
+		],
+		backgroundColor: withTiming(
+			editPressed.value === 1 ? theme.colors.primaryDark : theme.colors.primary,
+		),
+	}));
+
+	const deleteButtonStyle = useAnimatedStyle(() => ({
+		transform: [
+			{
+				scale: withSpring(deletePressed.value === 1 ? 0.95 : 1, {
+					damping: theme.animations.spring.damping.light,
+				}),
+			},
+		],
+		borderColor: withTiming(
+			deletePressed.value === 1
+				? theme.colors.error
+				: `${theme.colors.error}99`,
+		),
+		backgroundColor: withTiming(
+			deletePressed.value === 1 ? `${theme.colors.error}22` : "transparent",
+		),
+	}));
 
 	return (
-		<ErrorBoundary>
-			<KeyboardAvoidingView
-				style={{ flex: 1 }}
-				behavior={Platform.OS === "ios" ? "padding" : "height"}
-			>
-				<View
-					style={{
-						flex: 1,
-						backgroundColor: theme.colors.background,
-						paddingTop: insets.top,
-					}}
-				>
-					<Stack.Screen options={{ headerShown: false }} />
-					<MealFormHeader
-						title={t("meals.addNew")}
-						isEdit={isEdit}
-						mealName={meal?.name}
-						mealNameAr={meal?.name_ar}
-						onDelete={handleDelete}
-					/>
+		<GestureHandlerRootView style={{ flex: 1 }}>
+			<View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+				<StatusBar
+					translucent
+					backgroundColor="transparent"
+					barStyle="light-content"
+				/>
+				<Stack.Screen options={{ headerShown: false }} />
 
-					<ScrollView
-						style={{ flex: 1 }}
-						contentContainerStyle={{
-							padding: theme.spacing.md,
-							paddingBottom: insets.bottom + theme.spacing.xxl,
-							gap: theme.spacing.md,
-						}}
-						showsVerticalScrollIndicator={false}
-						keyboardShouldPersistTaps="handled"
+				{/* Floating header background */}
+				<Animated.View
+					style={[
+						{
+							position: "absolute",
+							top: 0,
+							left: 0,
+							right: 0,
+							height: headerHeight,
+							zIndex: 10,
+						},
+						headerBgStyle,
+					]}
+				/>
+
+				{/* Back button */}
+				<Pressable
+					style={{
+						position: "absolute",
+						top: insets.top || theme.spacing.lg,
+						left: theme.spacing.md,
+						zIndex: 20,
+						width: 40,
+						height: 40,
+						backgroundColor: "rgba(0,0,0,0.5)",
+						borderRadius: 20,
+						justifyContent: "center",
+						alignItems: "center",
+					}}
+					onPress={() => router.back()}
+				>
+					<Ionicons
+						name={isArabic ? "chevron-forward" : "chevron-back"}
+						size={24}
+						color="#fff"
+					/>
+				</Pressable>
+
+				{/* Background for overscroll */}
+				<Animated.View
+					style={[
+						{
+							position: "absolute",
+							top: 0,
+							left: 0,
+							right: 0,
+							height: imageHeight,
+							backgroundColor: theme.colors.background,
+							zIndex: -1,
+						},
+						headerOpacityStyle,
+					]}
+				/>
+
+				{/* Main content */}
+				<Animated.ScrollView
+					style={{ flex: 1 }}
+					contentContainerStyle={{
+						paddingBottom: insets.bottom + theme.spacing.xxl,
+					}}
+					showsVerticalScrollIndicator={false}
+					scrollEventThrottle={16}
+					onScroll={scrollHandler}
+					bounces={true}
+					overScrollMode="always"
+				>
+					{/* Meal Image with Parallax */}
+					<Animated.View
+						style={[
+							{
+								position: "relative",
+								overflow: "hidden",
+								backgroundColor: theme.colors.background,
+							},
+							imageAnimatedStyle,
+						]}
 					>
-						<MealImagePreview
-							image={meal?.image}
-							name={meal?.name}
-							nameAr={meal?.name_ar}
-							calories={meal?.calories}
-							prepTime={meal?.prepTime}
-							onSelectImage={handleSelectImage}
+						<Animated.Image
+							source={{
+								uri:
+									meal.image ||
+									"https://images.unsplash.com/photo-1546069901-ba9599a7e63c",
+							}}
+							style={{
+								width: "100%",
+								height: "100%",
+								position: "absolute",
+								top: 0,
+								left: 0,
+							}}
+							resizeMode="cover"
+							entering={FadeIn.duration(300)}
 						/>
 
-						<AnimatedBox
-							entering={FadeInUp.delay(200).duration(400)}
-							bg="backgroundAlt"
-							rounded="lg"
+						{/* Gradient overlay */}
+						<Box
+							style={{
+								position: "absolute",
+								top: 0,
+								left: 0,
+								right: 0,
+								bottom: 0,
+								backgroundImage:
+									"linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.4) 30%, rgba(0,0,0,0.7) 100%)",
+							}}
+						/>
+
+						{/* Content at bottom of image */}
+						<Box
+							style={{
+								position: "absolute",
+								bottom: 0,
+								left: 0,
+								right: 0,
+								padding: theme.spacing.lg,
+								paddingBottom: theme.spacing.xl,
+							}}
 						>
-							<Tabs
-								tabs={sectionTabs}
-								selectedTab={activeSection}
-								onSelectTab={setActiveSection}
-								accessibilityLabel="Section Tabs"
-							/>
-						</AnimatedBox>
-
-						<Form
-							schema={mealSchema}
-							initialValues={meal}
-							onSubmit={handleFormSubmit}
-						>
-							{activeSection === "basic" && (
-								<Animated.View
-									entering={FadeInRight.delay(100).duration(100)}
-									key={activeSection}
-									style={
-										useTwoColumnLayout
-											? {
-													flexDirection: "row",
-													flexWrap: "wrap",
-													justifyContent: "space-between",
-												}
-											: { gap: theme.spacing.md }
-									}
+							<Animated.View entering={FadeInUp.duration(400).delay(200)}>
+								<Text
+									variant="xxxl"
+									weight="bold"
+									color="#fff"
+									marginBottom="xs"
 								>
-									<View
-										style={[
-											useTwoColumnLayout ? { width: "48%" } : { width: "100%" },
-										]}
-									>
-										<Box
-											card
-											rounded="md"
-											padding="lg"
-											elevation="small"
-											gap={"md"}
-										>
-											<Box row alignItems="center">
-												<Ionicons
-													name="information-circle-outline"
-													size={theme.sizes.iconSm}
-													color={theme.colors.primary}
-													style={{ marginEnd: theme.spacing.sm }}
-												/>
-												<Text variant="lg" weight="semibold">
-													{t("meals.basicInfo")}
-												</Text>
-											</Box>
+									{isArabic && meal.name_ar ? meal.name_ar : meal.name}
+								</Text>
 
-											<Box gap={"md"}>
-												<FormInput
-													name="name"
-													label={t("meals.mealName")}
-													required
-													placeholder={t("meals.mealName")}
-													schema={nameSchema}
-												/>
-												<FormInput
-													name="name_ar"
-													label={`${t("meals.mealName")} (العربية)`}
-													placeholder={`${t("meals.mealName")} (العربية)`}
-													textAlign={isArabic ? "right" : "left"}
-												/>
-											</Box>
-
-											<Box>
-												<FormInput
-													name="description"
-													label={t("meals.description")}
-													required
-													placeholder={t("meals.description")}
-													multiline={true}
-													numberOfLines={4}
-													textAlignVertical="top"
-													schema={descriptionSchema}
-												/>
-												<FormInput
-													name="description_ar"
-													label={`${t("meals.description")} (العربية)`}
-													placeholder={`${t("meals.description")} (العربية)`}
-													multiline={true}
-													numberOfLines={4}
-													textAlign={isArabic ? "right" : "left"}
-													textAlignVertical="top"
-												/>
-											</Box>
-
-											<FormCategory
-												name="period"
-												label={t("meals.mealPeriod")}
-												options={periodOptions}
-												required
-											/>
-
-											<FormRadio
-												name="dietaryRestriction"
-												label="Dietary Restrictions"
-												options={dietaryOptions}
-											/>
-										</Box>
-									</View>
-
-									<View
-										style={
-											useTwoColumnLayout
-												? { width: "48%", marginTop: 0 }
-												: { width: "100%", marginTop: theme.spacing.md }
-										}
-									>
-										<Box
-											card
-											rounded="md"
-											padding="lg"
-											elevation="small"
-											gap={"md"}
-										>
-											<Box row alignItems="center">
-												<Ionicons
-													name="list-outline"
-													size={theme.sizes.iconSm}
-													color={theme.colors.primary}
-													style={{ marginEnd: theme.spacing.sm }}
-												/>
-												<Text variant="lg" weight="semibold">
-													{t("meals.details")}
-												</Text>
-											</Box>
-
-											<Box row gap="md">
-												<Box flex={1}>
-													<FormInput
-														name="price"
-														label={t("meals.price")}
-														required
-														placeholder="0.00"
-														keyboardType="numeric"
-														schema={priceSchema}
-														style={{
-															paddingLeft: 36,
-															fontSize: theme.typography.sizes.lg,
-															fontWeight: theme.typography.weights.semibold,
-														}}
-													/>
-													<Box
-														style={{
-															position: "absolute",
-															left: theme.spacing.md,
-															top: 20,
-															bottom: 0,
-															justifyContent: "center",
-															zIndex: 1,
-														}}
-													>
-														<Text variant="md" color="textSecondary">
-															$
-														</Text>
-													</Box>
-												</Box>
-
-												<Box flex={1}>
-													<FormInput
-														name="calories"
-														label={t("meals.calories")}
-														placeholder="0"
-														keyboardType="numeric"
-														schema={caloriesSchema}
-													/>
-													<Box
-														style={{
-															position: "absolute",
-															right: theme.spacing.md,
-															top: 20,
-															bottom: 0,
-															justifyContent: "center",
-															zIndex: 1,
-														}}
-													>
-														<Text variant="md" color="textSecondary">
-															cal
-														</Text>
-													</Box>
-												</Box>
-											</Box>
-										</Box>
-									</View>
-								</Animated.View>
-							)}
-
-							{activeSection === "settings" && (
-								<AnimatedBox
-									entering={FadeInRight.delay(100).duration(100)}
-									key={activeSection}
-									gap={"md"}
-								>
-									<Box
-										card
-										rounded="md"
-										padding="lg"
-										elevation="small"
-										gap={"md"}
-									>
+								<Box row justifyContent="space-between" alignItems="center">
+									<Box row gap="md" flex={1}>
 										<Box row alignItems="center">
-											<Ionicons
-												name="settings-outline"
-												size={theme.sizes.iconSm}
-												color={theme.colors.primary}
-												style={{ marginEnd: theme.spacing.sm }}
-											/>
-											<Text variant="lg" weight="semibold">
-												{t("common.settings")}
+											<Box
+												width={32}
+												height={32}
+												rounded="xs"
+												bg="overlayMedium"
+												alignItems="center"
+												justifyContent="center"
+												marginEnd="xs"
+											>
+												<Ionicons
+													name="flame-outline"
+													size={theme.sizes.iconSm}
+													color="#fff"
+												/>
+											</Box>
+											<Text color="#fff" weight="medium">
+												{meal.calories} cal
 											</Text>
 										</Box>
 
-										<FormSwitch
-											name="available"
-											label={
-												meal?.available
-													? t("meals.available")
-													: t("meals.unavailable")
-											}
-											description={
-												meal?.available
-													? t("meals.availableDesc")
-													: t("meals.unavailableDesc")
-											}
-											leftIcon={
-												meal?.available
-													? "checkmark-circle-outline"
-													: "close-circle-outline"
-											}
-										/>
+										<Box row alignItems="center">
+											<Box
+												width={32}
+												height={32}
+												rounded="xs"
+												bg="overlayMedium"
+												alignItems="center"
+												justifyContent="center"
+												marginEnd="xs"
+											>
+												<Ionicons
+													name="time-outline"
+													size={theme.sizes.iconSm}
+													color="#fff"
+												/>
+											</Box>
+											<Text color="#fff" weight="medium">
+												{meal.prepTime} min
+											</Text>
+										</Box>
 
-										<FormSwitch
-											name="featured"
-											label={t("meals.featured")}
-											description={t("meals.featuredDesc")}
-											leftIcon="star-outline"
-										/>
-
-										<FormSwitch
-											name="isVegan"
-											label="Vegan"
-											description="This meal contains no animal products"
-											leftIcon="leaf-outline"
-										/>
+										<Box row alignItems="center">
+											<Box
+												width={32}
+												height={32}
+												rounded="xs"
+												bg="overlayMedium"
+												alignItems="center"
+												justifyContent="center"
+												marginEnd="xs"
+											>
+												<Ionicons
+													name={periodIcons[meal.period] as any}
+													size={theme.sizes.iconSm}
+													color="#fff"
+												/>
+											</Box>
+											<Text color="#fff" weight="medium">
+												{t(`periods.${meal.period.toLowerCase()}`)}
+											</Text>
+										</Box>
 									</Box>
 
-									{isEdit && (
-										<Box
-											bg="error"
-											padding="md"
-											rounded="md"
-											style={{ opacity: 0.9 }}
-											gap={"xs"}
+									<Box
+										bg={meal.available ? "primaryLight" : "overlayMedium"}
+										paddingHorizontal="md"
+										paddingVertical="xs"
+										rounded="sm"
+									>
+										<Text
+											color={meal.available ? "primary" : "#fff"}
+											weight="semibold"
+											variant="sm"
 										>
-											<Box row alignItems="center">
-												<Ionicons
-													name="warning-outline"
-													size={theme.sizes.iconMd}
-													color="#fff"
-													style={{ marginEnd: theme.spacing.sm }}
-												/>
-												<Text variant="md" weight="semibold" color="#fff">
-													{t("meals.dangerZone")}
-												</Text>
-											</Box>
+											{meal.available
+												? t("meals.available")
+												: t("meals.unavailable")}
+										</Text>
+									</Box>
+								</Box>
+							</Animated.View>
+						</Box>
+					</Animated.View>
 
-											<Text variant="sm" color="#fff">
-												{t("meals.deleteMealWarning")}
-											</Text>
-
-											<Button
-												title={t("common.delete")}
-												variant="outline"
-												size="md"
-												style={{ borderColor: "#fff" }}
-												textColor="#fff"
-												onPress={handleDelete}
-												accessibilityLabel={t("common.delete")}
-											/>
-										</Box>
-									)}
-								</AnimatedBox>
-							)}
-
-							<AnimatedBox
-								entering={FadeInUp.delay(300).duration(400)}
-								marginTop="lg"
-							>
-								<Form.SubmitButton>
-									{({ onPress, isValid, isDirty }) => (
-										<Button
-											title={
-												isEdit ? t("meals.saveChanges") : t("meals.createMeal")
-											}
-											variant="primary"
-											size="lg"
-											loading={loading}
-											fullWidth
-											rounded
-											leftIcon="save-outline"
-											onPress={onPress}
-											disabled={!isValid || !isDirty}
-											accessibilityLabel={
-												isEdit ? t("meals.saveChanges") : t("meals.createMeal")
-											}
+					<Animated.View
+						entering={FadeInUp.delay(200).duration(500)}
+						style={{ padding: theme.spacing.lg, gap: theme.spacing.lg }}
+					>
+						{/* Price Card */}
+						<Card padding="lg" rounded="md" elevation="small">
+							<Box row justifyContent="space-between" alignItems="center">
+								<Box>
+									<Text variant="sm" color="textSecondary" marginBottom="xs">
+										{t("meals.price")}
+									</Text>
+									<Text variant="xxl" weight="bold" color="primary">
+										${meal.price.toFixed(2)}
+									</Text>
+								</Box>
+								{meal.featured && (
+									<Box
+										bg="primaryLight"
+										paddingHorizontal="md"
+										paddingVertical="xs"
+										rounded="sm"
+										row
+										alignItems="center"
+										gap="xs"
+									>
+										<Ionicons
+											name="star"
+											size={theme.sizes.iconXs}
+											color={theme.colors.primary}
 										/>
-									)}
-								</Form.SubmitButton>
+										<Text color="primary" weight="semibold" variant="sm">
+											{t("meals.featured")}
+										</Text>
+									</Box>
+								)}
+							</Box>
+						</Card>
 
-								{!isEdit && (
-									<Button
-										title={t("common.cancel")}
-										variant="ghost"
-										size="lg"
-										fullWidth
-										style={{ marginTop: theme.spacing.md }}
-										onPress={() => router.back()}
-										accessibilityLabel={t("common.cancel")}
+						{/* Description Card */}
+						<Card padding="lg" rounded="md" elevation="small">
+							<Text variant="lg" weight="semibold" marginBottom="sm">
+								{t("meals.description")}
+							</Text>
+							<Text color="textSecondary" style={{ lineHeight: 22 }}>
+								{isArabic && meal.description_ar
+									? meal.description_ar
+									: meal.description}
+							</Text>
+						</Card>
+
+						{/* Settings Card */}
+						<Card padding="lg" rounded="md" elevation="small">
+							<Text variant="lg" weight="semibold" marginBottom="md">
+								{t("common.settings")}
+							</Text>
+							<Box gap="md">
+								<SwitchField
+									value={meal.available}
+									onValueChange={() => {
+										triggerHaptic();
+										console.log("Toggle availability for", meal.id);
+									}}
+									label={
+										meal.available
+											? t("meals.available")
+											: t("meals.unavailable")
+									}
+									description={
+										meal.available
+											? t("meals.availableDesc")
+											: t("meals.unavailableDesc")
+									}
+									leftIcon={
+										meal.available
+											? "checkmark-circle-outline"
+											: "close-circle-outline"
+									}
+								/>
+								<SwitchField
+									value={meal.featured}
+									onValueChange={() => {
+										triggerHaptic();
+										console.log("Toggle featured for", meal.id);
+									}}
+									label={t("meals.featured")}
+									description={t("meals.featuredDesc")}
+									leftIcon="star-outline"
+								/>
+								{meal.isVegan && (
+									<SwitchField
+										value={meal.isVegan}
+										onValueChange={() => {}}
+										label="Vegan"
+										description="This meal contains no animal products"
+										leftIcon="leaf-outline"
+										disabled
 									/>
 								)}
-							</AnimatedBox>
-						</Form>
-					</ScrollView>
-				</View>
-			</KeyboardAvoidingView>
-		</ErrorBoundary>
+							</Box>
+						</Card>
+
+						{/* Action Buttons with Gesture Detection */}
+						<Box gap="md" marginTop="md">
+							<GestureDetector gesture={tapEdit}>
+								<Animated.View
+									style={[
+										{
+											height: theme.sizes.buttonLg,
+											borderRadius: theme.radius.button,
+											backgroundColor: theme.colors.primary,
+											flexDirection: "row",
+											alignItems: "center",
+											justifyContent: "center",
+											width: "100%",
+										},
+										editButtonStyle,
+									]}
+								>
+									<Ionicons
+										name="create-outline"
+										size={theme.sizes.iconMd}
+										color={theme.colors.background}
+										style={{ marginRight: 8 }}
+									/>
+									<Text variant="md" weight="medium" color="background">
+										{t("common.edit")}
+									</Text>
+								</Animated.View>
+							</GestureDetector>
+
+							<GestureDetector gesture={tapDelete}>
+								<Animated.View
+									style={[
+										{
+											height: theme.sizes.buttonLg,
+											borderRadius: theme.radius.button,
+											borderWidth: 1,
+											borderColor: `${theme.colors.error}99`,
+											flexDirection: "row",
+											alignItems: "center",
+											justifyContent: "center",
+											width: "100%",
+										},
+										deleteButtonStyle,
+									]}
+								>
+									<Ionicons
+										name="trash-outline"
+										size={theme.sizes.iconMd}
+										color={theme.colors.error}
+										style={{ marginRight: 8 }}
+									/>
+									<Text variant="md" weight="medium" color="error">
+										{t("common.delete")}
+									</Text>
+								</Animated.View>
+							</GestureDetector>
+						</Box>
+					</Animated.View>
+				</Animated.ScrollView>
+			</View>
+		</GestureHandlerRootView>
 	);
 };
 
-export default MealFormScreen;
+export default MealDetailScreen;
